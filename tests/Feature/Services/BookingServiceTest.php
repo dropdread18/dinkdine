@@ -11,6 +11,7 @@ use App\Models\Booking;
 use App\Models\BusinessHour;
 use App\Models\Court;
 use App\Models\CourtMaintenance;
+use App\Models\Payment;
 use App\Models\Setting;
 use App\Models\User;
 use App\Services\AvailabilityService;
@@ -381,5 +382,41 @@ class BookingServiceTest extends TestCase
         $this->service->cancel($booking);
 
         $this->assertFalse($this->service->isEligibleForCustomerAction($booking->fresh()));
+    }
+
+    public function test_booking_gets_an_unpaid_payment_record_matching_its_price(): void
+    {
+        $court = Court::factory()->create(['hourly_rate' => 300]);
+        $booking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+
+        $payment = Payment::where('booking_id', $booking->id)->firstOrFail();
+        $this->assertSame(PaymentStatus::Unpaid, $payment->status);
+        $this->assertEquals(300.00, (float) $payment->amount);
+    }
+
+    public function test_rescheduling_updates_the_unpaid_payment_amount(): void
+    {
+        $courtA = Court::factory()->create(['hourly_rate' => 300]);
+        $courtB = Court::factory()->create(['hourly_rate' => 500]);
+        $booking = $this->service->book(User::factory()->customer()->create(), $courtA, $this->date, '09:00:00', '10:00:00');
+
+        $this->service->reschedule($booking, $courtB, $this->date, '11:00:00', '12:00:00');
+
+        $payment = Payment::where('booking_id', $booking->id)->firstOrFail();
+        $this->assertEquals(500.00, (float) $payment->amount);
+    }
+
+    public function test_rescheduling_does_not_change_the_amount_of_an_already_paid_payment(): void
+    {
+        $courtA = Court::factory()->create(['hourly_rate' => 300]);
+        $courtB = Court::factory()->create(['hourly_rate' => 500]);
+        $booking = $this->service->book(User::factory()->customer()->create(), $courtA, $this->date, '09:00:00', '10:00:00');
+
+        $payment = Payment::where('booking_id', $booking->id)->firstOrFail();
+        $payment->update(['status' => PaymentStatus::Paid, 'method' => 'cash', 'paid_at' => now()]);
+
+        $this->service->reschedule($booking, $courtB, $this->date, '11:00:00', '12:00:00');
+
+        $this->assertEquals(300.00, (float) $payment->fresh()->amount);
     }
 }

@@ -9,6 +9,7 @@ use App\Enums\SlotStatus;
 use App\Exceptions\BookingUnavailableException;
 use App\Models\Booking;
 use App\Models\Court;
+use App\Models\Payment;
 use App\Models\Setting;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -68,7 +69,7 @@ class BookingService
                 );
             }
 
-            return Booking::create([
+            $booking = Booking::create([
                 'user_id' => $user->id,
                 'court_id' => $court->id,
                 'booking_date' => $date,
@@ -80,6 +81,14 @@ class BookingService
                 'source' => $source,
                 'notes' => $notes,
             ]);
+
+            Payment::create([
+                'booking_id' => $booking->id,
+                'amount' => $booking->price,
+                'status' => PaymentStatus::Unpaid,
+            ]);
+
+            return $booking;
         });
     }
 
@@ -124,6 +133,15 @@ class BookingService
                 'end_time' => $endTime,
                 'price' => $this->calculatePrice($court, $startTime, $endTime),
             ]);
+
+            // Keep the payment amount in sync with the new price - but only
+            // while nothing has actually been paid yet. Once money has
+            // moved, changing the recorded amount out from under it would
+            // misrepresent what was actually collected; a price difference
+            // after payment needs a human to reconcile, not a silent update.
+            if ($booking->payment && $booking->payment->status === PaymentStatus::Unpaid) {
+                $booking->payment->update(['amount' => $booking->price]);
+            }
 
             return $booking->fresh();
         });

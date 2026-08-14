@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CourtController;
+use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
@@ -38,6 +39,15 @@ Route::middleware(['auth', 'role:admin'])->get('/admin/dashboard', function () {
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('courts', CourtController::class)->except(['show']);
+});
+
+// Payments is an admin-only capability (Requirements.md §51 lists it under
+// Admin Navigation only - Staff Navigation §52 does not include it).
+Route::middleware(['auth', 'role:admin'])->prefix('manage')->name('manage.')->group(function () {
+    Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+    Route::patch('payments/{payment}/mark-paid', [PaymentController::class, 'markPaid'])->name('payments.mark-paid');
+    Route::patch('payments/{payment}/mark-failed', [PaymentController::class, 'markFailed'])->name('payments.mark-failed');
+    Route::patch('payments/{payment}/refund', [PaymentController::class, 'refund'])->name('payments.refund');
 });
 
 Route::middleware(['auth', 'role:admin,staff'])->get('/staff/dashboard', function () {

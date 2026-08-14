@@ -49,5 +49,12 @@
                 </form>
             @endif
         </div>
+
+        @if (auth()->user()->isAdmin())
+            @if ($booking->status === \App\Enums\BookingStatus::Cancelled && $booking->payment?->status === \App\Enums\PaymentStatus::Paid)
+                <p class="text-amber-700 text-sm mt-4">This booking is cancelled but the payment is still marked Paid — refund it below if applicable.</p>
+            @endif
+            @include('partials.payment-actions', ['payment' => $booking->payment])
+        @endif
     @endif
 @endsection

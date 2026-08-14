@@ -69,7 +69,7 @@ class BookingController extends Controller
         Gate::authorize('view', $booking);
 
         return view('bookings.show', [
-            'booking' => $booking->load(['court', 'user']),
+            'booking' => $booking->load(['court', 'user', 'payment']),
             'canManage' => $bookingService->isEligibleForCustomerAction($booking),
         ]);
     }
