@@ -5,7 +5,7 @@
 
     <h2 class="text-sm font-medium text-gray-500 uppercase mb-2">Upcoming</h2>
     @forelse ($upcoming as $booking)
-        <a href="{{ route('bookings.show', $booking) }}" class="block bg-white border rounded-lg p-3 mb-2 text-sm hover:bg-gray-50">
+        <div class="bg-white border rounded-lg p-3 mb-2 text-sm">
             <div class="flex justify-between">
                 <span class="font-medium text-gray-900">{{ $booking->court->name }}</span>
                 <span class="text-gray-500">{{ $booking->status->label() }}</span>
@@ -15,7 +15,18 @@
                 {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $booking->start_time)->format('g:i A') }} -
                 {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $booking->end_time)->format('g:i A') }}
             </div>
-        </a>
+            <div class="mt-2 flex gap-3">
+                <a href="{{ route('bookings.show', $booking) }}" class="underline text-gray-600">View</a>
+                @if ($eligibleIds->contains($booking->id))
+                    <a href="{{ route('bookings.reschedule', $booking) }}" class="underline text-gray-600">Reschedule</a>
+                    <form method="POST" action="{{ route('bookings.cancel', $booking) }}">
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit" class="underline text-red-700">Cancel</button>
+                    </form>
+                @endif
+            </div>
+        </div>
     @empty
         <p class="text-gray-500 text-sm mb-4">No upcoming bookings. <a href="{{ route('bookings.index') }}" class="underline">Book a court</a>.</p>
     @endforelse

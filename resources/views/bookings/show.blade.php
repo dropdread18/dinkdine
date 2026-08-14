@@ -24,7 +24,19 @@
     </div>
 
     @if (auth()->user()->isCustomer())
-        <a href="{{ route('bookings.mine') }}" class="inline-block mt-6 text-sm underline text-gray-600">View my bookings</a>
+        <div class="mt-6 flex gap-3 text-sm">
+            <a href="{{ route('bookings.mine') }}" class="underline text-gray-600">View my bookings</a>
+            @if ($canManage)
+                <a href="{{ route('bookings.reschedule', $booking) }}" class="underline text-gray-600">Reschedule</a>
+                <form method="POST" action="{{ route('bookings.cancel', $booking) }}">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit" class="underline text-red-700">Cancel Booking</button>
+                </form>
+            @elseif ($booking->status !== \App\Enums\BookingStatus::Cancelled)
+                <span class="text-gray-400">Too close to start time to cancel or reschedule online — contact the facility directly.</span>
+            @endif
+        </div>
     @else
         <div class="mt-6 flex gap-3 text-sm">
             <a href="{{ route('manage.bookings.index') }}" class="underline text-gray-600">Back to Bookings</a>

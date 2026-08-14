@@ -36,6 +36,7 @@ class BookingServiceTest extends TestCase
         Setting::set('default_booking_duration_minutes', '60');
         Setting::set('min_booking_notice_minutes', '30');
         Setting::set('max_advance_booking_days', '30');
+        Setting::set('cancellation_deadline_hours', '4');
 
         $this->date = CarbonImmutable::now()->addDays(2)->toDateString();
 
@@ -302,5 +303,83 @@ class BookingServiceTest extends TestCase
 
         $this->expectException(BookingUnavailableException::class);
         $this->service->cancel($booking->fresh());
+    }
+
+    public function test_customer_can_cancel_a_booking_well_outside_the_deadline(): void
+    {
+        // $this->date is 2 days out - well past the 4-hour cancellation deadline.
+        $court = Court::factory()->create();
+        $booking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+
+        $cancelled = $this->service->cancel($booking, enforcePolicy: true);
+
+        $this->assertSame(BookingStatus::Cancelled, $cancelled->status);
+    }
+
+    public function test_customer_cannot_cancel_a_booking_within_the_deadline(): void
+    {
+        $court = Court::factory()->create();
+        $slotStart = CarbonImmutable::now()->startOfHour()->addHour(); // within the 4-hour window
+        BusinessHour::updateOrCreate(
+            ['day_of_week' => $slotStart->dayOfWeek],
+            ['opens_at' => '00:00:00', 'closes_at' => '23:59:00', 'is_closed' => false],
+        );
+        $booking = $this->service->book(
+            User::factory()->customer()->create(), $court, $slotStart->toDateString(),
+            $slotStart->format('H:i:s'), $slotStart->addHour()->format('H:i:s'),
+            enforceBookingWindow: false,
+        );
+
+        $this->assertFalse($this->service->isEligibleForCustomerAction($booking));
+
+        $this->expectException(BookingUnavailableException::class);
+        $this->service->cancel($booking, enforcePolicy: true);
+    }
+
+    public function test_customer_cannot_reschedule_a_booking_within_the_deadline(): void
+    {
+        $court = Court::factory()->create();
+        $slotStart = CarbonImmutable::now()->startOfHour()->addHour();
+        BusinessHour::updateOrCreate(
+            ['day_of_week' => $slotStart->dayOfWeek],
+            ['opens_at' => '00:00:00', 'closes_at' => '23:59:00', 'is_closed' => false],
+        );
+        $booking = $this->service->book(
+            User::factory()->customer()->create(), $court, $slotStart->toDateString(),
+            $slotStart->format('H:i:s'), $slotStart->addHour()->format('H:i:s'),
+            enforceBookingWindow: false,
+        );
+
+        $this->expectException(BookingUnavailableException::class);
+        $this->service->reschedule($booking, $court, $this->date, '09:00:00', '10:00:00', enforcePolicy: true);
+    }
+
+    public function test_staff_cancel_and_reschedule_bypass_the_customer_deadline_by_default(): void
+    {
+        $court = Court::factory()->create();
+        $slotStart = CarbonImmutable::now()->startOfHour()->addHour();
+        BusinessHour::updateOrCreate(
+            ['day_of_week' => $slotStart->dayOfWeek],
+            ['opens_at' => '00:00:00', 'closes_at' => '23:59:00', 'is_closed' => false],
+        );
+        $booking = $this->service->book(
+            User::factory()->customer()->create(), $court, $slotStart->toDateString(),
+            $slotStart->format('H:i:s'), $slotStart->addHour()->format('H:i:s'),
+            enforceBookingWindow: false,
+        );
+
+        // No enforcePolicy passed - defaults to false, matching staff usage.
+        $cancelled = $this->service->cancel($booking);
+
+        $this->assertSame(BookingStatus::Cancelled, $cancelled->status);
+    }
+
+    public function test_is_eligible_for_customer_action_is_false_once_cancelled(): void
+    {
+        $court = Court::factory()->create();
+        $booking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+        $this->service->cancel($booking);
+
+        $this->assertFalse($this->service->isEligibleForCustomerAction($booking->fresh()));
     }
 }

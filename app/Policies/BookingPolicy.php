@@ -14,4 +14,18 @@ class BookingPolicy
     {
         return $user->id === $booking->user_id || $user->isStaff() || $user->isAdmin();
     }
+
+    /**
+     * Self-service cancel/reschedule is owner-only - staff/admin use the
+     * separate /manage/bookings routes, which don't go through this check.
+     */
+    public function cancel(User $user, Booking $booking): bool
+    {
+        return $user->id === $booking->user_id;
+    }
+
+    public function reschedule(User $user, Booking $booking): bool
+    {
+        return $user->id === $booking->user_id;
+    }
 }

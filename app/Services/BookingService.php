@@ -91,8 +91,12 @@ class BookingService
      *
      * @throws BookingUnavailableException
      */
-    public function reschedule(Booking $booking, Court $court, string $date, string $startTime, string $endTime): Booking
+    public function reschedule(Booking $booking, Court $court, string $date, string $startTime, string $endTime, bool $enforcePolicy = false): Booking
     {
+        if ($enforcePolicy) {
+            $this->assertEligibleForCustomerAction($booking, 'rescheduled');
+        }
+
         $this->assertWithinBookingWindow($date, $startTime);
         $this->assertSlotIsAvailable($court, $date, $startTime, $endTime, excludeBookingId: $booking->id);
 
@@ -126,12 +130,21 @@ class BookingService
     }
 
     /**
+     * @param  bool  $enforcePolicy  Staff/admin bypass the customer eligibility
+     *                               window (default false here - opposite default
+     *                               from reschedule()/book() since staff cancelling
+     *                               is the far more common caller today).
+     *
      * @throws BookingUnavailableException
      */
-    public function cancel(Booking $booking, ?string $reason = null): Booking
+    public function cancel(Booking $booking, ?string $reason = null, bool $enforcePolicy = false): Booking
     {
         if ($booking->status === BookingStatus::Cancelled) {
             throw new BookingUnavailableException('This booking is already cancelled.');
+        }
+
+        if ($enforcePolicy) {
+            $this->assertEligibleForCustomerAction($booking, 'cancelled');
         }
 
         $booking->update([
@@ -140,6 +153,41 @@ class BookingService
         ]);
 
         return $booking->fresh();
+    }
+
+    /**
+     * Whether a customer (not staff/admin) may cancel or reschedule this
+     * booking right now: it must still be Pending/Confirmed, and at least
+     * `cancellation_deadline_hours` (Requirements.md §20, default 4) before
+     * its start time. Public so views can hide the Cancel/Reschedule
+     * buttons instead of only failing after the fact.
+     */
+    public function isEligibleForCustomerAction(Booking $booking): bool
+    {
+        if (! in_array($booking->status, [BookingStatus::Pending, BookingStatus::Confirmed], true)) {
+            return false;
+        }
+
+        $deadlineHours = (int) (Setting::get('cancellation_deadline_hours') ?? 4);
+        $bookingStart = CarbonImmutable::parse($booking->booking_date->toDateString().' '.$booking->start_time);
+
+        return CarbonImmutable::now()->addHours($deadlineHours)->lte($bookingStart);
+    }
+
+    /**
+     * @throws BookingUnavailableException
+     */
+    private function assertEligibleForCustomerAction(Booking $booking, string $action): void
+    {
+        if ($this->isEligibleForCustomerAction($booking)) {
+            return;
+        }
+
+        $deadlineHours = (int) (Setting::get('cancellation_deadline_hours') ?? 4);
+
+        throw new BookingUnavailableException(
+            "This booking can no longer be {$action} online - it's either already finished, cancelled, or within the {$deadlineHours}-hour cutoff. Please contact the facility directly."
+        );
     }
 
     private function assertWithinBookingWindow(string $date, string $startTime): void

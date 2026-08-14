@@ -64,14 +64,17 @@ class BookingController extends Controller
         return redirect()->route('bookings.show', $booking)->with('status', 'Booking confirmed.');
     }
 
-    public function show(Booking $booking): View
+    public function show(Booking $booking, BookingService $bookingService): View
     {
         Gate::authorize('view', $booking);
 
-        return view('bookings.show', ['booking' => $booking->load(['court', 'user'])]);
+        return view('bookings.show', [
+            'booking' => $booking->load(['court', 'user']),
+            'canManage' => $bookingService->isEligibleForCustomerAction($booking),
+        ]);
     }
 
-    public function mine(Request $request): View
+    public function mine(Request $request, BookingService $bookingService): View
     {
         $bookings = $request->user()->bookings()->with('court')->orderByDesc('booking_date')->orderByDesc('start_time')->get();
 
@@ -80,6 +83,70 @@ class BookingController extends Controller
         return view('bookings.mine', [
             'upcoming' => $bookings->filter(fn (Booking $b) => $b->booking_date->toDateString() >= $today)->sortBy('booking_date'),
             'past' => $bookings->filter(fn (Booking $b) => $b->booking_date->toDateString() < $today),
+            'eligibleIds' => $bookings->filter(fn (Booking $b) => $bookingService->isEligibleForCustomerAction($b))->pluck('id'),
         ]);
+    }
+
+    public function cancel(Request $request, Booking $booking, BookingService $bookingService): RedirectResponse
+    {
+        Gate::authorize('cancel', $booking);
+
+        try {
+            $bookingService->cancel($booking, $request->input('reason'), enforcePolicy: true);
+        } catch (BookingUnavailableException $e) {
+            return back()->withErrors(['booking' => $e->getMessage()]);
+        }
+
+        return back()->with('status', 'Booking cancelled.');
+    }
+
+    public function reschedule(Request $request, Booking $booking, AvailabilityService $availability): View
+    {
+        Gate::authorize('reschedule', $booking);
+
+        $date = $request->query('date', $booking->booking_date->toDateString());
+        $minNoticeMinutes = (int) (Setting::get('min_booking_notice_minutes') ?? 30);
+        $maxAdvanceDays = (int) (Setting::get('max_advance_booking_days') ?? 30);
+
+        return view('bookings.reschedule', [
+            'booking' => $booking,
+            'date' => $date,
+            'availability' => $availability->forDate($date, excludeBookingId: $booking->id),
+            'bookableFrom' => now()->addMinutes($minNoticeMinutes),
+            'minDate' => now()->toDateString(),
+            'maxDate' => now()->addDays($maxAdvanceDays)->toDateString(),
+        ]);
+    }
+
+    public function rescheduleForm(StoreBookingRequest $request, Booking $booking, Court $court): View
+    {
+        Gate::authorize('reschedule', $booking);
+
+        $data = $request->safe()->only(['date', 'start_time', 'end_time']);
+
+        return view('bookings.reschedule-confirm', [
+            'booking' => $booking,
+            'court' => $court,
+            'date' => $data['date'],
+            'startTime' => $data['start_time'],
+            'endTime' => $data['end_time'],
+        ]);
+    }
+
+    public function rescheduleUpdate(StoreBookingRequest $request, Booking $booking, Court $court, BookingService $bookingService): RedirectResponse
+    {
+        Gate::authorize('reschedule', $booking);
+
+        $data = $request->validated();
+
+        try {
+            $bookingService->reschedule(
+                $booking, $court, $data['date'], $data['start_time'], $data['end_time'], enforcePolicy: true
+            );
+        } catch (BookingUnavailableException $e) {
+            return back()->withErrors(['booking' => $e->getMessage()]);
+        }
+
+        return redirect()->route('bookings.show', $booking)->with('status', 'Booking rescheduled.');
     }
 }
