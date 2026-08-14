@@ -33,7 +33,10 @@ use Illuminate\Support\Facades\DB;
  */
 class BookingService
 {
-    public function __construct(private readonly AvailabilityService $availability) {}
+    public function __construct(
+        private readonly AvailabilityService $availability,
+        private readonly PricingService $pricing,
+    ) {}
 
     /**
      * @throws BookingUnavailableException
@@ -75,7 +78,7 @@ class BookingService
                 'booking_date' => $date,
                 'start_time' => $startTime,
                 'end_time' => $endTime,
-                'price' => $this->calculatePrice($court, $startTime, $endTime),
+                'price' => $this->pricing->calculate($court, $startTime, $endTime),
                 'status' => BookingStatus::Confirmed,
                 'payment_status' => PaymentStatus::Unpaid,
                 'source' => $source,
@@ -89,6 +92,59 @@ class BookingService
             ]);
 
             return $booking;
+        });
+    }
+
+    /**
+     * Books several slots as one all-or-nothing action (DEC-004: a customer
+     * selects any combination of slots - not necessarily consecutive or on
+     * the same court - and confirms them together). Wraps everything in one
+     * outer transaction; each slot still goes through book()'s full
+     * validation and its own inner transaction (Laravel nests these as
+     * savepoints), so if any slot fails, every booking in the batch -
+     * including ones that "succeeded" earlier in the loop - rolls back.
+     * The exception is re-thrown with the specific slot identified, so the
+     * caller can tell the customer exactly which selection to fix.
+     *
+     * @param  array<int, array{court: Court, date: string, start_time: string, end_time: string}>  $slots
+     * @return Booking[]
+     *
+     * @throws BookingUnavailableException
+     */
+    public function bookMany(
+        User $user,
+        array $slots,
+        ?string $notes = null,
+        BookingSource $source = BookingSource::Online,
+        bool $enforceBookingWindow = true,
+    ): array {
+        if (empty($slots)) {
+            throw new BookingUnavailableException('Select at least one time slot.');
+        }
+
+        return DB::transaction(function () use ($user, $slots, $notes, $source, $enforceBookingWindow) {
+            $bookings = [];
+
+            foreach ($slots as $slot) {
+                try {
+                    $bookings[] = $this->book(
+                        user: $user,
+                        court: $slot['court'],
+                        date: $slot['date'],
+                        startTime: $slot['start_time'],
+                        endTime: $slot['end_time'],
+                        notes: $notes,
+                        source: $source,
+                        enforceBookingWindow: $enforceBookingWindow,
+                    );
+                } catch (BookingUnavailableException $e) {
+                    $when = CarbonImmutable::parse($slot['date'].' '.$slot['start_time'])->format('M j \a\t g:i A');
+
+                    throw new BookingUnavailableException("{$slot['court']->name}, {$when}: {$e->getMessage()}");
+                }
+            }
+
+            return $bookings;
         });
     }
 
@@ -131,7 +187,7 @@ class BookingService
                 'booking_date' => $date,
                 'start_time' => $startTime,
                 'end_time' => $endTime,
-                'price' => $this->calculatePrice($court, $startTime, $endTime),
+                'price' => $this->pricing->calculate($court, $startTime, $endTime),
             ]);
 
             // Keep the payment amount in sync with the new price - but only
@@ -245,12 +301,4 @@ class BookingService
         }
     }
 
-    private function calculatePrice(Court $court, string $startTime, string $endTime): float
-    {
-        $start = CarbonImmutable::createFromFormat('H:i:s', $startTime);
-        $end = CarbonImmutable::createFromFormat('H:i:s', $endTime);
-        $minutes = abs($end->getTimestamp() - $start->getTimestamp()) / 60;
-
-        return round((float) $court->hourly_rate * ($minutes / 60), 2);
-    }
 }

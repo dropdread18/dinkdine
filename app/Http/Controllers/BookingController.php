@@ -17,16 +17,15 @@ use Illuminate\View\View;
 
 class BookingController extends Controller
 {
-    public function index(Request $request, AvailabilityService $availability): View
+    public function index(Request $request): View
     {
         $date = $request->query('date', now()->toDateString());
-        $minNoticeMinutes = (int) (Setting::get('min_booking_notice_minutes') ?? 30);
         $maxAdvanceDays = (int) (Setting::get('max_advance_booking_days') ?? 30);
 
+        // Availability itself is computed inside the BookingGrid Livewire
+        // component (it owns slot selection), not here.
         return view('bookings.index', [
             'date' => $date,
-            'availability' => $availability->forDate($date),
-            'bookableFrom' => now()->addMinutes($minNoticeMinutes),
             'minDate' => now()->toDateString(),
             'maxDate' => now()->addDays($maxAdvanceDays)->toDateString(),
         ]);

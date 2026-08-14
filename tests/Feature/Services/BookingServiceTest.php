@@ -16,6 +16,7 @@ use App\Models\Setting;
 use App\Models\User;
 use App\Services\AvailabilityService;
 use App\Services\BookingService;
+use App\Services\PricingService;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -32,7 +33,7 @@ class BookingServiceTest extends TestCase
     {
         parent::setUp();
 
-        $this->service = new BookingService(new AvailabilityService);
+        $this->service = new BookingService(new AvailabilityService, new PricingService);
 
         Setting::set('default_booking_duration_minutes', '60');
         Setting::set('min_booking_notice_minutes', '30');
@@ -418,5 +419,72 @@ class BookingServiceTest extends TestCase
         $this->service->reschedule($booking, $courtB, $this->date, '11:00:00', '12:00:00');
 
         $this->assertEquals(300.00, (float) $payment->fresh()->amount);
+    }
+
+    public function test_book_many_creates_a_booking_per_slot(): void
+    {
+        $courtA = Court::factory()->create(['hourly_rate' => 300]);
+        $courtB = Court::factory()->create(['hourly_rate' => 400]);
+        $user = User::factory()->customer()->create();
+
+        $bookings = $this->service->bookMany($user, [
+            ['court' => $courtA, 'date' => $this->date, 'start_time' => '09:00:00', 'end_time' => '10:00:00'],
+            ['court' => $courtB, 'date' => $this->date, 'start_time' => '11:00:00', 'end_time' => '12:00:00'],
+        ]);
+
+        $this->assertCount(2, $bookings);
+        $this->assertDatabaseCount('bookings', 2);
+        $this->assertDatabaseCount('payments', 2);
+        $this->assertSame($user->id, $bookings[0]->user_id);
+        $this->assertSame($user->id, $bookings[1]->user_id);
+    }
+
+    public function test_book_many_rejects_an_empty_selection(): void
+    {
+        $this->expectException(BookingUnavailableException::class);
+        $this->service->bookMany(User::factory()->customer()->create(), []);
+    }
+
+    public function test_book_many_rolls_back_every_booking_if_one_slot_fails(): void
+    {
+        $courtA = Court::factory()->create();
+        $courtB = Court::factory()->create();
+        $user = User::factory()->customer()->create();
+
+        // Someone else already has courtB at 11:00-12:00.
+        Booking::factory()->create([
+            'court_id' => $courtB->id, 'booking_date' => $this->date, 'start_time' => '11:00:00', 'end_time' => '12:00:00',
+        ]);
+
+        try {
+            $this->service->bookMany($user, [
+                ['court' => $courtA, 'date' => $this->date, 'start_time' => '09:00:00', 'end_time' => '10:00:00'],
+                ['court' => $courtB, 'date' => $this->date, 'start_time' => '11:00:00', 'end_time' => '12:00:00'],
+            ]);
+            $this->fail('Expected a BookingUnavailableException.');
+        } catch (BookingUnavailableException $e) {
+            $this->assertStringContainsString($courtB->name, $e->getMessage());
+        }
+
+        // The first slot must NOT have survived, even though it was valid
+        // on its own - the whole batch is all-or-nothing.
+        $this->assertSame(0, Booking::where('user_id', $user->id)->count());
+    }
+
+    public function test_book_many_passes_through_source_and_enforce_booking_window(): void
+    {
+        $court = Court::factory()->create();
+        $user = User::factory()->customer()->create();
+        $slotStart = CarbonImmutable::now()->startOfHour();
+        BusinessHour::updateOrCreate(
+            ['day_of_week' => $slotStart->dayOfWeek],
+            ['opens_at' => '00:00:00', 'closes_at' => '23:59:00', 'is_closed' => false],
+        );
+
+        $bookings = $this->service->bookMany($user, [
+            ['court' => $court, 'date' => $slotStart->toDateString(), 'start_time' => $slotStart->format('H:i:s'), 'end_time' => $slotStart->addHour()->format('H:i:s')],
+        ], source: BookingSource::WalkIn, enforceBookingWindow: false);
+
+        $this->assertSame(BookingSource::WalkIn, $bookings[0]->source);
     }
 }

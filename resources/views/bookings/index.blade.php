@@ -26,5 +26,5 @@
         </div>
     </div>
 
-    @include('partials.availability-grid', ['slotRouteName' => 'bookings.create'])
+    <livewire:booking-grid :date="$date" :key="$date" />
 @endsection
