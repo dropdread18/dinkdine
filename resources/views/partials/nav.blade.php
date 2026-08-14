@@ -8,7 +8,8 @@
 
                 @if ($user->isAdmin())
                     <a href="{{ route('admin.dashboard') }}" class="text-gray-700 hover:text-gray-900">Dashboard</a>
-                    @foreach (['Bookings', 'Courts', 'Customers', 'Staff', 'Payments', 'Reports', 'Settings'] as $item)
+                    <a href="{{ route('admin.courts.index') }}" class="text-gray-700 hover:text-gray-900">Courts</a>
+                    @foreach (['Bookings', 'Customers', 'Staff', 'Payments', 'Reports', 'Settings'] as $item)
                         <span class="text-gray-300 cursor-not-allowed" title="Not built yet">{{ $item }}</span>
                     @endforeach
                 @elseif ($user->isStaff())

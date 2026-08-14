@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CourtController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
@@ -32,6 +33,10 @@ Route::middleware('auth')->post('/logout', [AuthenticatedSessionController::clas
 Route::middleware(['auth', 'role:admin'])->get('/admin/dashboard', function () {
     return view('dashboard.admin');
 })->name('admin.dashboard');
+
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::resource('courts', CourtController::class)->except(['show']);
+});
 
 Route::middleware(['auth', 'role:admin,staff'])->get('/staff/dashboard', function () {
     return view('dashboard.staff');
