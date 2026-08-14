@@ -28,6 +28,28 @@
                 <span class="text-gray-900">₱{{ number_format($totalPrice, 2) }}</span>
             </div>
 
+            @guest
+                <div class="border rounded-lg p-3 mb-4 space-y-3">
+                    <p class="text-sm text-gray-500">Booking without an account? Just tell us who you are.</p>
+
+                    <div>
+                        <label for="guest-name" class="block text-sm font-medium text-gray-700">Name</label>
+                        <input id="guest-name" type="text" wire:model="guestName" class="mt-1 block w-full rounded border-gray-300 shadow-sm text-sm">
+                    </div>
+                    <div>
+                        <label for="guest-email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input id="guest-email" type="email" wire:model="guestEmail" class="mt-1 block w-full rounded border-gray-300 shadow-sm text-sm">
+                    </div>
+                    <div>
+                        <label for="guest-phone" class="block text-sm font-medium text-gray-700">Phone</label>
+                        <input id="guest-phone" type="text" wire:model="guestPhone" class="mt-1 block w-full rounded border-gray-300 shadow-sm text-sm">
+                    </div>
+                    <p class="text-xs text-gray-400">
+                        Already have an account? <a href="{{ route('login') }}" class="underline">Log in</a> first to book under it.
+                    </p>
+                </div>
+            @endguest
+
             <label for="grid-notes" class="block text-sm font-medium text-gray-700">Notes (optional, applies to all)</label>
             <textarea id="grid-notes" wire:model="notes" rows="2" class="mt-1 mb-4 block w-full rounded border-gray-300 shadow-sm"></textarea>
 

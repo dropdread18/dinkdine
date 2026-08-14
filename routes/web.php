@@ -72,8 +72,12 @@ Route::middleware(['auth', 'role:admin,staff'])->prefix('manage')->name('manage.
     Route::post('walk-in/{court}', [WalkInBookingController::class, 'store'])->name('walkin.store');
 });
 
+// Open to guests too (DEC-003) - the BookingGrid Livewire component
+// handles account lookup/creation for anyone not already logged in.
+// Still blocked for staff/admin (they have their own walk-in flow).
+Route::middleware('customer_or_guest')->get('/book', [BookingController::class, 'index'])->name('bookings.index');
+
 Route::middleware(['auth', 'role:customer'])->group(function () {
-    Route::get('/book', [BookingController::class, 'index'])->name('bookings.index');
     Route::get('/book/{court}', [BookingController::class, 'create'])->name('bookings.create');
     Route::post('/book/{court}', [BookingController::class, 'store'])->name('bookings.store');
     Route::get('/my-bookings', [BookingController::class, 'mine'])->name('bookings.mine');

@@ -16,9 +16,9 @@
     @else
         <h1 class="text-xl font-semibold text-gray-900">{{ config('app.name') }}</h1>
         <p class="text-gray-600 mt-2">
-            See real-time court availability and book online.
-            <a href="{{ route('register') }}" class="underline">Create an account</a> or
-            <a href="{{ route('login') }}" class="underline">log in</a> to get started.
+            See real-time court availability and <a href="{{ route('bookings.index') }}" class="underline">book a court</a> —
+            no account needed. Or <a href="{{ route('register') }}" class="underline">create an account</a> /
+            <a href="{{ route('login') }}" class="underline">log in</a> to manage bookings more easily.
         </p>
     @endauth
 @endsection
