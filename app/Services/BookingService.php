@@ -257,6 +257,57 @@ class BookingService
     }
 
     /**
+     * Requirements.md §12: staff marks a customer as arrived. Purely
+     * informational - unlike status, it doesn't gate availability or
+     * anything else, so it's a plain timestamp column set via forceFill(),
+     * same pattern as the reminder-sent columns, not mass-assignable.
+     *
+     * @throws BookingUnavailableException
+     */
+    public function checkIn(Booking $booking): Booking
+    {
+        if (! in_array($booking->status, [BookingStatus::Pending, BookingStatus::Confirmed], true)) {
+            throw new BookingUnavailableException('Only a pending or confirmed booking can be checked in.');
+        }
+
+        if ($booking->checked_in_at) {
+            throw new BookingUnavailableException('This booking is already checked in.');
+        }
+
+        $booking->forceFill(['checked_in_at' => now()])->save();
+
+        return $booking->fresh();
+    }
+
+    /**
+     * @throws BookingUnavailableException
+     */
+    public function markCompleted(Booking $booking): Booking
+    {
+        if (! in_array($booking->status, [BookingStatus::Pending, BookingStatus::Confirmed], true)) {
+            throw new BookingUnavailableException('Only a pending or confirmed booking can be marked completed.');
+        }
+
+        $booking->update(['status' => BookingStatus::Completed]);
+
+        return $booking->fresh();
+    }
+
+    /**
+     * @throws BookingUnavailableException
+     */
+    public function markNoShow(Booking $booking): Booking
+    {
+        if (! in_array($booking->status, [BookingStatus::Pending, BookingStatus::Confirmed], true)) {
+            throw new BookingUnavailableException('Only a pending or confirmed booking can be marked no-show.');
+        }
+
+        $booking->update(['status' => BookingStatus::NoShow]);
+
+        return $booking->fresh();
+    }
+
+    /**
      * Whether a customer (not staff/admin) may cancel or reschedule this
      * booking right now: it must still be Pending/Confirmed, and at least
      * `cancellation_deadline_hours` (Requirements.md §20, default 4) before

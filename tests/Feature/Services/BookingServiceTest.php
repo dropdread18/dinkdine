@@ -502,4 +502,74 @@ class BookingServiceTest extends TestCase
 
         $this->assertSame(BookingSource::WalkIn, $bookings[0]->source);
     }
+
+    public function test_check_in_records_a_timestamp_on_a_confirmed_booking(): void
+    {
+        $court = Court::factory()->create();
+        $booking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+
+        $checkedIn = $this->service->checkIn($booking);
+
+        $this->assertNotNull($checkedIn->checked_in_at);
+    }
+
+    public function test_check_in_rejects_a_booking_that_is_already_checked_in(): void
+    {
+        $court = Court::factory()->create();
+        $booking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+        $this->service->checkIn($booking);
+
+        $this->expectException(BookingUnavailableException::class);
+        $this->service->checkIn($booking->fresh());
+    }
+
+    public function test_check_in_rejects_a_cancelled_booking(): void
+    {
+        $court = Court::factory()->create();
+        $booking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+        $this->service->cancel($booking);
+
+        $this->expectException(BookingUnavailableException::class);
+        $this->service->checkIn($booking->fresh());
+    }
+
+    public function test_mark_completed_transitions_a_confirmed_booking(): void
+    {
+        $court = Court::factory()->create();
+        $booking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+
+        $completed = $this->service->markCompleted($booking);
+
+        $this->assertSame(BookingStatus::Completed, $completed->status);
+    }
+
+    public function test_mark_completed_rejects_an_already_completed_booking(): void
+    {
+        $court = Court::factory()->create();
+        $booking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+        $this->service->markCompleted($booking);
+
+        $this->expectException(BookingUnavailableException::class);
+        $this->service->markCompleted($booking->fresh());
+    }
+
+    public function test_mark_no_show_transitions_a_confirmed_booking(): void
+    {
+        $court = Court::factory()->create();
+        $booking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+
+        $noShow = $this->service->markNoShow($booking);
+
+        $this->assertSame(BookingStatus::NoShow, $noShow->status);
+    }
+
+    public function test_mark_no_show_rejects_a_cancelled_booking(): void
+    {
+        $court = Court::factory()->create();
+        $booking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+        $this->service->cancel($booking);
+
+        $this->expectException(BookingUnavailableException::class);
+        $this->service->markNoShow($booking->fresh());
+    }
 }

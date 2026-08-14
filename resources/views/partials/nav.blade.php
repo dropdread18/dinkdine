@@ -20,12 +20,12 @@
                     <a href="{{ route('staff.dashboard') }}" class="text-gray-700 hover:text-gray-900">Dashboard</a>
                     <a href="{{ route('manage.bookings.index') }}" class="text-gray-700 hover:text-gray-900">Bookings</a>
                     <a href="{{ route('manage.walkin.index') }}" class="text-gray-700 hover:text-gray-900">Walk-in Booking</a>
-                    <span class="text-gray-300 cursor-not-allowed" title="Not built yet">Check-in</span>
+                    <a href="{{ route('manage.checkin.index') }}" class="text-gray-700 hover:text-gray-900">Check-in</a>
                 @else
                     <a href="{{ url('/') }}" class="text-gray-700 hover:text-gray-900">Home</a>
                     <a href="{{ route('bookings.index') }}" class="text-gray-700 hover:text-gray-900">Book a Court</a>
                     <a href="{{ route('bookings.mine') }}" class="text-gray-700 hover:text-gray-900">My Bookings</a>
-                    <span class="text-gray-300 cursor-not-allowed" title="Not built yet">Profile</span>
+                    <a href="{{ route('profile.edit') }}" class="text-gray-700 hover:text-gray-900">Profile</a>
                 @endif
 
                 <span class="text-gray-500">{{ $user->name }} &middot; {{ $user->role->label() }}</span>

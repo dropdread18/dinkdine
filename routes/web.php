@@ -12,7 +12,9 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Staff\BookingController as StaffBookingController;
+use App\Http\Controllers\Staff\CheckInController;
 use App\Http\Controllers\Staff\WalkInBookingController;
 use Illuminate\Support\Facades\Route;
 
@@ -97,6 +99,12 @@ Route::middleware(['auth', 'role:admin,staff'])->prefix('manage')->name('manage.
     Route::get('walk-in', [WalkInBookingController::class, 'index'])->name('walkin.index');
     Route::get('walk-in/{court}', [WalkInBookingController::class, 'create'])->name('walkin.create');
     Route::post('walk-in/{court}', [WalkInBookingController::class, 'store'])->name('walkin.store');
+
+    Route::get('check-in', [CheckInController::class, 'index'])->name('checkin.index');
+    Route::patch('check-in/bookings/{booking}/check-in', [CheckInController::class, 'checkIn'])->name('checkin.bookings.check-in');
+    Route::patch('check-in/bookings/{booking}/complete', [CheckInController::class, 'markCompleted'])->name('checkin.bookings.complete');
+    Route::patch('check-in/bookings/{booking}/no-show', [CheckInController::class, 'markNoShow'])->name('checkin.bookings.no-show');
+    Route::patch('check-in/courts/{court}/status', [CheckInController::class, 'updateCourtStatus'])->name('checkin.courts.update-status');
 });
 
 // Open to guests too (DEC-003) - the BookingGrid Livewire component
@@ -113,6 +121,10 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
     Route::get('/bookings/{booking}/reschedule', [BookingController::class, 'reschedule'])->name('bookings.reschedule');
     Route::get('/bookings/{booking}/reschedule/{court}', [BookingController::class, 'rescheduleForm'])->name('bookings.reschedule-form');
     Route::put('/bookings/{booking}/reschedule/{court}', [BookingController::class, 'rescheduleUpdate'])->name('bookings.reschedule-update');
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.update-password');
 });
 
 Route::middleware('auth')->get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
