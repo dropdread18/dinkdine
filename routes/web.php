@@ -6,6 +6,8 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\Staff\BookingController as StaffBookingController;
+use App\Http\Controllers\Staff\WalkInBookingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -28,8 +30,8 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
-// Dashboard content is still a placeholder — real modules (Requirements.md
-// modules 12-13) will fill these in. The route, middleware, and layout are real.
+// Admin dashboard content is still a placeholder — real modules
+// (Requirements.md module 13) will fill this in.
 Route::middleware(['auth', 'role:admin'])->get('/admin/dashboard', function () {
     return view('dashboard.admin');
 })->name('admin.dashboard');
@@ -39,8 +41,26 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 });
 
 Route::middleware(['auth', 'role:admin,staff'])->get('/staff/dashboard', function () {
-    return view('dashboard.staff');
+    return view('dashboard.staff', [
+        'todaysBookings' => \App\Models\Booking::query()
+            ->with(['court', 'user'])
+            ->whereDate('booking_date', now())
+            ->orderBy('start_time')
+            ->get(),
+    ]);
 })->name('staff.dashboard');
+
+Route::middleware(['auth', 'role:admin,staff'])->prefix('manage')->name('manage.')->group(function () {
+    Route::get('bookings', [StaffBookingController::class, 'index'])->name('bookings.index');
+    Route::patch('bookings/{booking}/cancel', [StaffBookingController::class, 'cancel'])->name('bookings.cancel');
+    Route::get('bookings/{booking}/reschedule', [StaffBookingController::class, 'reschedule'])->name('bookings.reschedule');
+    Route::get('bookings/{booking}/reschedule/{court}', [StaffBookingController::class, 'rescheduleForm'])->name('bookings.reschedule-form');
+    Route::put('bookings/{booking}/reschedule/{court}', [StaffBookingController::class, 'rescheduleUpdate'])->name('bookings.reschedule-update');
+
+    Route::get('walk-in', [WalkInBookingController::class, 'index'])->name('walkin.index');
+    Route::get('walk-in/{court}', [WalkInBookingController::class, 'create'])->name('walkin.create');
+    Route::post('walk-in/{court}', [WalkInBookingController::class, 'store'])->name('walkin.store');
+});
 
 Route::middleware(['auth', 'role:customer'])->group(function () {
     Route::get('/book', [BookingController::class, 'index'])->name('bookings.index');

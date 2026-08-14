@@ -211,4 +211,96 @@ class BookingServiceTest extends TestCase
             User::factory()->customer()->create(), $court, $farDate->toDateString(), '09:00:00', '10:00:00'
         );
     }
+
+    public function test_book_can_skip_the_booking_window_for_walk_ins(): void
+    {
+        // A walk-in is standing at the counter right now; the 30-minute
+        // online min-notice rule shouldn't block staff from booking them in.
+        // Use the current hour's slot boundary so it lines up with a real
+        // generated slot (00:00-aligned, 60-minute slots).
+        $court = Court::factory()->create();
+        $now = CarbonImmutable::now();
+        $slotStart = $now->startOfHour();
+
+        BusinessHour::updateOrCreate(
+            ['day_of_week' => $slotStart->dayOfWeek],
+            ['opens_at' => '00:00:00', 'closes_at' => '23:59:00', 'is_closed' => false],
+        );
+
+        $booking = $this->service->book(
+            User::factory()->customer()->create(), $court, $slotStart->toDateString(),
+            $slotStart->format('H:i:s'), $slotStart->addHour()->format('H:i:s'),
+            source: BookingSource::WalkIn,
+            enforceBookingWindow: false,
+        );
+
+        $this->assertSame(BookingSource::WalkIn, $booking->source);
+    }
+
+    public function test_reschedule_moves_a_booking_to_a_new_slot_and_recalculates_price(): void
+    {
+        $courtA = Court::factory()->create(['hourly_rate' => 300]);
+        $courtB = Court::factory()->create(['hourly_rate' => 400]);
+        $booking = $this->service->book(User::factory()->customer()->create(), $courtA, $this->date, '09:00:00', '10:00:00');
+
+        $rescheduled = $this->service->reschedule($booking, $courtB, $this->date, '11:00:00', '12:00:00');
+
+        $this->assertSame($courtB->id, $rescheduled->court_id);
+        $this->assertSame('11:00:00', $rescheduled->start_time);
+        $this->assertEquals(400.00, (float) $rescheduled->price);
+    }
+
+    public function test_reschedule_does_not_conflict_with_its_own_current_slot(): void
+    {
+        $court = Court::factory()->create();
+        $booking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+
+        // "Reschedule" to the exact same slot on the same court - must not
+        // be rejected as conflicting with itself.
+        $rescheduled = $this->service->reschedule($booking, $court, $this->date, '09:00:00', '10:00:00');
+
+        $this->assertSame($booking->id, $rescheduled->id);
+    }
+
+    public function test_reschedule_rejects_a_slot_taken_by_another_booking(): void
+    {
+        $court = Court::factory()->create();
+        $booking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+        $this->service->book(User::factory()->customer()->create(), $court, $this->date, '11:00:00', '12:00:00');
+
+        $this->expectException(BookingUnavailableException::class);
+        $this->service->reschedule($booking, $court, $this->date, '11:00:00', '12:00:00');
+    }
+
+    public function test_cancel_marks_a_booking_cancelled_and_records_the_reason(): void
+    {
+        $court = Court::factory()->create();
+        $booking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+
+        $cancelled = $this->service->cancel($booking, 'Customer called to cancel');
+
+        $this->assertSame(BookingStatus::Cancelled, $cancelled->status);
+        $this->assertStringContainsString('Customer called to cancel', $cancelled->notes);
+    }
+
+    public function test_cancelling_frees_the_slot_for_a_new_booking(): void
+    {
+        $court = Court::factory()->create();
+        $booking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+        $this->service->cancel($booking);
+
+        $newBooking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+
+        $this->assertNotSame($booking->id, $newBooking->id);
+    }
+
+    public function test_cancel_rejects_an_already_cancelled_booking(): void
+    {
+        $court = Court::factory()->create();
+        $booking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+        $this->service->cancel($booking);
+
+        $this->expectException(BookingUnavailableException::class);
+        $this->service->cancel($booking->fresh());
+    }
 }

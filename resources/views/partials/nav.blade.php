@@ -9,14 +9,15 @@
                 @if ($user->isAdmin())
                     <a href="{{ route('admin.dashboard') }}" class="text-gray-700 hover:text-gray-900">Dashboard</a>
                     <a href="{{ route('admin.courts.index') }}" class="text-gray-700 hover:text-gray-900">Courts</a>
-                    @foreach (['Bookings', 'Customers', 'Staff', 'Payments', 'Reports', 'Settings'] as $item)
+                    <a href="{{ route('manage.bookings.index') }}" class="text-gray-700 hover:text-gray-900">Bookings</a>
+                    @foreach (['Customers', 'Staff', 'Payments', 'Reports', 'Settings'] as $item)
                         <span class="text-gray-300 cursor-not-allowed" title="Not built yet">{{ $item }}</span>
                     @endforeach
                 @elseif ($user->isStaff())
                     <a href="{{ route('staff.dashboard') }}" class="text-gray-700 hover:text-gray-900">Dashboard</a>
-                    @foreach (['Bookings', 'Walk-in Booking', 'Check-in'] as $item)
-                        <span class="text-gray-300 cursor-not-allowed" title="Not built yet">{{ $item }}</span>
-                    @endforeach
+                    <a href="{{ route('manage.bookings.index') }}" class="text-gray-700 hover:text-gray-900">Bookings</a>
+                    <a href="{{ route('manage.walkin.index') }}" class="text-gray-700 hover:text-gray-900">Walk-in Booking</a>
+                    <span class="text-gray-300 cursor-not-allowed" title="Not built yet">Check-in</span>
                 @else
                     <a href="{{ url('/') }}" class="text-gray-700 hover:text-gray-900">Home</a>
                     <a href="{{ route('bookings.index') }}" class="text-gray-700 hover:text-gray-900">Book a Court</a>

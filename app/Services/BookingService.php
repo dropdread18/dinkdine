@@ -45,8 +45,11 @@ class BookingService
         string $endTime,
         ?string $notes = null,
         BookingSource $source = BookingSource::Online,
+        bool $enforceBookingWindow = true,
     ): Booking {
-        $this->assertWithinBookingWindow($date, $startTime);
+        if ($enforceBookingWindow) {
+            $this->assertWithinBookingWindow($date, $startTime);
+        }
         $this->assertSlotIsAvailable($court, $date, $startTime, $endTime);
 
         return DB::transaction(function () use ($user, $court, $date, $startTime, $endTime, $notes, $source) {
@@ -80,6 +83,65 @@ class BookingService
         });
     }
 
+    /**
+     * Moves an existing booking to a different court/date/time, re-validated
+     * exactly like a fresh booking (Requirements.md §21) - the booking's own
+     * current slot is excluded from the conflict check so it doesn't block
+     * itself.
+     *
+     * @throws BookingUnavailableException
+     */
+    public function reschedule(Booking $booking, Court $court, string $date, string $startTime, string $endTime): Booking
+    {
+        $this->assertWithinBookingWindow($date, $startTime);
+        $this->assertSlotIsAvailable($court, $date, $startTime, $endTime, excludeBookingId: $booking->id);
+
+        return DB::transaction(function () use ($booking, $court, $date, $startTime, $endTime) {
+            $conflict = Booking::query()
+                ->where('court_id', $court->id)
+                ->where('booking_date', $date)
+                ->whereIn('status', [BookingStatus::Pending, BookingStatus::Confirmed])
+                ->where('id', '!=', $booking->id)
+                ->where('start_time', '<', $endTime)
+                ->where('end_time', '>', $startTime)
+                ->lockForUpdate()
+                ->exists();
+
+            if ($conflict) {
+                throw new BookingUnavailableException(
+                    'Sorry, that time is no longer available. Please select another available time.'
+                );
+            }
+
+            $booking->update([
+                'court_id' => $court->id,
+                'booking_date' => $date,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'price' => $this->calculatePrice($court, $startTime, $endTime),
+            ]);
+
+            return $booking->fresh();
+        });
+    }
+
+    /**
+     * @throws BookingUnavailableException
+     */
+    public function cancel(Booking $booking, ?string $reason = null): Booking
+    {
+        if ($booking->status === BookingStatus::Cancelled) {
+            throw new BookingUnavailableException('This booking is already cancelled.');
+        }
+
+        $booking->update([
+            'status' => BookingStatus::Cancelled,
+            'notes' => trim(($booking->notes ? $booking->notes."\n" : '').'Cancelled: '.($reason ?: 'No reason given')),
+        ]);
+
+        return $booking->fresh();
+    }
+
     private function assertWithinBookingWindow(string $date, string $startTime): void
     {
         $slotStart = CarbonImmutable::parse("{$date} {$startTime}");
@@ -95,9 +157,9 @@ class BookingService
         }
     }
 
-    private function assertSlotIsAvailable(Court $court, string $date, string $startTime, string $endTime): void
+    private function assertSlotIsAvailable(Court $court, string $date, string $startTime, string $endTime, ?int $excludeBookingId = null): void
     {
-        $day = $this->availability->forDate($date);
+        $day = $this->availability->forDate($date, $excludeBookingId);
 
         /** @var CourtAvailability|null $courtAvailability */
         $courtAvailability = collect($day['courts'])->first(fn (CourtAvailability $ca) => $ca->court->is($court));

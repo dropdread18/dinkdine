@@ -23,5 +23,19 @@
         @endif
     </div>
 
-    <a href="{{ route('bookings.mine') }}" class="inline-block mt-6 text-sm underline text-gray-600">View my bookings</a>
+    @if (auth()->user()->isCustomer())
+        <a href="{{ route('bookings.mine') }}" class="inline-block mt-6 text-sm underline text-gray-600">View my bookings</a>
+    @else
+        <div class="mt-6 flex gap-3 text-sm">
+            <a href="{{ route('manage.bookings.index') }}" class="underline text-gray-600">Back to Bookings</a>
+            @if ($booking->status !== \App\Enums\BookingStatus::Cancelled)
+                <a href="{{ route('manage.bookings.reschedule', $booking) }}" class="underline text-gray-600">Reschedule</a>
+                <form method="POST" action="{{ route('manage.bookings.cancel', $booking) }}">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit" class="underline text-red-700">Cancel Booking</button>
+                </form>
+            @endif
+        </div>
+    @endif
 @endsection

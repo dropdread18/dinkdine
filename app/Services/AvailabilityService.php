@@ -22,9 +22,11 @@ use Illuminate\Support\Collection;
 class AvailabilityService
 {
     /**
+     * @param  int|null  $excludeBookingId  Ignore this booking when computing conflicts - used when
+     *                                      rescheduling, so a booking's own current slot doesn't block it.
      * @return array{date: string, is_facility_closed: bool, courts: CourtAvailability[]}
      */
-    public function forDate(string $date): array
+    public function forDate(string $date, ?int $excludeBookingId = null): array
     {
         $day = CarbonImmutable::parse($date)->startOfDay();
 
@@ -40,6 +42,7 @@ class AvailabilityService
         $bookingsByCourt = Booking::query()
             ->whereDate('booking_date', $day)
             ->whereIn('status', [BookingStatus::Pending, BookingStatus::Confirmed])
+            ->when($excludeBookingId, fn ($query, $id) => $query->where('id', '!=', $id))
             ->get()
             ->groupBy('court_id');
 
