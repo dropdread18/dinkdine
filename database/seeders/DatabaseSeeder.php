@@ -29,5 +29,11 @@ class DatabaseSeeder extends Seeder
             'name' => 'Customer',
             'email' => 'customer@example.com',
         ]);
+
+        $this->call([
+            CourtSeeder::class,
+            BusinessHourSeeder::class,
+            SettingSeeder::class,
+        ]);
     }
 }
