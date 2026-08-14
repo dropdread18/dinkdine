@@ -6,22 +6,22 @@
         $nextDate = \Illuminate\Support\Carbon::parse($date)->addDay()->toDateString();
     @endphp
 
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-xl font-semibold text-gray-900">Book a Court</h1>
+    <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">Book a Court</h1>
 
-        <div class="flex items-center gap-3 text-sm">
+        <div class="flex items-center gap-1 text-sm bg-white border border-slate-200 rounded-lg shadow-sm p-1">
             @if ($prevDate >= $minDate)
-                <a href="{{ route('bookings.index', ['date' => $prevDate]) }}" class="text-gray-600 hover:text-gray-900">&lt;</a>
+                <a href="{{ route('bookings.index', ['date' => $prevDate]) }}" class="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900">&lt;</a>
             @else
-                <span class="text-gray-300">&lt;</span>
+                <span class="flex h-8 w-8 items-center justify-center text-slate-300">&lt;</span>
             @endif
 
-            <span class="font-medium text-gray-900">{{ \Illuminate\Support\Carbon::parse($date)->format('l, F j, Y') }}</span>
+            <span class="font-medium text-slate-900 px-2">{{ \Illuminate\Support\Carbon::parse($date)->format('l, F j, Y') }}</span>
 
             @if ($nextDate <= $maxDate)
-                <a href="{{ route('bookings.index', ['date' => $nextDate]) }}" class="text-gray-600 hover:text-gray-900">&gt;</a>
+                <a href="{{ route('bookings.index', ['date' => $nextDate]) }}" class="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900">&gt;</a>
             @else
-                <span class="text-gray-300">&gt;</span>
+                <span class="flex h-8 w-8 items-center justify-center text-slate-300">&gt;</span>
             @endif
         </div>
     </div>

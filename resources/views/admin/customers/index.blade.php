@@ -1,51 +1,46 @@
 @extends('layouts.app', ['title' => 'Customers'])
 
 @section('content')
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-xl font-semibold text-gray-900">Customers</h1>
-        <a href="{{ route('admin.customers.create') }}" class="bg-gray-900 text-white rounded px-3 py-2 text-sm font-medium">
-            New Customer
-        </a>
-    </div>
+    <x-page-header title="Customers">
+        <x-slot:actions>
+            <x-button tag="a" href="{{ route('admin.customers.create') }}">New Customer</x-button>
+        </x-slot:actions>
+    </x-page-header>
 
-    <form method="GET" action="{{ route('admin.customers.index') }}" class="flex flex-wrap gap-2 mb-4 text-sm">
+    <form method="GET" action="{{ route('admin.customers.index') }}" class="flex flex-wrap gap-2 mb-6 text-sm bg-white border border-slate-200 rounded-xl shadow-sm p-3">
         <input type="text" name="q" value="{{ $q }}" placeholder="Search name, email, or phone"
-               class="rounded border-gray-300 shadow-sm w-64">
-        <button type="submit" class="bg-gray-900 text-white rounded px-3 py-2 text-sm font-medium">Search</button>
-        <a href="{{ route('admin.customers.index') }}" class="text-gray-600 underline self-center">Clear</a>
+               class="rounded-lg border-slate-300 shadow-sm w-64 focus:border-teal-500 focus:ring-teal-500">
+        <x-button type="submit">Search</x-button>
+        <x-button tag="a" href="{{ route('admin.customers.index') }}" variant="ghost" class="self-center">Clear</x-button>
     </form>
 
     @if ($customers->isEmpty())
-        <p class="text-gray-500">No customers match this search.</p>
+        <x-card class="text-center text-slate-500 text-sm py-8">No customers match this search.</x-card>
     @else
-        <div class="overflow-x-auto">
-            <table class="min-w-full text-sm border-collapse">
+        <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm bg-white">
+            <table class="min-w-full text-sm">
                 <thead>
-                    <tr>
-                        <th class="text-left font-medium text-gray-500 pb-2 pr-4">Name</th>
-                        <th class="text-left font-medium text-gray-500 pb-2 pr-4">Email</th>
-                        <th class="text-left font-medium text-gray-500 pb-2 pr-4">Phone</th>
-                        <th class="text-left font-medium text-gray-500 pb-2 pr-4">Bookings</th>
-                        <th class="text-left font-medium text-gray-500 pb-2 pr-4">Status</th>
-                        <th class="text-left font-medium text-gray-500 pb-2"></th>
+                    <tr class="bg-slate-50">
+                        <th class="text-left font-medium text-slate-500 py-3 pl-4 pr-4">Name</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4">Email</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4">Phone</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4">Bookings</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4">Status</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4"></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($customers as $customer)
-                        <tr class="border-t">
-                            <td class="py-2 pr-4 text-gray-900">{{ $customer->name }}</td>
-                            <td class="py-2 pr-4 text-gray-600">{{ $customer->email }}</td>
-                            <td class="py-2 pr-4 text-gray-600">{{ $customer->phone ?: '—' }}</td>
-                            <td class="py-2 pr-4 text-gray-600">{{ $customer->bookings_count }}</td>
-                            <td class="py-2 pr-4">
-                                @if ($customer->is_active)
-                                    <span class="inline-block rounded px-2 py-0.5 text-xs bg-green-100 text-green-800">Active</span>
-                                @else
-                                    <span class="inline-block rounded px-2 py-0.5 text-xs bg-gray-100 text-gray-600">Disabled</span>
-                                @endif
+                        <tr class="border-t border-slate-100 hover:bg-slate-50/60">
+                            <td class="py-3 pl-4 pr-4 text-slate-900 font-medium">{{ $customer->name }}</td>
+                            <td class="py-3 pr-4 text-slate-600">{{ $customer->email }}</td>
+                            <td class="py-3 pr-4 text-slate-600">{{ $customer->phone ?: '—' }}</td>
+                            <td class="py-3 pr-4 text-slate-600">{{ $customer->bookings_count }}</td>
+                            <td class="py-3 pr-4">
+                                <x-badge :color="$customer->is_active ? 'green' : 'slate'">{{ $customer->is_active ? 'Active' : 'Disabled' }}</x-badge>
                             </td>
-                            <td class="py-2 text-right">
-                                <a href="{{ route('admin.customers.show', $customer) }}" class="text-gray-700 underline">View</a>
+                            <td class="py-3 pr-4 text-right">
+                                <a href="{{ route('admin.customers.show', $customer) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">View</a>
                             </td>
                         </tr>
                     @endforeach

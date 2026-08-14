@@ -6,13 +6,22 @@
         <title>{{ $title ?? config('app.name') }}</title>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="min-h-screen bg-gray-100 flex items-center justify-center px-4">
-        <div class="w-full max-w-sm bg-white shadow rounded-lg p-6">
-            <h1 class="text-lg font-semibold text-gray-900 mb-4">{{ config('app.name') }}</h1>
+    <body class="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12">
+        <div class="w-full max-w-sm">
+            <div class="flex items-center justify-center gap-2 mb-6">
+                <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-teal-600 text-white text-sm font-semibold">PB</span>
+                <span class="text-lg font-semibold text-slate-900">{{ config('app.name') }}</span>
+            </div>
 
-            @include('partials.flash-messages')
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+                @isset($title)
+                    <h1 class="text-lg font-semibold text-slate-900 mb-6 text-center">{{ $title }}</h1>
+                @endisset
 
-            @yield('content')
+                @include('partials.flash-messages')
+
+                @yield('content')
+            </div>
         </div>
     </body>
 </html>

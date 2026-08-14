@@ -234,11 +234,12 @@ class BookingServiceTest extends TestCase
     {
         // A walk-in is standing at the counter right now; the 30-minute
         // online min-notice rule shouldn't block staff from booking them in.
-        // Use the current hour's slot boundary so it lines up with a real
-        // generated slot (00:00-aligned, 60-minute slots).
+        // Use a near-now slot boundary so it lines up with a real generated
+        // slot (00:00-aligned, 60-minute slots) - soonSlot() rather than the
+        // literal current hour, since that hour doesn't exist as a slot when
+        // it happens to be 23:00 (see soonSlot()'s own doc comment).
         $court = Court::factory()->create();
-        $now = CarbonImmutable::now();
-        $slotStart = $now->startOfHour();
+        $slotStart = $this->soonSlot();
 
         BusinessHour::updateOrCreate(
             ['day_of_week' => $slotStart->dayOfWeek],
@@ -490,7 +491,7 @@ class BookingServiceTest extends TestCase
     {
         $court = Court::factory()->create();
         $user = User::factory()->customer()->create();
-        $slotStart = CarbonImmutable::now()->startOfHour();
+        $slotStart = $this->soonSlot();
         BusinessHour::updateOrCreate(
             ['day_of_week' => $slotStart->dayOfWeek],
             ['opens_at' => '00:00:00', 'closes_at' => '23:59:00', 'is_closed' => false],

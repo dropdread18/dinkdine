@@ -7,3 +7,13 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/*
+ * Design system, Requirements.md §48 (clean, modern, minimal,
+ * Calendly-style "professional booking-SaaS" feel): teal accent on a
+ * slate neutral base, soft rounded cards, gentle shadows. Tailwind v4's
+ * built-in teal/slate scales are used directly (no custom color tokens
+ * needed) - these utility classes just document the recurring patterns
+ * so every view stays visually consistent instead of drifting.
+ */
+

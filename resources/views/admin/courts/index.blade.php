@@ -1,46 +1,41 @@
 @extends('layouts.app', ['title' => 'Courts'])
 
 @section('content')
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-xl font-semibold text-gray-900">Courts</h1>
-        <a href="{{ route('admin.courts.create') }}" class="bg-gray-900 text-white rounded px-3 py-2 text-sm font-medium">
-            New Court
-        </a>
-    </div>
+    <x-page-header title="Courts">
+        <x-slot:actions>
+            <x-button tag="a" href="{{ route('admin.courts.create') }}">New Court</x-button>
+        </x-slot:actions>
+    </x-page-header>
 
     @if ($courts->isEmpty())
-        <p class="text-gray-500">No courts yet.</p>
+        <x-card class="text-center text-slate-500 text-sm py-8">No courts yet.</x-card>
     @else
-        <div class="overflow-x-auto">
-            <table class="min-w-full text-sm border-collapse">
+        <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm bg-white">
+            <table class="min-w-full text-sm">
                 <thead>
-                    <tr>
-                        <th class="text-left font-medium text-gray-500 pb-2 pr-4">#</th>
-                        <th class="text-left font-medium text-gray-500 pb-2 pr-4">Name</th>
-                        <th class="text-left font-medium text-gray-500 pb-2 pr-4">Rate</th>
-                        <th class="text-left font-medium text-gray-500 pb-2 pr-4">Status</th>
-                        <th class="text-left font-medium text-gray-500 pb-2"></th>
+                    <tr class="bg-slate-50">
+                        <th class="text-left font-medium text-slate-500 py-3 pl-4 pr-4">#</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4">Name</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4">Rate</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4">Status</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4"></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($courts as $court)
-                        <tr class="border-t">
-                            <td class="py-2 pr-4 text-gray-600">{{ $court->court_number }}</td>
-                            <td class="py-2 pr-4 text-gray-900">{{ $court->name }}</td>
-                            <td class="py-2 pr-4 text-gray-600">₱{{ number_format($court->hourly_rate, 2) }}</td>
-                            <td class="py-2 pr-4">
-                                <span @class([
-                                    'inline-block rounded px-2 py-0.5 text-xs',
-                                    'bg-green-100 text-green-800' => $court->status === \App\Enums\CourtStatus::Active,
-                                    'bg-gray-100 text-gray-600' => $court->status !== \App\Enums\CourtStatus::Active,
-                                ])>{{ $court->status->label() }}</span>
+                        <tr class="border-t border-slate-100 hover:bg-slate-50/60">
+                            <td class="py-3 pl-4 pr-4 text-slate-500">{{ $court->court_number }}</td>
+                            <td class="py-3 pr-4 text-slate-900 font-medium">{{ $court->name }}</td>
+                            <td class="py-3 pr-4 text-slate-600">₱{{ number_format($court->hourly_rate, 2) }}</td>
+                            <td class="py-3 pr-4">
+                                <x-badge :color="$court->status === \App\Enums\CourtStatus::Active ? 'green' : 'slate'">{{ $court->status->label() }}</x-badge>
                             </td>
-                            <td class="py-2 text-right space-x-2">
-                                <a href="{{ route('admin.courts.edit', $court) }}" class="text-gray-700 underline">Edit</a>
+                            <td class="py-3 pr-4 text-right space-x-3">
+                                <a href="{{ route('admin.courts.edit', $court) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">Edit</a>
                                 <form method="POST" action="{{ route('admin.courts.destroy', $court) }}" class="inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-red-700 underline">Delete</button>
+                                    <button type="submit" class="text-red-600 hover:text-red-700 underline underline-offset-2">Delete</button>
                                 </form>
                             </td>
                         </tr>

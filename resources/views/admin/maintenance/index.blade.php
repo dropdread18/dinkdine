@@ -1,50 +1,49 @@
 @extends('layouts.app', ['title' => 'Court Maintenance'])
 
 @section('content')
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-xl font-semibold text-gray-900">Court Maintenance</h1>
-        <a href="{{ route('admin.maintenance.create') }}" class="bg-gray-900 text-white rounded px-3 py-2 text-sm font-medium">
-            Schedule Maintenance
-        </a>
-    </div>
+    <x-page-header title="Court Maintenance">
+        <x-slot:actions>
+            <x-button tag="a" href="{{ route('admin.maintenance.create') }}">Schedule Maintenance</x-button>
+        </x-slot:actions>
+    </x-page-header>
 
     @if ($maintenancePeriods->isEmpty())
-        <p class="text-gray-500">No maintenance windows scheduled.</p>
+        <x-card class="text-center text-slate-500 text-sm py-8">No maintenance windows scheduled.</x-card>
     @else
-        <div class="overflow-x-auto">
-            <table class="min-w-full text-sm border-collapse">
+        <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm bg-white">
+            <table class="min-w-full text-sm">
                 <thead>
-                    <tr>
-                        <th class="text-left font-medium text-gray-500 pb-2 pr-4">Court</th>
-                        <th class="text-left font-medium text-gray-500 pb-2 pr-4">Starts</th>
-                        <th class="text-left font-medium text-gray-500 pb-2 pr-4">Ends</th>
-                        <th class="text-left font-medium text-gray-500 pb-2 pr-4">Reason</th>
-                        <th class="text-left font-medium text-gray-500 pb-2 pr-4">Status</th>
-                        <th class="text-left font-medium text-gray-500 pb-2"></th>
+                    <tr class="bg-slate-50">
+                        <th class="text-left font-medium text-slate-500 py-3 pl-4 pr-4">Court</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4">Starts</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4">Ends</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4">Reason</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4">Status</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4"></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($maintenancePeriods as $period)
-                        <tr class="border-t">
-                            <td class="py-2 pr-4 text-gray-900">{{ $period->court->name }}</td>
-                            <td class="py-2 pr-4 text-gray-600">{{ $period->starts_at->format('M j, Y g:ia') }}</td>
-                            <td class="py-2 pr-4 text-gray-600">{{ $period->ends_at->format('M j, Y g:ia') }}</td>
-                            <td class="py-2 pr-4 text-gray-600">{{ $period->reason ?: '—' }}</td>
-                            <td class="py-2 pr-4">
+                        <tr class="border-t border-slate-100 hover:bg-slate-50/60">
+                            <td class="py-3 pl-4 pr-4 text-slate-900 font-medium">{{ $period->court->name }}</td>
+                            <td class="py-3 pr-4 text-slate-600">{{ $period->starts_at->format('M j, Y g:ia') }}</td>
+                            <td class="py-3 pr-4 text-slate-600">{{ $period->ends_at->format('M j, Y g:ia') }}</td>
+                            <td class="py-3 pr-4 text-slate-600">{{ $period->reason ?: '—' }}</td>
+                            <td class="py-3 pr-4">
                                 @if ($period->ends_at->isPast())
-                                    <span class="inline-block rounded px-2 py-0.5 text-xs bg-gray-100 text-gray-600">Past</span>
+                                    <x-badge color="slate">Past</x-badge>
                                 @elseif ($period->starts_at->isPast())
-                                    <span class="inline-block rounded px-2 py-0.5 text-xs bg-amber-100 text-amber-800">Ongoing</span>
+                                    <x-badge color="amber">Ongoing</x-badge>
                                 @else
-                                    <span class="inline-block rounded px-2 py-0.5 text-xs bg-blue-100 text-blue-800">Upcoming</span>
+                                    <x-badge color="blue">Upcoming</x-badge>
                                 @endif
                             </td>
-                            <td class="py-2 text-right space-x-2">
-                                <a href="{{ route('admin.maintenance.edit', $period) }}" class="text-gray-700 underline">Edit</a>
+                            <td class="py-3 pr-4 text-right space-x-3">
+                                <a href="{{ route('admin.maintenance.edit', $period) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">Edit</a>
                                 <form method="POST" action="{{ route('admin.maintenance.destroy', $period) }}" class="inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-red-700 underline">Delete</button>
+                                    <button type="submit" class="text-red-600 hover:text-red-700 underline underline-offset-2">Delete</button>
                                 </form>
                             </td>
                         </tr>

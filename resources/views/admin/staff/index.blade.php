@@ -1,49 +1,44 @@
 @extends('layouts.app', ['title' => 'Staff'])
 
 @section('content')
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-xl font-semibold text-gray-900">Staff</h1>
-        <a href="{{ route('admin.staff.create') }}" class="bg-gray-900 text-white rounded px-3 py-2 text-sm font-medium">
-            New Staff Account
-        </a>
-    </div>
+    <x-page-header title="Staff">
+        <x-slot:actions>
+            <x-button tag="a" href="{{ route('admin.staff.create') }}">New Staff Account</x-button>
+        </x-slot:actions>
+    </x-page-header>
 
     @if ($staff->isEmpty())
-        <p class="text-gray-500">No staff accounts yet.</p>
+        <x-card class="text-center text-slate-500 text-sm py-8">No staff accounts yet.</x-card>
     @else
-        <div class="overflow-x-auto">
-            <table class="min-w-full text-sm border-collapse">
+        <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm bg-white">
+            <table class="min-w-full text-sm">
                 <thead>
-                    <tr>
-                        <th class="text-left font-medium text-gray-500 pb-2 pr-4">Name</th>
-                        <th class="text-left font-medium text-gray-500 pb-2 pr-4">Email</th>
-                        <th class="text-left font-medium text-gray-500 pb-2 pr-4">Phone</th>
-                        <th class="text-left font-medium text-gray-500 pb-2 pr-4">Status</th>
-                        <th class="text-left font-medium text-gray-500 pb-2"></th>
+                    <tr class="bg-slate-50">
+                        <th class="text-left font-medium text-slate-500 py-3 pl-4 pr-4">Name</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4">Email</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4">Phone</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4">Status</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4"></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($staff as $member)
-                        <tr class="border-t">
-                            <td class="py-2 pr-4 text-gray-900">{{ $member->name }}</td>
-                            <td class="py-2 pr-4 text-gray-600">{{ $member->email }}</td>
-                            <td class="py-2 pr-4 text-gray-600">{{ $member->phone ?: '—' }}</td>
-                            <td class="py-2 pr-4">
-                                @if ($member->is_active)
-                                    <span class="inline-block rounded px-2 py-0.5 text-xs bg-green-100 text-green-800">Active</span>
-                                @else
-                                    <span class="inline-block rounded px-2 py-0.5 text-xs bg-gray-100 text-gray-600">Disabled</span>
-                                @endif
+                        <tr class="border-t border-slate-100 hover:bg-slate-50/60">
+                            <td class="py-3 pl-4 pr-4 text-slate-900 font-medium">{{ $member->name }}</td>
+                            <td class="py-3 pr-4 text-slate-600">{{ $member->email }}</td>
+                            <td class="py-3 pr-4 text-slate-600">{{ $member->phone ?: '—' }}</td>
+                            <td class="py-3 pr-4">
+                                <x-badge :color="$member->is_active ? 'green' : 'slate'">{{ $member->is_active ? 'Active' : 'Disabled' }}</x-badge>
                             </td>
-                            <td class="py-2 text-right space-x-2">
-                                <a href="{{ route('admin.staff.edit', $member) }}" class="text-gray-700 underline">Edit</a>
+                            <td class="py-3 pr-4 text-right space-x-3">
+                                <a href="{{ route('admin.staff.edit', $member) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">Edit</a>
                                 <form method="POST" action="{{ route('admin.staff.toggle-active', $member) }}" class="inline">
                                     @csrf
                                     @method('PATCH')
                                     @if ($member->is_active)
-                                        <button type="submit" class="text-red-700 underline">Disable</button>
+                                        <button type="submit" class="text-red-600 hover:text-red-700 underline underline-offset-2">Disable</button>
                                     @else
-                                        <button type="submit" class="text-green-700 underline">Enable</button>
+                                        <button type="submit" class="text-emerald-600 hover:text-emerald-700 underline underline-offset-2">Enable</button>
                                     @endif
                                 </form>
                             </td>
