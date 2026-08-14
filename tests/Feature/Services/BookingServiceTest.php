@@ -50,6 +50,21 @@ class BookingServiceTest extends TestCase
         ]);
     }
 
+    /**
+     * The next full hour, within the 4-hour cancellation window - but never
+     * 23:00 today. AvailabilityService never generates a slot starting at
+     * 23:00 (it would end at "00:00:00", which the day's slot generation
+     * treats as earlier than closes_at and stops before reaching), so a
+     * naive "next hour from now" is flaky for roughly one hour a day. Roll
+     * into tomorrow's 00:00 slot instead, which the engine generates fine.
+     */
+    private function soonSlot(): CarbonImmutable
+    {
+        $slotStart = CarbonImmutable::now()->startOfHour()->addHour();
+
+        return $slotStart->hour === 23 ? $slotStart->addHour() : $slotStart;
+    }
+
     public function test_creates_a_confirmed_booking_with_calculated_price(): void
     {
         $user = User::factory()->customer()->create();
@@ -321,7 +336,7 @@ class BookingServiceTest extends TestCase
     public function test_customer_cannot_cancel_a_booking_within_the_deadline(): void
     {
         $court = Court::factory()->create();
-        $slotStart = CarbonImmutable::now()->startOfHour()->addHour(); // within the 4-hour window
+        $slotStart = $this->soonSlot(); // within the 4-hour window
         BusinessHour::updateOrCreate(
             ['day_of_week' => $slotStart->dayOfWeek],
             ['opens_at' => '00:00:00', 'closes_at' => '23:59:00', 'is_closed' => false],
@@ -341,7 +356,7 @@ class BookingServiceTest extends TestCase
     public function test_customer_cannot_reschedule_a_booking_within_the_deadline(): void
     {
         $court = Court::factory()->create();
-        $slotStart = CarbonImmutable::now()->startOfHour()->addHour();
+        $slotStart = $this->soonSlot();
         BusinessHour::updateOrCreate(
             ['day_of_week' => $slotStart->dayOfWeek],
             ['opens_at' => '00:00:00', 'closes_at' => '23:59:00', 'is_closed' => false],
@@ -359,7 +374,7 @@ class BookingServiceTest extends TestCase
     public function test_staff_cancel_and_reschedule_bypass_the_customer_deadline_by_default(): void
     {
         $court = Court::factory()->create();
-        $slotStart = CarbonImmutable::now()->startOfHour()->addHour();
+        $slotStart = $this->soonSlot();
         BusinessHour::updateOrCreate(
             ['day_of_week' => $slotStart->dayOfWeek],
             ['opens_at' => '00:00:00', 'closes_at' => '23:59:00', 'is_closed' => false],

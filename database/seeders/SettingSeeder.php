@@ -14,6 +14,9 @@ class SettingSeeder extends Seeder
     {
         $defaults = [
             'facility_name' => 'Pickleball Court Booking',
+            'facility_address' => '',
+            'facility_phone' => '',
+            'facility_email' => '',
             'currency' => 'PHP',
             'timezone' => 'Asia/Manila',
             'default_booking_duration_minutes' => '60',

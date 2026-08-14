@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CourtController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
@@ -53,6 +54,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('manage')->name('manage.')->gr
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('reports/export/bookings', [ReportController::class, 'exportBookings'])->name('reports.export-bookings');
     Route::get('reports/export/payments', [ReportController::class, 'exportPayments'])->name('reports.export-payments');
+
+    Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
+    Route::put('settings', [SettingController::class, 'update'])->name('settings.update');
+    Route::put('settings/business-hours', [SettingController::class, 'updateBusinessHours'])->name('settings.business-hours.update');
 });
 
 Route::middleware(['auth', 'role:admin,staff'])->get('/staff/dashboard', function () {
