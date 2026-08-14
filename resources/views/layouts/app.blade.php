@@ -3,16 +3,16 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{{ $title ?? config('app.name') }}</title>
+        <title>{{ isset($title) ? $title.' - '.config('app.name') : config('app.name') }}</title>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="min-h-screen bg-gray-100 flex items-center justify-center px-4">
-        <div class="w-full max-w-sm bg-white shadow rounded-lg p-6">
-            <h1 class="text-lg font-semibold text-gray-900 mb-4">{{ config('app.name') }}</h1>
+    <body class="min-h-screen bg-gray-100">
+        @include('partials.nav')
 
+        <main class="max-w-5xl mx-auto px-4 py-8">
             @include('partials.flash-messages')
 
             @yield('content')
-        </div>
+        </main>
     </body>
 </html>

@@ -1,0 +1,38 @@
+<nav class="bg-white border-b">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between flex-wrap gap-2">
+        <a href="{{ url('/') }}" class="font-semibold text-gray-900">{{ config('app.name') }}</a>
+
+        <div class="flex items-center gap-4 text-sm">
+            @auth
+                @php $user = auth()->user(); @endphp
+
+                @if ($user->isAdmin())
+                    <a href="{{ route('admin.dashboard') }}" class="text-gray-700 hover:text-gray-900">Dashboard</a>
+                    @foreach (['Bookings', 'Courts', 'Customers', 'Staff', 'Payments', 'Reports', 'Settings'] as $item)
+                        <span class="text-gray-300 cursor-not-allowed" title="Not built yet">{{ $item }}</span>
+                    @endforeach
+                @elseif ($user->isStaff())
+                    <a href="{{ route('staff.dashboard') }}" class="text-gray-700 hover:text-gray-900">Dashboard</a>
+                    @foreach (['Bookings', 'Walk-in Booking', 'Check-in'] as $item)
+                        <span class="text-gray-300 cursor-not-allowed" title="Not built yet">{{ $item }}</span>
+                    @endforeach
+                @else
+                    <a href="{{ url('/') }}" class="text-gray-700 hover:text-gray-900">Home</a>
+                    @foreach (['Book a Court', 'My Bookings', 'Profile'] as $item)
+                        <span class="text-gray-300 cursor-not-allowed" title="Not built yet">{{ $item }}</span>
+                    @endforeach
+                @endif
+
+                <span class="text-gray-500">{{ $user->name }} &middot; {{ $user->role->label() }}</span>
+
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="text-gray-700 hover:text-gray-900">Logout</button>
+                </form>
+            @else
+                <a href="{{ route('login') }}" class="text-gray-700 hover:text-gray-900">Log in</a>
+                <a href="{{ route('register') }}" class="text-gray-700 hover:text-gray-900">Register</a>
+            @endauth
+        </div>
+    </div>
+</nav>

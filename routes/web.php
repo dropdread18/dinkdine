@@ -7,8 +7,8 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    return view('home');
+})->name('home');
 
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
@@ -26,12 +26,12 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
-// Placeholder routes to verify role-based access control.
-// Replaced by the real Admin Dashboard / Staff views (Requirements.md modules 12-13).
+// Dashboard content is still a placeholder — real modules (Requirements.md
+// modules 12-13) will fill these in. The route, middleware, and layout are real.
 Route::middleware(['auth', 'role:admin'])->get('/admin/dashboard', function () {
-    return 'Admin dashboard placeholder';
+    return view('dashboard.admin');
 })->name('admin.dashboard');
 
 Route::middleware(['auth', 'role:admin,staff'])->get('/staff/dashboard', function () {
-    return 'Staff dashboard placeholder';
+    return view('dashboard.staff');
 })->name('staff.dashboard');
