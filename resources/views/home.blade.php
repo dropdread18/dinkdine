@@ -10,7 +10,7 @@
             @elseif (auth()->user()->isStaff())
                 Head to your <a href="{{ route('staff.dashboard') }}" class="underline">dashboard</a>.
             @else
-                Court booking isn't built yet — check back soon.
+                <a href="{{ route('bookings.index') }}" class="underline">Book a court</a>.
             @endif
         </p>
     @else

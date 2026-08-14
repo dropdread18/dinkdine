@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\BookingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -35,3 +36,12 @@ Route::middleware(['auth', 'role:admin'])->get('/admin/dashboard', function () {
 Route::middleware(['auth', 'role:admin,staff'])->get('/staff/dashboard', function () {
     return view('dashboard.staff');
 })->name('staff.dashboard');
+
+Route::middleware(['auth', 'role:customer'])->group(function () {
+    Route::get('/book', [BookingController::class, 'index'])->name('bookings.index');
+    Route::get('/book/{court}', [BookingController::class, 'create'])->name('bookings.create');
+    Route::post('/book/{court}', [BookingController::class, 'store'])->name('bookings.store');
+    Route::get('/my-bookings', [BookingController::class, 'mine'])->name('bookings.mine');
+});
+
+Route::middleware('auth')->get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
