@@ -29,6 +29,8 @@ class Booking extends Model
             'status' => BookingStatus::class,
             'payment_status' => PaymentStatus::class,
             'source' => BookingSource::class,
+            'reminder_24h_sent_at' => 'datetime',
+            'reminder_1h_sent_at' => 'datetime',
         ];
     }
 

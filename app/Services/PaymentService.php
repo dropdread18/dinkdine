@@ -5,6 +5,9 @@ namespace App\Services;
 use App\Enums\PaymentStatus;
 use App\Exceptions\PaymentActionException;
 use App\Models\Payment;
+use App\Notifications\PaymentReceived;
+use App\Notifications\PaymentRefunded;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Manual payment confirmation only (Requirements.md §29 - the MVP has no
@@ -23,16 +26,22 @@ class PaymentService
             throw new PaymentActionException('This payment is already marked as paid.');
         }
 
-        $payment->update([
-            'status' => PaymentStatus::Paid,
-            'method' => $method,
-            'paid_at' => now(),
-            'notes' => $this->appendNote($payment->notes, $notes),
-        ]);
+        return DB::transaction(function () use ($payment, $method, $notes) {
+            $payment->update([
+                'status' => PaymentStatus::Paid,
+                'method' => $method,
+                'paid_at' => now(),
+                'notes' => $this->appendNote($payment->notes, $notes),
+            ]);
 
-        $payment->booking->update(['payment_status' => PaymentStatus::Paid]);
+            $payment->booking->update(['payment_status' => PaymentStatus::Paid]);
 
-        return $payment->fresh();
+            $fresh = $payment->fresh(['booking.user']);
+
+            DB::afterCommit(fn () => $fresh->booking->user->notify(new PaymentReceived($fresh)));
+
+            return $fresh;
+        });
     }
 
     /**
@@ -44,14 +53,16 @@ class PaymentService
             throw new PaymentActionException('A paid or refunded payment cannot be marked as failed - use refund instead.');
         }
 
-        $payment->update([
-            'status' => PaymentStatus::Failed,
-            'notes' => $this->appendNote($payment->notes, $reason ?: 'Payment failed'),
-        ]);
+        return DB::transaction(function () use ($payment, $reason) {
+            $payment->update([
+                'status' => PaymentStatus::Failed,
+                'notes' => $this->appendNote($payment->notes, $reason ?: 'Payment failed'),
+            ]);
 
-        $payment->booking->update(['payment_status' => PaymentStatus::Failed]);
+            $payment->booking->update(['payment_status' => PaymentStatus::Failed]);
 
-        return $payment->fresh();
+            return $payment->fresh();
+        });
     }
 
     /**
@@ -63,17 +74,23 @@ class PaymentService
             throw new PaymentActionException('Only a paid payment can be refunded.');
         }
 
-        $status = $partial ? PaymentStatus::PartiallyRefunded : PaymentStatus::Refunded;
-        $label = $partial ? 'Partially refunded' : 'Refunded';
+        return DB::transaction(function () use ($payment, $partial, $reason) {
+            $status = $partial ? PaymentStatus::PartiallyRefunded : PaymentStatus::Refunded;
+            $label = $partial ? 'Partially refunded' : 'Refunded';
 
-        $payment->update([
-            'status' => $status,
-            'notes' => $this->appendNote($payment->notes, $label.($reason ? ": {$reason}" : '')),
-        ]);
+            $payment->update([
+                'status' => $status,
+                'notes' => $this->appendNote($payment->notes, $label.($reason ? ": {$reason}" : '')),
+            ]);
 
-        $payment->booking->update(['payment_status' => $status]);
+            $payment->booking->update(['payment_status' => $status]);
 
-        return $payment->fresh();
+            $fresh = $payment->fresh(['booking.user']);
+
+            DB::afterCommit(fn () => $fresh->booking->user->notify(new PaymentRefunded($fresh, $partial)));
+
+            return $fresh;
+        });
     }
 
     private function appendNote(?string $existing, ?string $new): ?string

@@ -12,6 +12,9 @@ use App\Models\Court;
 use App\Models\Payment;
 use App\Models\Setting;
 use App\Models\User;
+use App\Notifications\BookingCancelled;
+use App\Notifications\BookingConfirmed;
+use App\Notifications\BookingRescheduled;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
@@ -90,6 +93,15 @@ class BookingService
                 'amount' => $booking->price,
                 'status' => PaymentStatus::Unpaid,
             ]);
+
+            // afterCommit(), not a direct notify() call here: book() can run
+            // nested inside bookMany()'s outer transaction (as a savepoint).
+            // Sending the email immediately would fire it even if a later
+            // slot in the same batch fails and rolls this one back too.
+            // afterCommit() always waits for the OUTERMOST transaction,
+            // whichever call started it, and fires immediately if there's
+            // no transaction in progress at all.
+            DB::afterCommit(fn () => $booking->user->notify(new BookingConfirmed($booking)));
 
             return $booking;
         });
@@ -182,6 +194,11 @@ class BookingService
                 );
             }
 
+            $oldCourtName = $booking->court->name;
+            $oldDate = $booking->booking_date->toDateString();
+            $oldStartTime = $booking->start_time;
+            $oldEndTime = $booking->end_time;
+
             $booking->update([
                 'court_id' => $court->id,
                 'booking_date' => $date,
@@ -199,7 +216,13 @@ class BookingService
                 $booking->payment->update(['amount' => $booking->price]);
             }
 
-            return $booking->fresh();
+            $fresh = $booking->fresh(['court', 'user']);
+
+            DB::afterCommit(fn () => $fresh->user->notify(
+                new BookingRescheduled($fresh, $oldCourtName, $oldDate, $oldStartTime, $oldEndTime)
+            ));
+
+            return $fresh;
         });
     }
 
@@ -226,7 +249,11 @@ class BookingService
             'notes' => trim(($booking->notes ? $booking->notes."\n" : '').'Cancelled: '.($reason ?: 'No reason given')),
         ]);
 
-        return $booking->fresh();
+        $fresh = $booking->fresh(['court', 'user']);
+
+        DB::afterCommit(fn () => $fresh->user->notify(new BookingCancelled($fresh)));
+
+        return $fresh;
     }
 
     /**
