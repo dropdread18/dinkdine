@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CourtController;
+use App\Http\Controllers\Admin\CourtMaintenanceController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingController;
@@ -41,6 +42,7 @@ Route::middleware(['auth', 'role:admin'])->get('/admin/dashboard', function () {
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('courts', CourtController::class)->except(['show']);
+    Route::resource('maintenance', CourtMaintenanceController::class)->except(['show']);
 });
 
 // Payments is an admin-only capability (Requirements.md §51 lists it under
