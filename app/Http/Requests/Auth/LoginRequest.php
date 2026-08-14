@@ -36,7 +36,14 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        // 'is_active' => true is part of the credentials array, not a
+        // separate post-login check - a disabled account fails the same
+        // way a wrong password does (auth.failed), on purpose. Telling an
+        // anonymous login attempt "this account is disabled" would leak
+        // account status to someone who doesn't already have the password.
+        $credentials = $this->only('email', 'password') + ['is_active' => true];
+
+        if (! Auth::attempt($credentials, $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

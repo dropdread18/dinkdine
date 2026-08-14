@@ -14,9 +14,8 @@
                     <a href="{{ route('manage.payments.index') }}" class="text-gray-700 hover:text-gray-900">Payments</a>
                     <a href="{{ route('manage.reports.index') }}" class="text-gray-700 hover:text-gray-900">Reports</a>
                     <a href="{{ route('manage.settings.index') }}" class="text-gray-700 hover:text-gray-900">Settings</a>
-                    @foreach (['Customers', 'Staff'] as $item)
-                        <span class="text-gray-300 cursor-not-allowed" title="Not built yet">{{ $item }}</span>
-                    @endforeach
+                    <a href="{{ route('admin.customers.index') }}" class="text-gray-700 hover:text-gray-900">Customers</a>
+                    <a href="{{ route('admin.staff.index') }}" class="text-gray-700 hover:text-gray-900">Staff</a>
                 @elseif ($user->isStaff())
                     <a href="{{ route('staff.dashboard') }}" class="text-gray-700 hover:text-gray-900">Dashboard</a>
                     <a href="{{ route('manage.bookings.index') }}" class="text-gray-700 hover:text-gray-900">Bookings</a>
