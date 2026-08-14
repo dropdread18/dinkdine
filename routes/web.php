@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CourtController;
 use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
@@ -48,6 +49,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('manage')->name('manage.')->gr
     Route::patch('payments/{payment}/mark-paid', [PaymentController::class, 'markPaid'])->name('payments.mark-paid');
     Route::patch('payments/{payment}/mark-failed', [PaymentController::class, 'markFailed'])->name('payments.mark-failed');
     Route::patch('payments/{payment}/refund', [PaymentController::class, 'refund'])->name('payments.refund');
+
+    Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('reports/export/bookings', [ReportController::class, 'exportBookings'])->name('reports.export-bookings');
+    Route::get('reports/export/payments', [ReportController::class, 'exportPayments'])->name('reports.export-payments');
 });
 
 Route::middleware(['auth', 'role:admin,staff'])->get('/staff/dashboard', function () {
