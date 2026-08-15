@@ -29,43 +29,16 @@
     </head>
     <body class="db-body">
         @php
-            $navItems = [
-                ['label' => 'Dashboard', 'route' => 'admin.dashboard'],
-                ['label' => 'Bookings', 'route' => 'manage.bookings.index'],
-                ['label' => 'Courts', 'route' => 'admin.courts.index'],
-                ['label' => 'Customers', 'route' => 'admin.customers.index'],
-                ['label' => 'Payments', 'route' => 'manage.payments.index'],
-                ['label' => 'Reports', 'route' => 'manage.reports.index'],
-            ];
             $statusMeta = [
                 \App\Enums\BookingStatus::Confirmed->value => ['bg' => '#F0FDF4', 'border' => '#BBF7D0', 'text' => '#15803D'],
                 \App\Enums\BookingStatus::Pending->value => ['bg' => '#FFFBEB', 'border' => '#FDE68A', 'text' => '#B45309'],
             ];
         @endphp
 
-        {{-- Mobile-only top bar (no sidebar - the mockup itself shows no mobile nav idiom, just a compact glance-only dashboard) --}}
-        <header class="lg:hidden" style="background: var(--db-nav);">
-            <div class="px-5 h-16 flex items-center gap-2">
-                <span class="inline-block w-2 h-2 rounded-full" style="background: var(--db-accent);"></span>
-                <span class="text-base font-extrabold text-white">Dink Dine Admin</span>
-            </div>
-        </header>
+        @include('partials.admin-dink-mobile-header')
 
         <div class="lg:flex lg:min-h-screen">
-            <aside class="hidden lg:flex lg:flex-col lg:shrink-0" style="width: 240px; background: var(--db-nav); padding: 24px 0;">
-                <div class="flex items-center gap-2 px-6 mb-6">
-                    <span class="inline-block w-2.5 h-2.5 rounded-full" style="background: var(--db-accent);"></span>
-                    <span class="text-lg font-extrabold text-white" style="font-family: var(--db-font);">Dink Dine</span>
-                </div>
-                @foreach ($navItems as $item)
-                    @php $isActive = $item['route'] === 'admin.dashboard'; @endphp
-                    <a href="{{ route($item['route']) }}"
-                       class="px-6 py-3 text-sm"
-                       style="font-weight: {{ $isActive ? 700 : 500 }}; color: {{ $isActive ? '#FFFFFF' : 'var(--db-ink-faintest)' }}; background: {{ $isActive ? 'rgba(184,230,62,0.12)' : 'transparent' }}; border-left: 3px solid {{ $isActive ? 'var(--db-accent)' : 'transparent' }};">
-                        {{ $item['label'] }}
-                    </a>
-                @endforeach
-            </aside>
+            @include('partials.admin-dink-sidebar', ['activeRoute' => 'admin.dashboard'])
 
             <main class="flex-1 px-5 py-6 sm:px-8 lg:px-10 lg:py-8">
                 @include('partials.flash-messages')

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Payment;
@@ -24,6 +25,34 @@ class ReportController extends Controller
             'revenue' => $reports->revenue($start, $end),
             'bookingCounts' => $reports->bookingCounts($start, $end),
             'utilization' => $reports->courtUtilization($start, $end),
+            'last7Days' => $this->last7DaysRevenue(),
+        ]);
+    }
+
+    /**
+     * Trailing 7 days ending today, independent of the range switcher above
+     * it - the mockup labels this panel "Revenue — Last 7 Days" as a fixed
+     * window, not "revenue over the selected range". Grouped in PHP rather
+     * than a DATE()/strftime() grouped query - this codebase has hit real
+     * SQLite-vs-MySQL date-handling mismatches before (see ReportingService
+     * docblock), so date-string grouping stays off the SQL side.
+     *
+     * @return \Illuminate\Support\Collection<int, array{label: string, total: float}>
+     */
+    private function last7DaysRevenue(): \Illuminate\Support\Collection
+    {
+        $today = Carbon::today();
+
+        $paidByDate = Payment::query()
+            ->where('status', PaymentStatus::Paid)
+            ->whereBetween('paid_at', [$today->copy()->subDays(6)->startOfDay(), $today->copy()->endOfDay()])
+            ->get(['amount', 'paid_at'])
+            ->groupBy(fn (Payment $payment) => $payment->paid_at->toDateString())
+            ->map(fn ($payments) => (float) $payments->sum('amount'));
+
+        return collect(range(6, 0))->map(fn (int $daysAgo) => [
+            'label' => $today->copy()->subDays($daysAgo)->format('D'),
+            'total' => $paidByDate->get($today->copy()->subDays($daysAgo)->toDateString(), 0.0),
         ]);
     }
 

@@ -58,6 +58,23 @@ class ReportsTest extends TestCase
         $response->assertSee('777.00');
     }
 
+    public function test_reports_page_shows_a_trailing_seven_day_revenue_chart_regardless_of_selected_range(): void
+    {
+        $booking = Booking::factory()->create();
+        Payment::factory()->paid()->create(['booking_id' => $booking->id, 'amount' => 888, 'paid_at' => now()]);
+
+        $oldBooking = Booking::factory()->create();
+        Payment::factory()->paid()->create(['booking_id' => $oldBooking->id, 'amount' => 555, 'paid_at' => now()->subDays(10)]);
+
+        $response = $this->actingAs(User::factory()->admin()->create())
+            ->get('/manage/reports?range=month');
+
+        $response->assertOk();
+        $response->assertSee('Revenue — Last 7 Days');
+        $response->assertSee('₱888');
+        $response->assertDontSee('₱555');
+    }
+
     public function test_bookings_export_returns_a_csv_with_expected_rows(): void
     {
         $booking = Booking::factory()->create(['booking_date' => now()->toDateString()]);
