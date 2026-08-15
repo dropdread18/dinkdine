@@ -94,8 +94,12 @@ class BookingGridTest extends TestCase
             ->assertSet('reviewing', false);
     }
 
-    public function test_confirming_creates_a_booking_per_selected_slot(): void
+    public function test_confirming_holds_a_booking_per_selected_slot_pending_payment(): void
     {
+        // Owner feedback (post-launch): payment is now required before ANY
+        // online booking confirms, logged-in customer or not - not just
+        // guest checkouts. confirmBookings() always lands on the payment
+        // hold now; see GuestCheckoutTest for the full pay -> Confirmed path.
         $customer = User::factory()->customer()->create();
         $courtA = Court::factory()->create(['hourly_rate' => 300]);
         $courtB = Court::factory()->create(['hourly_rate' => 400]);
@@ -108,12 +112,14 @@ class BookingGridTest extends TestCase
             ->assertSet('reviewing', true)
             ->set('notes', 'Birthday game')
             ->call('confirmBookings')
-            ->assertRedirect(route('bookings.confirmation'));
+            ->assertSet('awaitingPayment', true)
+            ->assertNoRedirect();
 
         $this->assertSame(2, Booking::where('user_id', $customer->id)->count());
         $this->assertSame(2, Booking::where('notes', 'Birthday game')->count());
         $bookings = Booking::where('user_id', $customer->id)->get();
-        $this->assertTrue($bookings->every(fn (Booking $b) => $b->status === BookingStatus::Confirmed));
+        $this->assertTrue($bookings->every(fn (Booking $b) => $b->status === BookingStatus::Pending));
+        $this->assertTrue($bookings->every(fn (Booking $b) => $b->hold_expires_at !== null));
     }
 
     public function test_confirming_with_a_conflicting_slot_rolls_back_the_whole_batch_and_shows_an_error(): void

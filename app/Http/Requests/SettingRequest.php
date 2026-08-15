@@ -30,7 +30,7 @@ class SettingRequest extends FormRequest
             'max_simultaneous_bookings_per_customer' => ['required', 'integer', 'min:1'],
             'default_court_hourly_rate' => ['required', 'numeric', 'min:0'],
             'payment_instructions' => ['nullable', 'string', 'max:2000'],
-            'payment_qr_code' => ['nullable', 'image', 'max:2048'],
+            'payment_qr_code' => ['nullable', 'image', 'max:8192'],
             'remove_payment_qr_code' => ['nullable', 'boolean'],
         ];
     }

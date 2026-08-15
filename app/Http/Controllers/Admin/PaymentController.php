@@ -42,11 +42,14 @@ class PaymentController extends Controller
     {
         $data = $request->validate([
             'method' => ['required', 'string', 'max:255'],
+            // Required specifically for GCash - cash/bank transfer/other
+            // don't have a GCash-style reference number to confirm against.
+            'reference_number' => ['required_if:method,gcash', 'nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
         try {
-            $paymentService->markPaid($payment, $data['method'], $data['notes'] ?? null);
+            $paymentService->markPaid($payment, $data['method'], $data['notes'] ?? null, $data['reference_number'] ?? null);
         } catch (PaymentActionException $e) {
             return back()->withErrors(['payment' => $e->getMessage()]);
         }

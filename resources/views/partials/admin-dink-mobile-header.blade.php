@@ -5,6 +5,7 @@
         ['label' => 'Maintenance', 'route' => 'admin.maintenance.index'],
         ['label' => 'Court Schedule', 'route' => 'manage.courts.schedule'],
         ['label' => 'Bookings', 'route' => 'manage.bookings.index'],
+        ['label' => 'Walk-in Booking', 'route' => 'manage.walkin.index'],
         ['label' => 'Payments', 'route' => 'manage.payments.index'],
         ['label' => 'Reports', 'route' => 'manage.reports.index'],
         ['label' => 'Settings', 'route' => 'manage.settings.index'],

@@ -13,6 +13,8 @@ use App\Models\Setting;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -153,6 +155,29 @@ class GuestCheckoutTest extends TestCase
         $this->assertSame(BookingStatus::Pending, Booking::first()->status);
     }
 
+    public function test_a_screenshot_alone_is_enough_to_confirm_payment_without_a_reference_number(): void
+    {
+        Storage::fake('public');
+        $court = Court::factory()->create();
+
+        Livewire::test(BookingGrid::class, ['date' => $this->date])
+            ->call('toggleSlot', $court->id, $court->name, '09:00:00', '10:00:00')
+            ->call('startReview')
+            ->set('guestName', 'Juan Dela Cruz')
+            ->set('guestEmail', 'juan@example.com')
+            ->set('guestPhone', '09171234567')
+            ->call('confirmBookings')
+            ->set('paymentProof', UploadedFile::fake()->image('receipt.jpg'))
+            ->call('submitPaymentReference')
+            ->assertRedirect(route('bookings.confirmation'));
+
+        $booking = Booking::first();
+        $this->assertSame(BookingStatus::Confirmed, $booking->status);
+        $this->assertNull($booking->payment->reference_number);
+        $this->assertNotNull($booking->payment->payment_proof_path);
+        Storage::disk('public')->assertExists($booking->payment->payment_proof_path);
+    }
+
     public function test_submitting_a_reference_after_the_hold_expired_fails_and_resets_to_the_grid(): void
     {
         $court = Court::factory()->create();
@@ -176,7 +201,30 @@ class GuestCheckoutTest extends TestCase
         $this->assertSame(BookingStatus::Pending, Booking::first()->status);
     }
 
-    public function test_logged_in_customer_is_still_confirmed_instantly_not_held(): void
+    public function test_logged_in_customer_is_also_held_pending_payment_not_confirmed_instantly(): void
+    {
+        // Reversed post-launch (further owner feedback): a known customer
+        // account was never proof that payment actually happened, so
+        // logged-in checkouts now go through the exact same payment-hold
+        // flow as guests. Only staff-created walk-in bookings (a totally
+        // separate controller) still confirm instantly.
+        $customer = User::factory()->customer()->create();
+        $court = Court::factory()->create();
+
+        Livewire::actingAs($customer)
+            ->test(BookingGrid::class, ['date' => $this->date])
+            ->call('toggleSlot', $court->id, $court->name, '09:00:00', '10:00:00')
+            ->call('startReview')
+            ->call('confirmBookings')
+            ->assertSet('awaitingPayment', true)
+            ->assertNoRedirect();
+
+        $booking = Booking::first();
+        $this->assertSame(BookingStatus::Pending, $booking->status);
+        $this->assertNotNull($booking->hold_expires_at);
+    }
+
+    public function test_logged_in_customer_completes_payment_the_same_way_a_guest_does(): void
     {
         $customer = User::factory()->customer()->create();
         $court = Court::factory()->create();
@@ -186,11 +234,13 @@ class GuestCheckoutTest extends TestCase
             ->call('toggleSlot', $court->id, $court->name, '09:00:00', '10:00:00')
             ->call('startReview')
             ->call('confirmBookings')
+            ->set('paymentReference', 'GCASH-REF-999')
+            ->call('submitPaymentReference')
             ->assertRedirect(route('bookings.confirmation'));
 
         $booking = Booking::first();
         $this->assertSame(BookingStatus::Confirmed, $booking->status);
-        $this->assertNull($booking->hold_expires_at);
+        $this->assertSame('GCASH-REF-999', $booking->payment->reference_number);
     }
 
     public function test_guest_checkout_requires_name_email_and_phone(): void
@@ -256,7 +306,8 @@ class GuestCheckoutTest extends TestCase
             ->call('toggleSlot', $court->id, $court->name, '09:00:00', '10:00:00')
             ->call('startReview')
             ->call('confirmBookings')
-            ->assertRedirect(route('bookings.confirmation'));
+            ->assertSet('awaitingPayment', true)
+            ->assertNoRedirect();
 
         $this->assertSame($customer->id, Booking::first()->user_id);
     }

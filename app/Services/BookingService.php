@@ -189,13 +189,17 @@ class BookingService
     }
 
     /**
-     * Second half of the guest payment-hold flow: the guest reports the
-     * reference number they were given after paying (per
-     * Setting::get('payment_instructions')). Moves every booking in this
-     * hold from Pending to Confirmed and records the reference number on
-     * each one's Payment (status Unpaid -> Pending - claimed-paid, not yet
-     * staff-verified; staff verifies it in person at arrival via the
-     * existing Check-in screen and marks it Paid through the existing
+     * Second half of the payment-hold flow: the customer reports a
+     * reference number and/or uploads a screenshot of the receipt for the
+     * payment they just made (per Setting::get('payment_instructions')/the
+     * payment QR code). At least one of the two is required by the caller
+     * before this is invoked - this method itself doesn't re-enforce that,
+     * since "both empty" isn't a state either param can represent once
+     * validated upstream. Moves every booking in this hold from Pending to
+     * Confirmed and records whatever proof was given on each one's Payment
+     * (status Unpaid -> Pending - claimed-paid, not yet staff-verified;
+     * staff verifies it in person at arrival via the existing Check-in
+     * screen and marks it Paid through the existing
      * PaymentService::markPaid(), same as any other manual payment
      * confirmation - no new payment-verification code needed there).
      *
@@ -212,9 +216,9 @@ class BookingService
      *
      * @throws BookingUnavailableException
      */
-    public function confirmWithReference(array $bookings, string $referenceNumber): array
+    public function confirmWithReference(array $bookings, ?string $referenceNumber, ?string $proofPath = null): array
     {
-        return DB::transaction(function () use ($bookings, $referenceNumber) {
+        return DB::transaction(function () use ($bookings, $referenceNumber, $proofPath) {
             $confirmed = [];
 
             foreach ($bookings as $booking) {
@@ -236,6 +240,7 @@ class BookingService
                 $fresh->payment?->update([
                     'status' => PaymentStatus::Pending,
                     'reference_number' => $referenceNumber,
+                    'payment_proof_path' => $proofPath,
                 ]);
 
                 $confirmed[] = $fresh->fresh(['court', 'user']);

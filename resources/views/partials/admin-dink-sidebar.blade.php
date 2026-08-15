@@ -5,6 +5,7 @@
         ['label' => 'Maintenance', 'route' => 'admin.maintenance.index', 'pattern' => 'admin.maintenance.*'],
         ['label' => 'Court Schedule', 'route' => 'manage.courts.schedule', 'pattern' => 'manage.courts.schedule'],
         ['label' => 'Bookings', 'route' => 'manage.bookings.index', 'pattern' => 'manage.bookings.*'],
+        ['label' => 'Walk-in Booking', 'route' => 'manage.walkin.index', 'pattern' => 'manage.walkin.*'],
         ['label' => 'Payments', 'route' => 'manage.payments.index', 'pattern' => 'manage.payments.*'],
         ['label' => 'Reports', 'route' => 'manage.reports.index', 'pattern' => 'manage.reports.*'],
         ['label' => 'Settings', 'route' => 'manage.settings.index', 'pattern' => 'manage.settings.*'],

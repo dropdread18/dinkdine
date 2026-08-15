@@ -70,11 +70,38 @@ class PaymentManagementTest extends TestCase
         $payment = Payment::factory()->create(['booking_id' => $booking->id]);
 
         $response = $this->actingAs(User::factory()->admin()->create())
-            ->patch("/manage/payments/{$payment->id}/mark-paid", ['method' => 'gcash', 'notes' => 'Ref 555']);
+            ->patch("/manage/payments/{$payment->id}/mark-paid", [
+                'method' => 'gcash', 'reference_number' => 'GCASH-REF-555', 'notes' => 'Confirmed in person',
+            ]);
 
         $response->assertRedirect();
         $this->assertSame(PaymentStatus::Paid, $payment->fresh()->status);
         $this->assertSame(PaymentStatus::Paid, $booking->fresh()->payment_status);
+        $this->assertSame('GCASH-REF-555', $payment->fresh()->reference_number);
+    }
+
+    public function test_gcash_payment_requires_a_reference_number(): void
+    {
+        $booking = Booking::factory()->create();
+        $payment = Payment::factory()->create(['booking_id' => $booking->id]);
+
+        $response = $this->actingAs(User::factory()->admin()->create())
+            ->patch("/manage/payments/{$payment->id}/mark-paid", ['method' => 'gcash']);
+
+        $response->assertSessionHasErrors('reference_number');
+        $this->assertSame(PaymentStatus::Unpaid, $payment->fresh()->status);
+    }
+
+    public function test_cash_payment_does_not_require_a_reference_number(): void
+    {
+        $booking = Booking::factory()->create();
+        $payment = Payment::factory()->create(['booking_id' => $booking->id]);
+
+        $response = $this->actingAs(User::factory()->admin()->create())
+            ->patch("/manage/payments/{$payment->id}/mark-paid", ['method' => 'cash']);
+
+        $response->assertRedirect();
+        $this->assertSame(PaymentStatus::Paid, $payment->fresh()->status);
     }
 
     public function test_marking_an_already_paid_payment_paid_again_fails_gracefully(): void

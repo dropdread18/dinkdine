@@ -132,8 +132,15 @@
                                 </div>
                             </div>
 
-                            @if ($booking->payment?->reference_number)
-                                <div class="text-xs mt-3" style="color: var(--db-ink-faint);">Ref: <span class="font-mono">{{ $booking->payment->reference_number }}</span></div>
+                            @if ($booking->payment?->reference_number || $booking->payment?->payment_proof_path)
+                                <div class="text-xs mt-3 flex items-center gap-3" style="color: var(--db-ink-faint);">
+                                    @if ($booking->payment->reference_number)
+                                        <span>Ref: <span class="font-mono">{{ $booking->payment->reference_number }}</span></span>
+                                    @endif
+                                    @if ($booking->payment->payment_proof_path)
+                                        <a href="{{ \Illuminate\Support\Facades\Storage::url($booking->payment->payment_proof_path) }}" target="_blank" rel="noopener" class="font-semibold" style="color: #3B82F6;">View Screenshot</a>
+                                    @endif
+                                </div>
                             @endif
                         </div>
                     @endforeach

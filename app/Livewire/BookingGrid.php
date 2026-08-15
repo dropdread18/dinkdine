@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 /**
  * DEC-004: lets a customer select any combination of available slots -
@@ -31,20 +32,24 @@ use Livewire\Component;
  * existing customer feature (My Bookings, cancel/reschedule) just works
  * afterward with zero new authorization code.
  *
- * Feedback session (post-launch): a guest/non-logged-in confirmation no
- * longer books straight to Confirmed. It holds the slot(s) as Pending for
- * 10 minutes (BookingService::bookMany(..., requiresPaymentHold: true))
- * while the guest pays via the facility's own arrangement (Setting
- * 'payment_instructions') and reports back a reference number
- * (submitPaymentReference() -> BookingService::confirmWithReference()).
- * If they don't, the hold silently expires via the
- * bookings:expire-payment-holds scheduled command, freeing the slot. An
- * already-logged-in customer is unaffected - same instant-Confirmed flow
- * as before this session, since they're a known, accountable customer
- * already, not an anonymous booking.
+ * Feedback session (post-launch), later revised (owner feedback: payment
+ * must be collected before ANY online booking confirms, not just guest
+ * ones): every online confirmation - guest or already-logged-in customer
+ * alike - holds the slot(s) as Pending for 10 minutes
+ * (BookingService::bookMany(..., requiresPaymentHold: true)) while the
+ * customer pays via the facility's own arrangement (Setting
+ * 'payment_instructions'/QR code) and reports back a reference number
+ * and/or a screenshot of the receipt (submitPaymentReference() ->
+ * BookingService::confirmWithReference()). If they don't, the hold
+ * silently expires via the bookings:expire-payment-holds scheduled
+ * command, freeing the slot. Walk-in bookings created by staff at the
+ * counter are unaffected - those go through WalkInBookingController, not
+ * this component, since staff collect payment in person there.
  */
 class BookingGrid extends Component
 {
+    use WithFileUploads;
+
     public string $date;
 
     /** @var array<string, array{court_id: int, court_name: string, date: string, start_time: string, end_time: string}> */
@@ -68,6 +73,9 @@ class BookingGrid extends Component
     public ?string $holdExpiresAt = null;
 
     public ?string $paymentReference = null;
+
+    /** @var \Livewire\Features\SupportFileUploads\TemporaryUploadedFile|null */
+    public $paymentProof = null;
 
     public ?string $notes = null;
 
@@ -149,11 +157,6 @@ class BookingGrid extends Component
         $this->assertNotStaffOrAdmin();
         $this->error = null;
 
-        // Captured before resolveCustomer(), which may itself create and
-        // log in a brand-new customer account for a guest - by then
-        // Auth::check() would always be true, so this has to happen first.
-        $isGuestCheckout = ! Auth::check();
-
         try {
             $customer = $this->resolveCustomer();
         } catch (ValidationException $e) {
@@ -171,8 +174,12 @@ class BookingGrid extends Component
             'end_time' => $s['end_time'],
         ])->all();
 
+        // Every online booking - guest or already-logged-in customer - now
+        // holds as Pending until payment is reported, not just guest
+        // checkouts. Owner feedback: a known customer account is still not
+        // proof that payment actually happened.
         try {
-            $bookings = $bookingService->bookMany($customer, $slots, notes: $this->notes, requiresPaymentHold: $isGuestCheckout);
+            $bookings = $bookingService->bookMany($customer, $slots, notes: $this->notes, requiresPaymentHold: true);
         } catch (BookingUnavailableException $e) {
             $this->error = $e->getMessage();
 
@@ -183,30 +190,33 @@ class BookingGrid extends Component
             Auth::login($customer);
         }
 
-        if ($isGuestCheckout) {
-            $this->pendingBookingIds = collect($bookings)->pluck('id')->all();
-            $this->holdExpiresAt = $bookings[0]->hold_expires_at->toIso8601String();
-            $this->reviewing = false;
-            $this->awaitingPayment = true;
-
-            return;
-        }
-
-        session()->flash('confirmed_booking_ids', collect($bookings)->pluck('id')->all());
-
-        $this->redirect(route('bookings.confirmation'));
+        $this->pendingBookingIds = collect($bookings)->pluck('id')->all();
+        $this->holdExpiresAt = $bookings[0]->hold_expires_at->toIso8601String();
+        $this->reviewing = false;
+        $this->awaitingPayment = true;
     }
 
     public function submitPaymentReference(BookingService $bookingService): void
     {
         $this->error = null;
 
-        $this->validate(['paymentReference' => ['required', 'string', 'max:255']]);
+        $this->validate([
+            'paymentReference' => ['nullable', 'string', 'max:255'],
+            'paymentProof' => ['nullable', 'image', 'max:8192'],
+        ]);
+
+        if (! $this->paymentReference && ! $this->paymentProof) {
+            $this->addError('paymentReference', 'Enter your payment reference number or upload a screenshot of your receipt.');
+
+            return;
+        }
+
+        $proofPath = $this->paymentProof?->store('payment-proofs', 'public');
 
         $bookings = Booking::whereIn('id', $this->pendingBookingIds)->get()->all();
 
         try {
-            $confirmed = $bookingService->confirmWithReference($bookings, $this->paymentReference);
+            $confirmed = $bookingService->confirmWithReference($bookings, $this->paymentReference, $proofPath);
         } catch (BookingUnavailableException $e) {
             // Any failure here (expired hold, already resolved, etc) means
             // this hold is no longer valid one way or another - back to a

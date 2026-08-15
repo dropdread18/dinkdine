@@ -105,12 +105,34 @@
                            class="h-12 rounded-lg px-3.5 text-[15px] font-semibold"
                            style="border: 1px solid var(--db-border); color: var(--db-ink);">
                 </div>
-                <p class="text-xs -mt-2" style="color: var(--db-ink-faint);">Bring this reference number with you — staff will confirm it against payment when you arrive.</p>
+
+                <div class="flex items-center gap-3">
+                    <div class="h-px flex-1" style="background: var(--db-border);"></div>
+                    <span class="text-xs font-bold" style="color: var(--db-ink-faint);">OR</span>
+                    <div class="h-px flex-1" style="background: var(--db-border);"></div>
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="payment-proof" class="text-[13px] font-bold" style="color: var(--db-ink);">Upload a Screenshot of Your Receipt</label>
+                    <input id="payment-proof" type="file" wire:model="paymentProof" accept="image/*"
+                           class="text-sm rounded-lg px-3.5 py-2.5"
+                           style="border: 1px solid var(--db-border); color: var(--db-ink);">
+                    <div wire:loading wire:target="paymentProof" class="text-xs font-semibold" style="color: var(--db-ink-faint);">Uploading…</div>
+                    @if ($paymentProof)
+                        <img src="{{ $paymentProof->temporaryUrl() }}" alt="Receipt preview" class="w-24 h-24 object-cover rounded-lg" style="border: 1px solid var(--db-border);">
+                    @endif
+                    @error('paymentProof')
+                        <div class="text-xs font-semibold" style="color: #B91C1C;">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <p class="text-xs -mt-2" style="color: var(--db-ink-faint);">Bring this reference number (or your receipt) with you — staff will confirm it against payment when you arrive.</p>
             </div>
 
+            @php $canSubmitPayment = trim((string) $paymentReference) !== '' || $paymentProof; @endphp
             <button type="button" wire:click="submitPaymentReference" wire:loading.attr="disabled"
                     class="h-[52px] rounded-lg text-[16px] font-bold text-center"
-                    style="background: {{ trim((string) $paymentReference) !== '' ? 'var(--db-accent)' : 'var(--db-border)' }}; color: {{ trim((string) $paymentReference) !== '' ? 'var(--db-accent-ink)' : 'var(--db-ink-faintest)' }};">
+                    style="background: {{ $canSubmitPayment ? 'var(--db-accent)' : 'var(--db-border)' }}; color: {{ $canSubmitPayment ? 'var(--db-accent-ink)' : 'var(--db-ink-faintest)' }};">
                 Confirm Payment
             </button>
         </div>

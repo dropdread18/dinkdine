@@ -20,18 +20,22 @@ class PaymentService
     /**
      * @throws PaymentActionException
      */
-    public function markPaid(Payment $payment, string $method, ?string $notes = null): Payment
+    public function markPaid(Payment $payment, string $method, ?string $notes = null, ?string $referenceNumber = null): Payment
     {
         if ($payment->status === PaymentStatus::Paid) {
             throw new PaymentActionException('This payment is already marked as paid.');
         }
 
-        return DB::transaction(function () use ($payment, $method, $notes) {
+        return DB::transaction(function () use ($payment, $method, $notes, $referenceNumber) {
             $payment->update([
                 'status' => PaymentStatus::Paid,
                 'method' => $method,
                 'paid_at' => now(),
                 'notes' => $this->appendNote($payment->notes, $notes),
+                // Only overwrite if the admin actually entered/confirmed one -
+                // an empty string here shouldn't wipe out a reference number
+                // the customer already submitted at checkout.
+                'reference_number' => $referenceNumber ?: $payment->reference_number,
             ]);
 
             $payment->booking->update(['payment_status' => PaymentStatus::Paid]);
