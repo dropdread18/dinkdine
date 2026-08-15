@@ -4,37 +4,88 @@
     @endif
 
     @if ($awaitingPayment)
-        {{-- Payment hold: restyled to the new system, structurally unchanged from before this pass. --}}
-        <div class="max-w-md rounded-2xl p-6" style="background: var(--db-surface); border: 1px solid var(--db-border);"
+        {{-- Payment hold: matches Guest Payment Hold.dc.html. One responsive card (the mockup's separate
+             mobile/desktop frames differ only in width, not interaction), centered, max 520px wide. --}}
+        <div class="max-w-[520px] mx-auto flex flex-col gap-5"
              x-data="{
                  expiresAt: new Date('{{ $holdExpiresAt }}').getTime(),
                  remaining: 0,
+                 timerColors: {
+                     normal: { text: '#B45309', bg: '#FFFBEB' },
+                     warning: { text: '#EA580C', bg: '#FFF7ED' },
+                     critical: { text: '#DC2626', bg: '#FEF2F2' },
+                 },
                  tick() { this.remaining = Math.max(0, Math.floor((this.expiresAt - Date.now()) / 1000)); },
+                 get timeLabel() { return Math.floor(this.remaining / 60) + ':' + String(this.remaining % 60).padStart(2, '0'); },
+                 get level() { return this.remaining < 60 ? 'critical' : (this.remaining < 300 ? 'warning' : 'normal'); },
              }"
              x-init="tick(); setInterval(() => tick(), 1000)">
-            <h2 class="text-lg font-bold mb-1" style="color: var(--db-ink);">Complete Your Payment</h2>
-            <p class="text-sm mb-4" style="color: var(--db-ink-soft);">
-                Your slot{{ count($pendingBookingIds) === 1 ? ' is' : 's are' }} held for
-                <span class="font-bold tabular-nums" style="color: var(--db-accent-hover);"
-                      x-text="Math.floor(remaining / 60) + ':' + String(remaining % 60).padStart(2, '0')"></span>.
-                If payment isn't confirmed in time, it's released automatically for someone else to book.
-            </p>
 
-            @if ($paymentInstructions)
-                <div class="rounded-xl p-4 mb-4 text-sm whitespace-pre-line" style="background: #F7FBEA; border: 1px solid #DCEFAE; color: var(--db-ink-soft);">{{ $paymentInstructions }}</div>
-            @endif
+            <div class="text-center flex flex-col gap-1.5">
+                <div class="text-[13px] font-bold uppercase" style="color: #B45309; letter-spacing: 0.06em;">Payment Required</div>
+                <div class="text-[26px] font-extrabold" style="color: var(--db-ink);">Your court is temporarily held</div>
+                <div class="text-[15px]" style="color: var(--db-ink-soft);">Complete payment before the hold expires to secure your booking.</div>
+            </div>
 
-            <label for="payment-reference" class="block text-sm font-semibold mb-1" style="color: var(--db-ink);">Payment Reference Number</label>
-            <input id="payment-reference" type="text" wire:model="paymentReference"
-                   placeholder="e.g. GCash reference number"
-                   class="mb-2 block w-full rounded-lg text-sm px-3 py-2"
-                   style="border: 1px solid var(--db-border); color: var(--db-ink);">
+            <div class="rounded-2xl p-6 flex flex-col gap-4" style="background: var(--db-surface); border: 1px solid var(--db-border);">
+                @foreach ($pendingBookings as $booking)
+                    @unless ($loop->first)
+                        <div class="h-px" style="background: var(--db-border);"></div>
+                    @endunless
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="text-lg font-bold" style="color: var(--db-ink);">{{ $booking->court->name }}</div>
+                            <div class="text-sm" style="color: var(--db-ink-soft);">
+                                {{ $booking->booking_date->format('F j, Y') }} ·
+                                {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $booking->start_time)->format('g:i A') }}–{{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $booking->end_time)->format('g:i A') }}
+                            </div>
+                        </div>
+                        <div class="text-2xl font-extrabold" style="color: var(--db-ink);">₱{{ number_format($booking->price, 0) }}</div>
+                    </div>
+                @endforeach
 
-            <p class="text-xs mb-4" style="color: var(--db-ink-faint);">Bring this reference number with you — staff will confirm it against payment when you arrive.</p>
+                @if ($pendingBookings->count() > 1)
+                    <div class="h-px" style="background: var(--db-border);"></div>
+                    <div class="flex justify-between items-center">
+                        <div class="text-sm font-semibold" style="color: var(--db-ink-soft);">Total</div>
+                        <div class="text-xl font-extrabold" style="color: var(--db-ink);">₱{{ number_format($pendingBookings->sum('price'), 0) }}</div>
+                    </div>
+                @endif
+
+                <div class="h-px" style="background: var(--db-border);"></div>
+                <div class="flex justify-between items-center">
+                    <div class="text-sm font-semibold" style="color: var(--db-ink-soft);">Time remaining</div>
+                    <div class="text-xl font-extrabold rounded-lg px-3.5 py-1.5 tabular-nums"
+                         :style="`color: ${timerColors[level].text}; background: ${timerColors[level].bg};`"
+                         x-text="timeLabel"></div>
+                </div>
+            </div>
+
+            <div class="rounded-2xl p-6 flex flex-col gap-4" style="background: var(--db-surface); border: 1px solid var(--db-border);">
+                <div class="text-sm font-bold" style="color: var(--db-ink);">Payment Method</div>
+                <div class="flex gap-2.5 flex-wrap">
+                    <div class="px-4 py-2.5 rounded-lg text-sm font-bold" style="border: 2px solid var(--db-ink); color: var(--db-ink);">GCash</div>
+                    <div class="px-4 py-2.5 rounded-lg text-sm font-semibold" style="border: 1px solid var(--db-border); color: var(--db-ink-faint);">Bank Transfer</div>
+                    <div class="px-4 py-2.5 rounded-lg text-sm font-semibold" style="border: 1px solid var(--db-border); color: var(--db-ink-faint);">Cash</div>
+                </div>
+
+                @if ($paymentInstructions)
+                    <div class="rounded-xl p-3 text-sm whitespace-pre-line" style="background: #F8FAF5; border: 1px solid var(--db-border); color: var(--db-ink-soft);">{{ $paymentInstructions }}</div>
+                @endif
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="payment-reference" class="text-[13px] font-bold" style="color: var(--db-ink);">Payment Reference Number</label>
+                    <input id="payment-reference" type="text" wire:model.live="paymentReference"
+                           placeholder="e.g. GCASH-REF-88231"
+                           class="h-12 rounded-lg px-3.5 text-[15px] font-semibold"
+                           style="border: 1px solid var(--db-border); color: var(--db-ink);">
+                </div>
+                <p class="text-xs -mt-2" style="color: var(--db-ink-faint);">Bring this reference number with you — staff will confirm it against payment when you arrive.</p>
+            </div>
 
             <button type="button" wire:click="submitPaymentReference" wire:loading.attr="disabled"
-                    class="w-full text-center font-bold text-[15px] py-3.5 rounded-lg"
-                    style="background: var(--db-accent); color: var(--db-accent-ink);">
+                    class="h-[52px] rounded-lg text-[16px] font-bold text-center"
+                    style="background: {{ trim((string) $paymentReference) !== '' ? 'var(--db-accent)' : 'var(--db-border)' }}; color: {{ trim((string) $paymentReference) !== '' ? 'var(--db-accent-ink)' : 'var(--db-ink-faintest)' }};">
                 Confirm Payment
             </button>
         </div>

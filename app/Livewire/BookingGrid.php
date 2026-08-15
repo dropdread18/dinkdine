@@ -284,6 +284,10 @@ class BookingGrid extends Component
             fn (array $s) => $pricingService->calculate(Court::find($s['court_id']), $s['start_time'], $s['end_time'])
         );
 
+        $pendingBookings = $this->awaitingPayment
+            ? Booking::with('court')->whereIn('id', $this->pendingBookingIds)->get()
+            : collect();
+
         return view('livewire.booking-grid', [
             'availability' => $availabilityService->forDate($this->date),
             'bookableFrom' => $bookableFrom,
@@ -291,6 +295,7 @@ class BookingGrid extends Component
             'totalPrice' => $slotPrices->sum(),
             'slotStatus' => SlotStatus::class,
             'paymentInstructions' => Setting::get('payment_instructions'),
+            'pendingBookings' => $pendingBookings,
         ]);
     }
 }
