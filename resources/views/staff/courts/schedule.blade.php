@@ -18,15 +18,17 @@
         </div>
     </div>
 
-    <form method="GET" action="{{ route('manage.courts.schedule') }}" class="mb-6">
-        <input type="hidden" name="date" value="{{ $date }}">
-        <label for="court" class="block text-sm font-medium text-slate-700 mb-1">Court</label>
-        <select id="court" name="court" class="rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500" onchange="this.form.requestSubmit()">
+    <div class="mb-6">
+        <label class="block text-sm font-medium text-slate-700 mb-2">Court</label>
+        <div class="flex flex-wrap gap-2">
             @foreach ($courts as $court)
-                <option value="{{ $court->id }}" @selected($court->id === $selectedCourtId)>{{ $court->name }}</option>
+                <a href="{{ route('manage.courts.schedule', ['court' => $court->id, 'date' => $date]) }}"
+                   class="px-4 py-2 rounded-full text-sm font-semibold border {{ $court->id === $selectedCourtId ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-300 hover:border-slate-400' }}">
+                    {{ $court->name }}
+                </a>
             @endforeach
-        </select>
-    </form>
+        </div>
+    </div>
 
     @if ($isFacilityClosed)
         <x-card class="text-center text-slate-500 text-sm py-8">The facility is closed on this date.</x-card>
@@ -49,6 +51,7 @@
                                 \App\Enums\SlotStatus::Available => 'green',
                                 \App\Enums\SlotStatus::Booked => 'red',
                                 \App\Enums\SlotStatus::Pending => 'amber',
+                                \App\Enums\SlotStatus::InProgress => 'blue',
                                 default => 'slate',
                             };
                         @endphp

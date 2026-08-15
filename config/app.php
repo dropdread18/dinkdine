@@ -63,9 +63,19 @@ return [
     | will be used by the PHP date and date-time functions. The timezone
     | is set to "UTC" by default as it is suitable for most use cases.
     |
+    | Fixed to Asia/Manila for this app (Requirements.md's stated timezone
+    | decision) - this was previously left at the Laravel default of UTC
+    | despite that decision, which meant every now()-relative check (booking
+    | window enforcement, past-slot detection, hold expiry, "today" filters)
+    | was comparing against UTC wall-clock time instead of the real local
+    | time customers and staff actually experience, an 8-hour skew. The
+    | 'timezone' Setting shown on the Settings page was always purely
+    | informational and never actually applied this - don't rely on it for
+    | anything that needs the real runtime timezone.
+    |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => 'Asia/Manila',
 
     /*
     |--------------------------------------------------------------------------

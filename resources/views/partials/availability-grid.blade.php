@@ -6,6 +6,7 @@
     <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500 align-middle mr-1.5"></span>Available</span>
     <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500 align-middle mr-1.5"></span>Booked</span>
     <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 align-middle mr-1.5"></span>Pending</span>
+    <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-violet-400 align-middle mr-1.5"></span>In Progress</span>
     <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-slate-300 align-middle mr-1.5"></span>Closed</span>
 </div>
 
@@ -40,6 +41,7 @@
                                     \App\Enums\SlotStatus::Available => 'bg-green-50 text-green-700',
                                     \App\Enums\SlotStatus::Booked => 'bg-red-50 text-red-700',
                                     \App\Enums\SlotStatus::Pending => 'bg-amber-50 text-amber-700',
+                                    \App\Enums\SlotStatus::InProgress => 'bg-violet-50 text-violet-700',
                                     \App\Enums\SlotStatus::Closed => 'bg-slate-100 text-slate-400',
                                 };
                             @endphp

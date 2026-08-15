@@ -70,7 +70,7 @@
                 </div>
 
                 @if ($paymentQrCode)
-                    <div x-data="{ payMode: 'scan' }" class="flex flex-col gap-3">
+                    <div x-data="{ payMode: 'scan', qrLightbox: false }" class="flex flex-col gap-3">
                         <div class="flex gap-2">
                             <button type="button" @click="payMode = 'scan'"
                                     class="px-4 py-2.5 rounded-lg text-sm"
@@ -85,14 +85,29 @@
                         </div>
 
                         <div x-show="payMode === 'scan'" class="flex flex-col items-center gap-2 py-2">
-                            <img src="{{ \Illuminate\Support\Facades\Storage::url($paymentQrCode) }}" alt="Payment QR code"
-                                 class="w-40 h-40 object-contain rounded-lg p-1" style="border: 1px solid var(--db-border); background: #FFFFFF;">
-                            <div class="text-xs font-semibold text-center" style="color: var(--db-ink-faint);">Open your payment app and scan this code.</div>
+                            <button type="button" @click="qrLightbox = true" class="cursor-zoom-in rounded-lg p-1" style="border: 1px solid var(--db-border); background: #FFFFFF;">
+                                <img src="{{ \Illuminate\Support\Facades\Storage::url($paymentQrCode) }}" alt="Payment QR code"
+                                     class="w-40 h-40 object-contain">
+                            </button>
+                            <div class="text-xs font-semibold text-center" style="color: var(--db-ink-faint);">Open your payment app and scan this code. Tap it to make it bigger.</div>
                         </div>
 
                         @if ($paymentInstructions)
                             <div x-show="payMode === 'manual'" class="rounded-xl p-3 text-sm whitespace-pre-line" style="background: #F8FAF5; border: 1px solid var(--db-border); color: var(--db-ink-soft);">{{ $paymentInstructions }}</div>
                         @endif
+
+                        <div x-show="qrLightbox" x-cloak @keydown.escape.window="qrLightbox = false"
+                             class="fixed inset-0 z-50 flex items-center justify-center p-6" style="background: rgba(15, 23, 42, 0.85);">
+                            <div @click="qrLightbox = false" class="absolute inset-0"></div>
+                            <div class="relative flex flex-col items-center gap-4">
+                                <img src="{{ \Illuminate\Support\Facades\Storage::url($paymentQrCode) }}" alt="Payment QR code, enlarged"
+                                     class="w-[min(80vw,420px)] h-[min(80vw,420px)] object-contain rounded-2xl p-4" style="background: #FFFFFF;">
+                                <button type="button" @click="qrLightbox = false"
+                                        class="px-5 py-2.5 rounded-lg text-sm font-bold" style="background: var(--db-accent); color: var(--db-accent-ink);">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 @elseif ($paymentInstructions)
                     <div class="rounded-xl p-3 text-sm whitespace-pre-line" style="background: #F8FAF5; border: 1px solid var(--db-border); color: var(--db-ink-soft);">{{ $paymentInstructions }}</div>
@@ -204,6 +219,7 @@
                 'selected' => ['bg' => '#3B82F6', 'border' => '#3B82F6', 'text' => '#FFFFFF', 'dot' => '#3B82F6', 'icon' => '✓', 'label' => 'Selected'],
                 'booked' => ['bg' => '#FEF2F2', 'border' => '#FECACA', 'text' => '#B91C1C', 'dot' => '#EF4444', 'icon' => '●', 'label' => 'Booked'],
                 'pending' => ['bg' => '#FFFBEB', 'border' => '#FDE68A', 'text' => '#B45309', 'dot' => '#F59E0B', 'icon' => '◐', 'label' => 'Pending'],
+                'in_progress' => ['bg' => '#F5F3FF', 'border' => '#DDD6FE', 'text' => '#6D28D9', 'dot' => '#8B5CF6', 'icon' => '◔', 'label' => 'In Progress'],
                 'closed' => ['bg' => '#F1F5F9', 'border' => '#E2E8F0', 'text' => '#64748B', 'dot' => '#94A3B8', 'icon' => '—', 'label' => 'Closed'],
             ];
             $effectiveMobileCourt = $mobileCourt ?? ($availability['courts'][0]->court->id ?? null);

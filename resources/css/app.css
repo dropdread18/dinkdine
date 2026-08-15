@@ -10,6 +10,13 @@
     --color-accent: #B8E63E;
 }
 
+/* Alpine's own boilerplate: hides x-cloak elements until Alpine has
+   initialized, so an x-show="false" overlay (e.g. the QR lightbox) can't
+   flash visible for a frame before Alpine's JS runs. */
+[x-cloak] {
+    display: none !important;
+}
+
 /*
  * Design system ("Dink Dine" brand pass): dark navy (slate-900, an exact
  * hex match to Tailwind's built-in slate scale) chrome, a lime accent

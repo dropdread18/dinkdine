@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\BookingStatus;
+use App\Enums\PaymentStatus;
 use App\Enums\SlotStatus;
 use App\Models\Booking;
 use App\Models\BusinessHour;
@@ -40,6 +41,7 @@ class AvailabilityService
         $courts = Court::orderBy('sort_order')->orderBy('court_number')->get();
 
         $bookingsByCourt = Booking::query()
+            ->with('payment')
             ->whereDate('booking_date', $day)
             ->whereIn('status', [BookingStatus::Pending, BookingStatus::Confirmed])
             ->when($excludeBookingId, fn ($query, $id) => $query->where('id', '!=', $id))
@@ -104,9 +106,7 @@ class AvailabilityService
 
         foreach ($courtBookings as $booking) {
             if ($this->timeRangesOverlap($startTime, $endTime, $booking->start_time, $booking->end_time)) {
-                $status = $booking->status === BookingStatus::Confirmed ? SlotStatus::Booked : SlotStatus::Pending;
-
-                return new AvailabilitySlot($startTime, $endTime, $status, $booking->id);
+                return new AvailabilitySlot($startTime, $endTime, $this->slotStatusFor($booking), $booking->id);
             }
         }
 
@@ -124,6 +124,39 @@ class AvailabilityService
         }
 
         return new AvailabilitySlot($startTime, $endTime, SlotStatus::Available);
+    }
+
+    /**
+     * Owner feedback: a bare "Pending" label didn't distinguish three very
+     * different real situations, so this now maps to three SlotStatus
+     * values instead of two:
+     *   - Booking still Pending (the payment-hold countdown is running,
+     *     nothing submitted yet) -> InProgress ("someone is already
+     *     trying to book").
+     *   - Booking Confirmed but its Payment is still Pending (the
+     *     customer submitted a reference number/screenshot via
+     *     confirmWithReference(), but staff hasn't verified it yet) ->
+     *     Pending.
+     *   - Everything else Confirmed (staff verified payment, OR a
+     *     walk-in booking - those never pass through PaymentStatus::
+     *     Pending at all, they go straight Unpaid -> Paid when staff
+     *     collects cash in person) -> Booked.
+     * PaymentStatus::Pending is set in exactly one place in the whole
+     * app (BookingService::confirmWithReference()), so checking it here
+     * can't misfire on an unrelated Payment state - verified by grep
+     * before relying on it this way.
+     */
+    private function slotStatusFor(Booking $booking): SlotStatus
+    {
+        if ($booking->status === BookingStatus::Pending) {
+            return SlotStatus::InProgress;
+        }
+
+        if ($booking->payment?->status === PaymentStatus::Pending) {
+            return SlotStatus::Pending;
+        }
+
+        return SlotStatus::Booked;
     }
 
     /**
