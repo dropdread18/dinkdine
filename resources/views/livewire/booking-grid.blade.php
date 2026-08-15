@@ -3,7 +3,38 @@
         <div class="mb-4 text-sm text-red-800 bg-red-50 border border-red-200 rounded-xl px-4 py-3">{{ $error }}</div>
     @endif
 
-    @if ($reviewing)
+    @if ($awaitingPayment)
+        <div class="max-w-md"
+             x-data="{
+                 expiresAt: new Date('{{ $holdExpiresAt }}').getTime(),
+                 remaining: 0,
+                 tick() { this.remaining = Math.max(0, Math.floor((this.expiresAt - Date.now()) / 1000)); },
+             }"
+             x-init="tick(); setInterval(() => tick(), 1000)">
+            <h2 class="text-lg font-semibold text-slate-900 mb-1">Complete Your Payment</h2>
+            <p class="text-sm text-slate-500 mb-4">
+                Your slot{{ count($pendingBookingIds) === 1 ? ' is' : 's are' }} held for
+                <span class="font-semibold text-teal-700 tabular-nums"
+                      x-text="Math.floor(remaining / 60) + ':' + String(remaining % 60).padStart(2, '0')"></span>.
+                If payment isn't confirmed in time, it's released automatically for someone else to book.
+            </p>
+
+            @if ($paymentInstructions)
+                <div class="border border-teal-200 bg-teal-50 rounded-xl p-4 mb-4 text-sm text-slate-700 whitespace-pre-line">{{ $paymentInstructions }}</div>
+            @endif
+
+            <label for="payment-reference" class="block text-sm font-medium text-slate-700">Payment Reference Number</label>
+            <input id="payment-reference" type="text" wire:model="paymentReference"
+                   placeholder="e.g. GCash reference number"
+                   class="mt-1 mb-2 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+
+            <p class="text-xs text-slate-500 mb-4">Bring this reference number with you — staff will confirm it against payment when you arrive.</p>
+
+            <x-button type="button" wire:click="submitPaymentReference" wire:loading.attr="disabled" class="w-full">
+                Confirm Payment
+            </x-button>
+        </div>
+    @elseif ($reviewing)
         <div class="max-w-md">
             <h2 class="text-lg font-semibold text-slate-900 mb-3">Review Your Bookings</h2>
 
@@ -47,6 +78,9 @@
                     <p class="text-xs text-slate-500">
                         Already have an account? <a href="{{ route('login') }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">Log in</a> first to book under it.
                     </p>
+                    <p class="text-xs text-slate-500">
+                        You'll have 10 minutes to pay and enter a reference number after confirming — your slot is held during that time.
+                    </p>
                 </div>
             @endguest
 
@@ -89,7 +123,7 @@
                         @foreach ($times as $i => $time)
                             <tr class="border-t border-slate-100">
                                 <td class="py-1.5 pl-4 pr-4 text-slate-500 whitespace-nowrap">
-                                    {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $time->startTime)->format('g:i A') }}
+                                    {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $time->startTime)->format('g:i A') }} – {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $time->endTime)->format('g:i A') }}
                                 </td>
                                 @foreach ($availability['courts'] as $courtAvailability)
                                     @php

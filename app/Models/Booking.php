@@ -32,6 +32,7 @@ class Booking extends Model
             'reminder_24h_sent_at' => 'datetime',
             'reminder_1h_sent_at' => 'datetime',
             'checked_in_at' => 'datetime',
+            'hold_expires_at' => 'datetime',
         ];
     }
 

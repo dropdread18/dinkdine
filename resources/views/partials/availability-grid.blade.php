@@ -29,7 +29,7 @@
                 @foreach ($times as $i => $time)
                     <tr class="border-t border-slate-100">
                         <td class="py-1.5 pl-4 pr-4 text-slate-500 whitespace-nowrap">
-                            {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $time->startTime)->format('g:i A') }}
+                            {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $time->startTime)->format('g:i A') }} – {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $time->endTime)->format('g:i A') }}
                         </td>
                         @foreach ($availability['courts'] as $courtAvailability)
                             @php

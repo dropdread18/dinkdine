@@ -63,4 +63,28 @@ class PasswordResetTest extends TestCase
             Hash::check('new-password', $user->fresh()->password)
         );
     }
+
+    /**
+     * A guest-checkout or walk-in account has an unknowable random password
+     * and no way to learn it via Profile's "current password" field - the
+     * password-reset flow is deliberately NOT guest-only so this works.
+     */
+    public function test_an_already_logged_in_user_can_complete_a_password_reset(): void
+    {
+        $customer = User::factory()->customer()->create();
+        $token = Password::createToken($customer);
+
+        $this->actingAs($customer)->get('/forgot-password')->assertOk();
+        $this->actingAs($customer)->get('/reset-password/'.$token)->assertOk();
+
+        $response = $this->actingAs($customer)->post('/reset-password', [
+            'token' => $token,
+            'email' => $customer->email,
+            'password' => 'a-brand-new-password',
+            'password_confirmation' => 'a-brand-new-password',
+        ]);
+
+        $response->assertRedirect('/login');
+        $this->assertTrue(Hash::check('a-brand-new-password', $customer->fresh()->password));
+    }
 }

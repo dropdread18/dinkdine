@@ -7,6 +7,9 @@
         @if ($payment->method)
             <div class="flex justify-between"><span class="text-slate-500">Method</span><span class="text-slate-900 font-medium">{{ $payment->method }}</span></div>
         @endif
+        @if ($payment->reference_number)
+            <div class="flex justify-between"><span class="text-slate-500">Reference #</span><span class="text-slate-900 font-medium font-mono">{{ $payment->reference_number }}</span></div>
+        @endif
         @if ($payment->paid_at)
             <div class="flex justify-between"><span class="text-slate-500">Paid At</span><span class="text-slate-900 font-medium">{{ $payment->paid_at->format('M j, Y g:i A') }}</span></div>
         @endif

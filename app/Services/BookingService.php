@@ -42,6 +42,24 @@ class BookingService
     ) {}
 
     /**
+     * @param  bool  $requiresPaymentHold  Guest-checkout payment-hold flow
+     *                                     (feedback session, post-launch):
+     *                                     instead of going straight to
+     *                                     Confirmed, the booking is created
+     *                                     Pending with a 10-minute
+     *                                     hold_expires_at. It still blocks
+     *                                     the slot exactly like a Confirmed
+     *                                     booking (assertSlotIsAvailable/the
+     *                                     conflict check below both already
+     *                                     treat Pending as blocking - no
+     *                                     change needed there), but no
+     *                                     confirmation email fires yet;
+     *                                     that happens only once
+     *                                     confirmWithReference() succeeds,
+     *                                     or the hold silently expires via
+     *                                     the bookings:expire-payment-holds
+     *                                     scheduled command.
+     *
      * @throws BookingUnavailableException
      */
     public function book(
@@ -53,13 +71,14 @@ class BookingService
         ?string $notes = null,
         BookingSource $source = BookingSource::Online,
         bool $enforceBookingWindow = true,
+        bool $requiresPaymentHold = false,
     ): Booking {
         if ($enforceBookingWindow) {
             $this->assertWithinBookingWindow($date, $startTime);
         }
         $this->assertSlotIsAvailable($court, $date, $startTime, $endTime);
 
-        return DB::transaction(function () use ($user, $court, $date, $startTime, $endTime, $notes, $source) {
+        return DB::transaction(function () use ($user, $court, $date, $startTime, $endTime, $notes, $source, $requiresPaymentHold) {
             $conflict = Booking::query()
                 ->where('court_id', $court->id)
                 ->where('booking_date', $date)
@@ -82,11 +101,15 @@ class BookingService
                 'start_time' => $startTime,
                 'end_time' => $endTime,
                 'price' => $this->pricing->calculate($court, $startTime, $endTime),
-                'status' => BookingStatus::Confirmed,
+                'status' => $requiresPaymentHold ? BookingStatus::Pending : BookingStatus::Confirmed,
                 'payment_status' => PaymentStatus::Unpaid,
                 'source' => $source,
                 'notes' => $notes,
             ]);
+
+            if ($requiresPaymentHold) {
+                $booking->forceFill(['hold_expires_at' => now()->addMinutes(10)])->save();
+            }
 
             Payment::create([
                 'booking_id' => $booking->id,
@@ -94,14 +117,17 @@ class BookingService
                 'status' => PaymentStatus::Unpaid,
             ]);
 
-            // afterCommit(), not a direct notify() call here: book() can run
-            // nested inside bookMany()'s outer transaction (as a savepoint).
-            // Sending the email immediately would fire it even if a later
-            // slot in the same batch fails and rolls this one back too.
-            // afterCommit() always waits for the OUTERMOST transaction,
-            // whichever call started it, and fires immediately if there's
-            // no transaction in progress at all.
-            DB::afterCommit(fn () => $booking->user->notify(new BookingConfirmed($booking)));
+            if (! $requiresPaymentHold) {
+                // afterCommit(), not a direct notify() call here: book() can
+                // run nested inside bookMany()'s outer transaction (as a
+                // savepoint). Sending the email immediately would fire it
+                // even if a later slot in the same batch fails and rolls
+                // this one back too. afterCommit() always waits for the
+                // OUTERMOST transaction, whichever call started it, and
+                // fires immediately if there's no transaction in progress
+                // at all.
+                DB::afterCommit(fn () => $booking->user->notify(new BookingConfirmed($booking)));
+            }
 
             return $booking;
         });
@@ -129,12 +155,13 @@ class BookingService
         ?string $notes = null,
         BookingSource $source = BookingSource::Online,
         bool $enforceBookingWindow = true,
+        bool $requiresPaymentHold = false,
     ): array {
         if (empty($slots)) {
             throw new BookingUnavailableException('Select at least one time slot.');
         }
 
-        return DB::transaction(function () use ($user, $slots, $notes, $source, $enforceBookingWindow) {
+        return DB::transaction(function () use ($user, $slots, $notes, $source, $enforceBookingWindow, $requiresPaymentHold) {
             $bookings = [];
 
             foreach ($slots as $slot) {
@@ -148,6 +175,7 @@ class BookingService
                         notes: $notes,
                         source: $source,
                         enforceBookingWindow: $enforceBookingWindow,
+                        requiresPaymentHold: $requiresPaymentHold,
                     );
                 } catch (BookingUnavailableException $e) {
                     $when = CarbonImmutable::parse($slot['date'].' '.$slot['start_time'])->format('M j \a\t g:i A');
@@ -158,6 +186,79 @@ class BookingService
 
             return $bookings;
         });
+    }
+
+    /**
+     * Second half of the guest payment-hold flow: the guest reports the
+     * reference number they were given after paying (per
+     * Setting::get('payment_instructions')). Moves every booking in this
+     * hold from Pending to Confirmed and records the reference number on
+     * each one's Payment (status Unpaid -> Pending - claimed-paid, not yet
+     * staff-verified; staff verifies it in person at arrival via the
+     * existing Check-in screen and marks it Paid through the existing
+     * PaymentService::markPaid(), same as any other manual payment
+     * confirmation - no new payment-verification code needed there).
+     *
+     * All-or-nothing, like bookMany(): if any booking in the batch already
+     * expired, the whole submission fails rather than partially confirming
+     * some slots and not others - the guest paid for the batch as one
+     * transaction, so it's confirmed as one transaction. Checked directly
+     * against hold_expires_at rather than trusting status alone, since the
+     * bookings:expire-payment-holds sweep may not have run yet (it's on a
+     * schedule, not instant) even though the window has technically passed.
+     *
+     * @param  Booking[]  $bookings
+     * @return Booking[]
+     *
+     * @throws BookingUnavailableException
+     */
+    public function confirmWithReference(array $bookings, string $referenceNumber): array
+    {
+        return DB::transaction(function () use ($bookings, $referenceNumber) {
+            $confirmed = [];
+
+            foreach ($bookings as $booking) {
+                $fresh = $booking->fresh();
+
+                if ($fresh->status !== BookingStatus::Pending || ! $fresh->hold_expires_at) {
+                    throw new BookingUnavailableException('This booking is no longer awaiting payment.');
+                }
+
+                if ($fresh->hold_expires_at->isPast()) {
+                    throw new BookingUnavailableException('The 10-minute payment window has expired. Please select your slots again.');
+                }
+
+                // Booking.payment_status is a denormalized copy of
+                // Payment.status shown everywhere else in the app (booking
+                // detail, My Bookings, etc) - the two must change together,
+                // same as every transition in PaymentService, or they drift.
+                $fresh->update(['status' => BookingStatus::Confirmed, 'payment_status' => PaymentStatus::Pending]);
+                $fresh->payment?->update([
+                    'status' => PaymentStatus::Pending,
+                    'reference_number' => $referenceNumber,
+                ]);
+
+                $confirmed[] = $fresh->fresh(['court', 'user']);
+            }
+
+            foreach ($confirmed as $booking) {
+                DB::afterCommit(fn () => $booking->user->notify(new BookingConfirmed($booking)));
+            }
+
+            return $confirmed;
+        });
+    }
+
+    /**
+     * Requirements-driven (feedback session): a guest hold that never got a
+     * reference number within its 10-minute window should silently release
+     * the slot, not stay Pending forever blocking it. Called by the
+     * bookings:expire-payment-holds scheduled command, not directly by any
+     * controller/component.
+     */
+    public function expirePaymentHold(Booking $booking): void
+    {
+        $booking->update(['status' => BookingStatus::Expired]);
     }
 
     /**

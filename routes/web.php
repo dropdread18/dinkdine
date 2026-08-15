@@ -15,6 +15,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Staff\BookingController as StaffBookingController;
 use App\Http\Controllers\Staff\CheckInController;
+use App\Http\Controllers\Staff\CourtScheduleController;
 use App\Http\Controllers\Staff\WalkInBookingController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,13 +29,21 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('/login', [AuthenticatedSessionController::class, 'store']);
-
-    Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
-    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
-
-    Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
-    Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.store');
 });
+
+// Deliberately NOT behind 'guest' middleware, unlike login/register above -
+// a logged-in guest-checkout or walk-in account has an unknowable random
+// password (see BookingGrid::resolveCustomer(), WalkInBookingController)
+// and no way to learn it via "current password" (Profile's Change
+// Password form requires it). This is their only way back in. Safe to
+// allow while authenticated: Password::reset()/sendResetLink() are
+// authorized by the emailed token + email match, not by auth state, and
+// NewPasswordController::store() never touches the current session.
+Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
+Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
+
+Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.store');
 
 Route::middleware('auth')->post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
@@ -100,6 +109,8 @@ Route::middleware(['auth', 'role:admin,staff'])->prefix('manage')->name('manage.
     Route::get('walk-in/{court}', [WalkInBookingController::class, 'create'])->name('walkin.create');
     Route::post('walk-in/{court}', [WalkInBookingController::class, 'store'])->name('walkin.store');
 
+    Route::get('courts/schedule', [CourtScheduleController::class, 'index'])->name('courts.schedule');
+
     Route::get('check-in', [CheckInController::class, 'index'])->name('checkin.index');
     Route::patch('check-in/bookings/{booking}/check-in', [CheckInController::class, 'checkIn'])->name('checkin.bookings.check-in');
     Route::patch('check-in/bookings/{booking}/complete', [CheckInController::class, 'markCompleted'])->name('checkin.bookings.complete');
@@ -128,3 +139,4 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
 });
 
 Route::middleware('auth')->get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
+Route::middleware('auth')->get('/bookings/{booking}/receipt', [BookingController::class, 'receipt'])->name('bookings.receipt');

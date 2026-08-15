@@ -73,6 +73,20 @@ class BookingController extends Controller
         ]);
     }
 
+    /**
+     * Printable confirmation (feedback session) - same 'view' authorization
+     * as show() (owner, staff, or admin), deliberately not extending
+     * layouts.app: no nav/chrome to print, just the receipt itself.
+     */
+    public function receipt(Booking $booking): View
+    {
+        Gate::authorize('view', $booking);
+
+        return view('bookings.receipt', [
+            'booking' => $booking->load(['court', 'user', 'payment']),
+        ]);
+    }
+
     public function mine(Request $request, BookingService $bookingService): View
     {
         $bookings = $request->user()->bookings()->with('court')->orderByDesc('booking_date')->orderByDesc('start_time')->get();

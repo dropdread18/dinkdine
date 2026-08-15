@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Livewire;
 
+use App\Enums\BookingStatus;
+use App\Enums\PaymentStatus;
 use App\Enums\UserRole;
 use App\Livewire\BookingGrid;
 use App\Models\Booking;
@@ -53,7 +55,37 @@ class GuestCheckoutTest extends TestCase
         $this->actingAs(User::factory()->admin()->create())->get('/book')->assertForbidden();
     }
 
-    public function test_guest_can_complete_a_booking_and_ends_up_logged_in(): void
+    public function test_guest_checkout_holds_the_slot_pending_awaiting_payment(): void
+    {
+        $court = Court::factory()->create(['hourly_rate' => 300]);
+
+        $component = Livewire::test(BookingGrid::class, ['date' => $this->date])
+            ->call('toggleSlot', $court->id, $court->name, '09:00:00', '10:00:00')
+            ->call('startReview')
+            ->set('guestName', 'Juan Dela Cruz')
+            ->set('guestEmail', 'juan@example.com')
+            ->set('guestPhone', '09171234567')
+            ->call('confirmBookings')
+            ->assertSet('awaitingPayment', true)
+            ->assertNoRedirect();
+
+        // Logged in already (so the session survives a refresh while they
+        // pay) even though the booking itself isn't Confirmed yet.
+        $this->assertAuthenticated();
+        $customer = User::where('email', 'juan@example.com')->first();
+        $this->assertNotNull($customer);
+        $this->assertSame(UserRole::Customer, $customer->role);
+        $this->assertSame($customer->id, auth()->id());
+
+        $booking = Booking::where('user_id', $customer->id)->first();
+        $this->assertNotNull($booking);
+        $this->assertSame(BookingStatus::Pending, $booking->status);
+        $this->assertNotNull($booking->hold_expires_at);
+        $this->assertTrue($booking->hold_expires_at->isFuture());
+        $this->assertSame([$booking->id], $component->get('pendingBookingIds'));
+    }
+
+    public function test_guest_can_complete_a_booking_by_submitting_a_payment_reference(): void
     {
         $court = Court::factory()->create(['hourly_rate' => 300]);
 
@@ -64,14 +96,71 @@ class GuestCheckoutTest extends TestCase
             ->set('guestEmail', 'juan@example.com')
             ->set('guestPhone', '09171234567')
             ->call('confirmBookings')
+            ->set('paymentReference', 'GCASH-REF-12345')
+            ->call('submitPaymentReference')
             ->assertRedirect(route('bookings.mine'));
 
-        $this->assertAuthenticated();
-        $customer = User::where('email', 'juan@example.com')->first();
-        $this->assertNotNull($customer);
-        $this->assertSame(UserRole::Customer, $customer->role);
-        $this->assertSame($customer->id, auth()->id());
-        $this->assertSame(1, Booking::where('user_id', $customer->id)->count());
+        $booking = Booking::first();
+        $this->assertSame(BookingStatus::Confirmed, $booking->status);
+        $this->assertSame(PaymentStatus::Pending, $booking->payment->status);
+        $this->assertSame('GCASH-REF-12345', $booking->payment->reference_number);
+    }
+
+    public function test_submitting_payment_reference_requires_a_value(): void
+    {
+        $court = Court::factory()->create();
+
+        Livewire::test(BookingGrid::class, ['date' => $this->date])
+            ->call('toggleSlot', $court->id, $court->name, '09:00:00', '10:00:00')
+            ->call('startReview')
+            ->set('guestName', 'Juan Dela Cruz')
+            ->set('guestEmail', 'juan@example.com')
+            ->set('guestPhone', '09171234567')
+            ->call('confirmBookings')
+            ->call('submitPaymentReference')
+            ->assertHasErrors('paymentReference');
+
+        $this->assertSame(BookingStatus::Pending, Booking::first()->status);
+    }
+
+    public function test_submitting_a_reference_after_the_hold_expired_fails_and_resets_to_the_grid(): void
+    {
+        $court = Court::factory()->create();
+
+        $component = Livewire::test(BookingGrid::class, ['date' => $this->date])
+            ->call('toggleSlot', $court->id, $court->name, '09:00:00', '10:00:00')
+            ->call('startReview')
+            ->set('guestName', 'Juan Dela Cruz')
+            ->set('guestEmail', 'juan@example.com')
+            ->set('guestPhone', '09171234567')
+            ->call('confirmBookings');
+
+        Booking::first()->forceFill(['hold_expires_at' => now()->subMinute()])->save();
+
+        $component->set('paymentReference', 'GCASH-REF-12345')
+            ->call('submitPaymentReference')
+            ->assertSet('awaitingPayment', false)
+            ->assertSet('selected', [])
+            ->assertNoRedirect();
+
+        $this->assertSame(BookingStatus::Pending, Booking::first()->status);
+    }
+
+    public function test_logged_in_customer_is_still_confirmed_instantly_not_held(): void
+    {
+        $customer = User::factory()->customer()->create();
+        $court = Court::factory()->create();
+
+        Livewire::actingAs($customer)
+            ->test(BookingGrid::class, ['date' => $this->date])
+            ->call('toggleSlot', $court->id, $court->name, '09:00:00', '10:00:00')
+            ->call('startReview')
+            ->call('confirmBookings')
+            ->assertRedirect(route('bookings.mine'));
+
+        $booking = Booking::first();
+        $this->assertSame(BookingStatus::Confirmed, $booking->status);
+        $this->assertNull($booking->hold_expires_at);
     }
 
     public function test_guest_checkout_requires_name_email_and_phone(): void
@@ -100,11 +189,12 @@ class GuestCheckoutTest extends TestCase
             ->set('guestEmail', 'returning@example.com')
             ->set('guestPhone', '09171234567')
             ->call('confirmBookings')
-            ->assertRedirect(route('bookings.mine'));
+            ->assertSet('awaitingPayment', true);
 
         $this->assertSame(1, User::where('email', 'returning@example.com')->count());
         $this->assertSame($existing->id, auth()->id());
         $this->assertSame($existing->id, Booking::first()->user_id);
+        $this->assertSame(BookingStatus::Pending, Booking::first()->status);
     }
 
     public function test_guest_checkout_rejects_an_email_belonging_to_a_staff_account(): void

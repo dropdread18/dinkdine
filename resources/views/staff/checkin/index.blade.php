@@ -16,6 +16,7 @@
                         <th class="text-left font-medium text-slate-500 py-3 pr-4">Court</th>
                         <th class="text-left font-medium text-slate-500 py-3 pr-4">Customer</th>
                         <th class="text-left font-medium text-slate-500 py-3 pr-4">Status</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4">Payment Ref</th>
                         <th class="text-left font-medium text-slate-500 py-3 pr-4">Checked In</th>
                         <th class="text-left font-medium text-slate-500 py-3 pr-4"></th>
                     </tr>
@@ -30,6 +31,7 @@
                             <td class="py-3 pr-4 text-slate-600">{{ $booking->court->name }}</td>
                             <td class="py-3 pr-4 text-slate-900 font-medium">{{ $booking->user->name }}</td>
                             <td class="py-3 pr-4 text-slate-600">{{ $booking->status->label() }}</td>
+                            <td class="py-3 pr-4 text-slate-600 font-mono text-xs">{{ $booking->payment?->reference_number ?: '—' }}</td>
                             <td class="py-3 pr-4 text-slate-600">{{ $booking->checked_in_at?->format('g:i A') ?: '—' }}</td>
                             <td class="py-3 pr-4 text-right space-x-3 whitespace-nowrap">
                                 @if (in_array($booking->status, [\App\Enums\BookingStatus::Pending, \App\Enums\BookingStatus::Confirmed], true))

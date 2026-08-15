@@ -110,6 +110,13 @@
                        class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
             </div>
 
+            <div>
+                <label for="payment_instructions" class="block text-sm font-medium text-slate-700">Guest Payment Instructions</label>
+                <p class="text-xs text-slate-500 mb-1">Shown to guest/non-logged-in customers after they select their slots - how to pay and where to enter their reference number.</p>
+                <textarea id="payment_instructions" name="payment_instructions" rows="3"
+                          class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">{{ old('payment_instructions', $settings['payment_instructions']) }}</textarea>
+            </div>
+
             <x-button type="submit">Save Settings</x-button>
         </form>
         </x-card>

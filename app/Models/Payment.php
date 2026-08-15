@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['booking_id', 'amount', 'status', 'method', 'paid_at', 'notes'])]
+#[Fillable(['booking_id', 'amount', 'status', 'method', 'paid_at', 'notes', 'reference_number'])]
 class Payment extends Model
 {
     /** @use HasFactory<PaymentFactory> */

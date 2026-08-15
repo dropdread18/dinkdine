@@ -31,6 +31,7 @@ class SettingController extends Controller
         'cancellation_deadline_hours',
         'max_simultaneous_bookings_per_customer',
         'default_court_hourly_rate',
+        'payment_instructions',
     ];
 
     public function index(): View

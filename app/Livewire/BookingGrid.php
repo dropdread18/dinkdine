@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Enums\SlotStatus;
 use App\Enums\UserRole;
 use App\Exceptions\BookingUnavailableException;
+use App\Models\Booking;
 use App\Models\Court;
 use App\Models\Setting;
 use App\Models\User;
@@ -29,6 +30,18 @@ use Livewire\Component;
  * walk-in customers - then log them into it before booking, so every
  * existing customer feature (My Bookings, cancel/reschedule) just works
  * afterward with zero new authorization code.
+ *
+ * Feedback session (post-launch): a guest/non-logged-in confirmation no
+ * longer books straight to Confirmed. It holds the slot(s) as Pending for
+ * 10 minutes (BookingService::bookMany(..., requiresPaymentHold: true))
+ * while the guest pays via the facility's own arrangement (Setting
+ * 'payment_instructions') and reports back a reference number
+ * (submitPaymentReference() -> BookingService::confirmWithReference()).
+ * If they don't, the hold silently expires via the
+ * bookings:expire-payment-holds scheduled command, freeing the slot. An
+ * already-logged-in customer is unaffected - same instant-Confirmed flow
+ * as before this session, since they're a known, accountable customer
+ * already, not an anonymous booking.
  */
 class BookingGrid extends Component
 {
@@ -38,6 +51,15 @@ class BookingGrid extends Component
     public array $selected = [];
 
     public bool $reviewing = false;
+
+    public bool $awaitingPayment = false;
+
+    /** @var int[] */
+    public array $pendingBookingIds = [];
+
+    public ?string $holdExpiresAt = null;
+
+    public ?string $paymentReference = null;
 
     public ?string $notes = null;
 
@@ -58,6 +80,10 @@ class BookingGrid extends Component
 
     public function toggleSlot(int $courtId, string $courtName, string $startTime, string $endTime): void
     {
+        if ($this->awaitingPayment) {
+            return;
+        }
+
         $this->error = null;
         $key = "{$courtId}|{$startTime}";
 
@@ -87,7 +113,7 @@ class BookingGrid extends Component
 
     public function startReview(): void
     {
-        if (empty($this->selected)) {
+        if (empty($this->selected) || $this->awaitingPayment) {
             return;
         }
 
@@ -97,6 +123,10 @@ class BookingGrid extends Component
 
     public function backToGrid(): void
     {
+        if ($this->awaitingPayment) {
+            return;
+        }
+
         $this->reviewing = false;
         $this->error = null;
     }
@@ -105,6 +135,11 @@ class BookingGrid extends Component
     {
         $this->assertNotStaffOrAdmin();
         $this->error = null;
+
+        // Captured before resolveCustomer(), which may itself create and
+        // log in a brand-new customer account for a guest - by then
+        // Auth::check() would always be true, so this has to happen first.
+        $isGuestCheckout = ! Auth::check();
 
         try {
             $customer = $this->resolveCustomer();
@@ -124,7 +159,7 @@ class BookingGrid extends Component
         ])->all();
 
         try {
-            $bookings = $bookingService->bookMany($customer, $slots, notes: $this->notes);
+            $bookings = $bookingService->bookMany($customer, $slots, notes: $this->notes, requiresPaymentHold: $isGuestCheckout);
         } catch (BookingUnavailableException $e) {
             $this->error = $e->getMessage();
 
@@ -135,8 +170,47 @@ class BookingGrid extends Component
             Auth::login($customer);
         }
 
+        if ($isGuestCheckout) {
+            $this->pendingBookingIds = collect($bookings)->pluck('id')->all();
+            $this->holdExpiresAt = $bookings[0]->hold_expires_at->toIso8601String();
+            $this->reviewing = false;
+            $this->awaitingPayment = true;
+
+            return;
+        }
+
         $refs = collect($bookings)->map(fn ($b) => 'PB-'.$b->id)->join(', ');
         session()->flash('status', count($bookings).' booking'.(count($bookings) === 1 ? '' : 's')." confirmed: {$refs}");
+
+        $this->redirect(route('bookings.mine'));
+    }
+
+    public function submitPaymentReference(BookingService $bookingService): void
+    {
+        $this->error = null;
+
+        $this->validate(['paymentReference' => ['required', 'string', 'max:255']]);
+
+        $bookings = Booking::whereIn('id', $this->pendingBookingIds)->get()->all();
+
+        try {
+            $confirmed = $bookingService->confirmWithReference($bookings, $this->paymentReference);
+        } catch (BookingUnavailableException $e) {
+            // Any failure here (expired hold, already resolved, etc) means
+            // this hold is no longer valid one way or another - back to a
+            // clean grid rather than leaving them stuck on a dead payment
+            // screen for a booking that no longer exists in this state.
+            $this->awaitingPayment = false;
+            $this->selected = [];
+            $this->pendingBookingIds = [];
+            $this->holdExpiresAt = null;
+            $this->error = $e->getMessage();
+
+            return;
+        }
+
+        $refs = collect($confirmed)->map(fn ($b) => 'PB-'.$b->id)->join(', ');
+        session()->flash('status', count($confirmed).' booking'.(count($confirmed) === 1 ? '' : 's')." confirmed: {$refs}");
 
         $this->redirect(route('bookings.mine'));
     }
@@ -202,6 +276,7 @@ class BookingGrid extends Component
             'bookableFrom' => $bookableFrom,
             'totalPrice' => $totalPrice,
             'slotStatus' => SlotStatus::class,
+            'paymentInstructions' => Setting::get('payment_instructions'),
         ]);
     }
 }

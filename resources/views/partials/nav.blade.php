@@ -13,6 +13,7 @@
                     <a href="{{ route('admin.dashboard') }}" class="text-slate-600 hover:text-slate-900 font-medium">Dashboard</a>
                     <a href="{{ route('admin.courts.index') }}" class="text-slate-600 hover:text-slate-900 font-medium">Courts</a>
                     <a href="{{ route('admin.maintenance.index') }}" class="text-slate-600 hover:text-slate-900 font-medium">Maintenance</a>
+                    <a href="{{ route('manage.courts.schedule') }}" class="text-slate-600 hover:text-slate-900 font-medium">Court Schedule</a>
                     <a href="{{ route('manage.bookings.index') }}" class="text-slate-600 hover:text-slate-900 font-medium">Bookings</a>
                     <a href="{{ route('manage.payments.index') }}" class="text-slate-600 hover:text-slate-900 font-medium">Payments</a>
                     <a href="{{ route('manage.reports.index') }}" class="text-slate-600 hover:text-slate-900 font-medium">Reports</a>
@@ -21,6 +22,7 @@
                     <a href="{{ route('admin.staff.index') }}" class="text-slate-600 hover:text-slate-900 font-medium">Staff</a>
                 @elseif ($user->isStaff())
                     <a href="{{ route('staff.dashboard') }}" class="text-slate-600 hover:text-slate-900 font-medium">Dashboard</a>
+                    <a href="{{ route('manage.courts.schedule') }}" class="text-slate-600 hover:text-slate-900 font-medium">Court Schedule</a>
                     <a href="{{ route('manage.bookings.index') }}" class="text-slate-600 hover:text-slate-900 font-medium">Bookings</a>
                     <a href="{{ route('manage.walkin.index') }}" class="text-slate-600 hover:text-slate-900 font-medium">Walk-in Booking</a>
                     <a href="{{ route('manage.checkin.index') }}" class="text-slate-600 hover:text-slate-900 font-medium">Check-in</a>

@@ -61,6 +61,11 @@
                 </div>
 
                 <x-button type="submit">Update Password</x-button>
+
+                <p class="text-sm text-slate-500 pt-2 border-t border-slate-100">
+                    Don't know your current password (e.g. you booked as a guest)?
+                    <a href="{{ route('password.request') }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">Email me a reset link instead</a>.
+                </p>
             </form>
         </x-card>
     </section>

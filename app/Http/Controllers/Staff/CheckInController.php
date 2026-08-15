@@ -23,7 +23,7 @@ class CheckInController extends Controller
     {
         return view('staff.checkin.index', [
             'bookings' => Booking::query()
-                ->with(['court', 'user'])
+                ->with(['court', 'user', 'payment'])
                 ->whereDate('booking_date', now())
                 ->orderBy('start_time')
                 ->get(),

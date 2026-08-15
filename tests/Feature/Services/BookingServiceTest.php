@@ -573,4 +573,119 @@ class BookingServiceTest extends TestCase
         $this->expectException(BookingUnavailableException::class);
         $this->service->markNoShow($booking->fresh());
     }
+
+    public function test_book_with_payment_hold_creates_a_pending_booking_with_a_ten_minute_hold(): void
+    {
+        $court = Court::factory()->create();
+
+        $booking = $this->service->book(
+            User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00',
+            requiresPaymentHold: true,
+        );
+
+        $this->assertSame(BookingStatus::Pending, $booking->status);
+        $this->assertNotNull($booking->hold_expires_at);
+        $this->assertEqualsWithDelta(
+            now()->addMinutes(10)->timestamp,
+            $booking->hold_expires_at->timestamp,
+            5,
+        );
+    }
+
+    public function test_a_payment_hold_blocks_the_slot_from_being_booked_by_someone_else(): void
+    {
+        $court = Court::factory()->create();
+        $this->service->book(
+            User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00',
+            requiresPaymentHold: true,
+        );
+
+        $this->expectException(BookingUnavailableException::class);
+        $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+    }
+
+    public function test_confirm_with_reference_transitions_pending_to_confirmed(): void
+    {
+        $court = Court::factory()->create();
+        $booking = $this->service->book(
+            User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00',
+            requiresPaymentHold: true,
+        );
+
+        $confirmed = $this->service->confirmWithReference([$booking], 'GCASH-REF-999');
+
+        $this->assertSame(BookingStatus::Confirmed, $confirmed[0]->status);
+        $this->assertSame(PaymentStatus::Pending, $confirmed[0]->payment->status);
+        $this->assertSame('GCASH-REF-999', $confirmed[0]->payment->reference_number);
+        // Booking.payment_status is a denormalized copy of Payment.status
+        // shown on the booking detail page/My Bookings - must stay in sync.
+        $this->assertSame(PaymentStatus::Pending, $confirmed[0]->payment_status);
+    }
+
+    public function test_confirm_with_reference_rejects_an_expired_hold(): void
+    {
+        $court = Court::factory()->create();
+        $booking = $this->service->book(
+            User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00',
+            requiresPaymentHold: true,
+        );
+        $booking->forceFill(['hold_expires_at' => now()->subMinute()])->save();
+
+        $this->expectException(BookingUnavailableException::class);
+        $this->service->confirmWithReference([$booking], 'GCASH-REF-999');
+    }
+
+    public function test_confirm_with_reference_rejects_a_booking_that_is_not_pending(): void
+    {
+        $court = Court::factory()->create();
+        $booking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+
+        $this->expectException(BookingUnavailableException::class);
+        $this->service->confirmWithReference([$booking], 'GCASH-REF-999');
+    }
+
+    public function test_confirm_with_reference_is_all_or_nothing_across_a_batch(): void
+    {
+        $court = Court::factory()->create();
+        $customer = User::factory()->customer()->create();
+        $valid = $this->service->book($customer, $court, $this->date, '09:00:00', '10:00:00', requiresPaymentHold: true);
+        $expired = $this->service->book($customer, $court, $this->date, '11:00:00', '12:00:00', requiresPaymentHold: true);
+        $expired->forceFill(['hold_expires_at' => now()->subMinute()])->save();
+
+        try {
+            $this->service->confirmWithReference([$valid, $expired], 'GCASH-REF-999');
+            $this->fail('Expected a BookingUnavailableException.');
+        } catch (BookingUnavailableException) {
+            // expected
+        }
+
+        $this->assertSame(BookingStatus::Pending, $valid->fresh()->status);
+    }
+
+    public function test_expire_payment_hold_transitions_pending_to_expired(): void
+    {
+        $court = Court::factory()->create();
+        $booking = $this->service->book(
+            User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00',
+            requiresPaymentHold: true,
+        );
+
+        $this->service->expirePaymentHold($booking);
+
+        $this->assertSame(BookingStatus::Expired, $booking->fresh()->status);
+    }
+
+    public function test_an_expired_hold_frees_the_slot_for_a_new_booking(): void
+    {
+        $court = Court::factory()->create();
+        $booking = $this->service->book(
+            User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00',
+            requiresPaymentHold: true,
+        );
+        $this->service->expirePaymentHold($booking);
+
+        $newBooking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+
+        $this->assertSame(BookingStatus::Confirmed, $newBooking->status);
+    }
 }
