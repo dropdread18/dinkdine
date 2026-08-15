@@ -49,6 +49,34 @@ class CheckInTest extends TestCase
         $response->assertViewHas('bookings', fn ($bookings) => $bookings->count() === 1);
     }
 
+    public function test_search_filters_todays_bookings_by_customer_name(): void
+    {
+        $match = User::factory()->customer()->create(['name' => 'Juan Dela Cruz']);
+        $other = User::factory()->customer()->create(['name' => 'Maria Santos']);
+        Booking::factory()->create(['user_id' => $match->id, 'booking_date' => now()->toDateString()]);
+        Booking::factory()->create(['user_id' => $other->id, 'booking_date' => now()->toDateString()]);
+
+        $response = $this->actingAs(User::factory()->staff()->create())
+            ->get('/manage/check-in?q=Juan');
+
+        $response->assertOk();
+        $response->assertViewHas('bookings', fn ($bookings) => $bookings->count() === 1
+            && $bookings->first()->user_id === $match->id);
+    }
+
+    public function test_search_filters_todays_bookings_by_booking_number(): void
+    {
+        $booking = Booking::factory()->create(['booking_date' => now()->toDateString()]);
+        Booking::factory()->create(['booking_date' => now()->toDateString()]);
+
+        $response = $this->actingAs(User::factory()->staff()->create())
+            ->get('/manage/check-in?q=PB-'.$booking->id);
+
+        $response->assertOk();
+        $response->assertViewHas('bookings', fn ($bookings) => $bookings->count() === 1
+            && $bookings->first()->id === $booking->id);
+    }
+
     public function test_staff_can_check_in_a_booking(): void
     {
         $booking = Booking::factory()->create(['booking_date' => now()->toDateString()]);

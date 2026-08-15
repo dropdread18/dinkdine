@@ -19,14 +19,33 @@ use Illuminate\View\View;
  */
 class CheckInController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $bookings = Booking::query()
+            ->with(['court', 'user', 'payment'])
+            ->whereDate('booking_date', now())
+            ->orderBy('start_time');
+
+        // Same search shape as Admin\PaymentController::index() - booking #
+        // (with or without the "PB-" prefix) or the customer's name/email/
+        // phone. Stays a plain ->get(), not ->paginate(): a single day's
+        // worth of bookings is small, and callers (including the tests)
+        // already expect a Collection they can ->count() directly.
+        if ($q = $request->query('q')) {
+            $idCandidate = preg_replace('/^PB-/i', '', trim($q));
+
+            $bookings->where(function ($sub) use ($q, $idCandidate) {
+                $sub->where('id', $idCandidate)
+                    ->orWhereHas('user', function ($userQuery) use ($q) {
+                        $userQuery->where('name', 'like', "%{$q}%")
+                            ->orWhere('email', 'like', "%{$q}%")
+                            ->orWhere('phone', 'like', "%{$q}%");
+                    });
+            });
+        }
+
         return view('staff.checkin.index', [
-            'bookings' => Booking::query()
-                ->with(['court', 'user', 'payment'])
-                ->whereDate('booking_date', now())
-                ->orderBy('start_time')
-                ->get(),
+            'bookings' => $bookings->get(),
             'courts' => Court::orderBy('sort_order')->orderBy('court_number')->get(),
         ]);
     }
