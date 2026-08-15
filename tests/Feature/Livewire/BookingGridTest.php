@@ -108,7 +108,7 @@ class BookingGridTest extends TestCase
             ->assertSet('reviewing', true)
             ->set('notes', 'Birthday game')
             ->call('confirmBookings')
-            ->assertRedirect(route('bookings.mine'));
+            ->assertRedirect(route('bookings.confirmation'));
 
         $this->assertSame(2, Booking::where('user_id', $customer->id)->count());
         $this->assertSame(2, Booking::where('notes', 'Birthday game')->count());

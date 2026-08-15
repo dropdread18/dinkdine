@@ -98,7 +98,7 @@ class GuestCheckoutTest extends TestCase
             ->call('confirmBookings')
             ->set('paymentReference', 'GCASH-REF-12345')
             ->call('submitPaymentReference')
-            ->assertRedirect(route('bookings.mine'));
+            ->assertRedirect(route('bookings.confirmation'));
 
         $booking = Booking::first();
         $this->assertSame(BookingStatus::Confirmed, $booking->status);
@@ -156,7 +156,7 @@ class GuestCheckoutTest extends TestCase
             ->call('toggleSlot', $court->id, $court->name, '09:00:00', '10:00:00')
             ->call('startReview')
             ->call('confirmBookings')
-            ->assertRedirect(route('bookings.mine'));
+            ->assertRedirect(route('bookings.confirmation'));
 
         $booking = Booking::first();
         $this->assertSame(BookingStatus::Confirmed, $booking->status);
@@ -226,7 +226,7 @@ class GuestCheckoutTest extends TestCase
             ->call('toggleSlot', $court->id, $court->name, '09:00:00', '10:00:00')
             ->call('startReview')
             ->call('confirmBookings')
-            ->assertRedirect(route('bookings.mine'));
+            ->assertRedirect(route('bookings.confirmation'));
 
         $this->assertSame($customer->id, Booking::first()->user_id);
     }

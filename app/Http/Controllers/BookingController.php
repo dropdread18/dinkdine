@@ -87,6 +87,32 @@ class BookingController extends Controller
         ]);
     }
 
+    /**
+     * One-time "thank you" landing page for a booking(s) just confirmed by
+     * BookingGrid (either the instant-confirm path or the guest
+     * payment-hold path). The booking IDs come from a flashed session
+     * value, not a route/query parameter - deliberately, so this page
+     * isn't a bookmarkable/shareable URL: reloading it after the flash
+     * ages out (Laravel keeps flash data for exactly one more request)
+     * bounces to My Bookings instead of re-showing stale confirmation
+     * details forever.
+     */
+    public function confirmation(Request $request): View|RedirectResponse
+    {
+        $ids = session('confirmed_booking_ids', []);
+
+        $bookings = Booking::with('court')
+            ->whereIn('id', $ids)
+            ->where('user_id', $request->user()->id)
+            ->get();
+
+        if ($bookings->isEmpty()) {
+            return redirect()->route('bookings.mine');
+        }
+
+        return view('bookings.confirmation', ['bookings' => $bookings]);
+    }
+
     public function mine(Request $request, BookingService $bookingService): View
     {
         $bookings = $request->user()->bookings()->with('court')->orderByDesc('booking_date')->orderByDesc('start_time')->get();

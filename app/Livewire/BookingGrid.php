@@ -192,10 +192,9 @@ class BookingGrid extends Component
             return;
         }
 
-        $refs = collect($bookings)->map(fn ($b) => 'PB-'.$b->id)->join(', ');
-        session()->flash('status', count($bookings).' booking'.(count($bookings) === 1 ? '' : 's')." confirmed: {$refs}");
+        session()->flash('confirmed_booking_ids', collect($bookings)->pluck('id')->all());
 
-        $this->redirect(route('bookings.mine'));
+        $this->redirect(route('bookings.confirmation'));
     }
 
     public function submitPaymentReference(BookingService $bookingService): void
@@ -222,10 +221,9 @@ class BookingGrid extends Component
             return;
         }
 
-        $refs = collect($confirmed)->map(fn ($b) => 'PB-'.$b->id)->join(', ');
-        session()->flash('status', count($confirmed).' booking'.(count($confirmed) === 1 ? '' : 's')." confirmed: {$refs}");
+        session()->flash('confirmed_booking_ids', collect($confirmed)->pluck('id')->all());
 
-        $this->redirect(route('bookings.mine'));
+        $this->redirect(route('bookings.confirmation'));
     }
 
     /**

@@ -127,6 +127,7 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
     Route::get('/book/{court}', [BookingController::class, 'create'])->name('bookings.create');
     Route::post('/book/{court}', [BookingController::class, 'store'])->name('bookings.store');
     Route::get('/my-bookings', [BookingController::class, 'mine'])->name('bookings.mine');
+    Route::get('/booking-confirmed', [BookingController::class, 'confirmation'])->name('bookings.confirmation');
 
     Route::patch('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
     Route::get('/bookings/{booking}/reschedule', [BookingController::class, 'reschedule'])->name('bookings.reschedule');
