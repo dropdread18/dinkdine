@@ -11,7 +11,12 @@
 
         <div class="flex items-center gap-1 text-sm bg-white border border-slate-200 rounded-lg shadow-sm p-1">
             <a href="{{ route('manage.courts.schedule', ['court' => $selectedCourtId, 'date' => $prevDate]) }}" class="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900">&lt;</a>
-            <span class="font-medium text-slate-900 px-2">{{ \Illuminate\Support\Carbon::parse($date)->format('l, F j, Y') }}</span>
+            <div class="relative">
+                <span class="block font-medium text-slate-900 px-2 cursor-pointer">{{ \Illuminate\Support\Carbon::parse($date)->format('l, F j, Y') }}</span>
+                <input type="date" value="{{ $date }}" aria-label="Jump to date"
+                       class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                       onchange="if (this.value) window.location.href = '{{ route('manage.courts.schedule', ['court' => $selectedCourtId, 'date' => '__DATE__']) }}'.replace('__DATE__', this.value)">
+            </div>
             <a href="{{ route('manage.courts.schedule', ['court' => $selectedCourtId, 'date' => $nextDate]) }}" class="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900">&gt;</a>
         </div>
     </div>
