@@ -6,7 +6,7 @@
         <title>Receipt PB-{{ $booking->id }} - {{ config('app.name') }}</title>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="min-h-screen bg-slate-50 text-slate-900 py-10 print:bg-white print:py-0">
+    <body class="min-h-screen bg-mint text-slate-900 py-10 print:bg-white print:py-0">
         @php
             $statusColor = match ($booking->status) {
                 \App\Enums\BookingStatus::Confirmed, \App\Enums\BookingStatus::Completed => 'green',

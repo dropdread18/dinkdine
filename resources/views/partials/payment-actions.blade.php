@@ -25,13 +25,13 @@
                 @csrf
                 @method('PATCH')
                 <label class="block text-xs font-medium text-slate-700">Mark as Paid</label>
-                <select name="method" required class="block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                <select name="method" required class="block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="cash">Cash</option>
                     <option value="gcash">GCash</option>
                     <option value="bank_transfer">Bank Transfer</option>
                     <option value="other">Other</option>
                 </select>
-                <input type="text" name="notes" placeholder="Reference / notes (optional)" class="block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                <input type="text" name="notes" placeholder="Reference / notes (optional)" class="block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 <x-button type="submit" class="w-full">Mark Paid</x-button>
             </form>
         @endif
@@ -48,7 +48,7 @@
             <form method="POST" action="{{ route('manage.payments.refund', $payment) }}" class="space-y-2">
                 @csrf
                 @method('PATCH')
-                <input type="text" name="reason" placeholder="Refund reason (optional)" class="block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                <input type="text" name="reason" placeholder="Refund reason (optional)" class="block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 <div class="flex gap-2">
                     <x-button type="submit" name="partial" value="1" variant="secondary" class="flex-1">Partial Refund</x-button>
                     <x-button type="submit" variant="secondary" class="flex-1">Full Refund</x-button>

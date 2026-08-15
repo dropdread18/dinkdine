@@ -11,19 +11,19 @@
             <div>
                 <label for="name" class="block text-sm font-medium text-slate-700">Name</label>
                 <input id="name" name="name" type="text" value="{{ old('name', $staff->name) }}" required
-                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
 
             <div>
                 <label for="email" class="block text-sm font-medium text-slate-700">Email</label>
                 <input id="email" name="email" type="email" value="{{ old('email', $staff->email) }}" required
-                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
 
             <div>
                 <label for="phone" class="block text-sm font-medium text-slate-700">Phone (optional)</label>
                 <input id="phone" name="phone" type="text" value="{{ old('phone', $staff->phone) }}"
-                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
 
             <x-button type="submit" class="w-full">Save Changes</x-button>

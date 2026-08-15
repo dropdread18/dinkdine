@@ -20,7 +20,7 @@
         <input type="hidden" name="start_time" value="{{ $startTime }}">
         <input type="hidden" name="end_time" value="{{ $endTime }}">
         <input type="text" name="q" value="{{ $q }}" placeholder="Search existing customer by name, email, or phone"
-               class="flex-1 rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+               class="flex-1 rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
         <x-button type="submit" variant="secondary">Search</x-button>
     </form>
 
@@ -36,7 +36,7 @@
                 <div class="space-y-1">
                     @foreach ($existingCustomers as $customer)
                         <label class="flex items-center gap-2 text-sm">
-                            <input type="radio" name="existing_user_id" value="{{ $customer->id }}" class="text-teal-600 focus:ring-teal-500">
+                            <input type="radio" name="existing_user_id" value="{{ $customer->id }}" class="text-blue-600 focus:ring-blue-500">
                             {{ $customer->name }} — {{ $customer->email }} @if ($customer->phone) ({{ $customer->phone }}) @endif
                         </label>
                     @endforeach
@@ -52,25 +52,25 @@
             <div>
                 <label for="new_customer_name" class="block text-sm font-medium text-slate-700">Name</label>
                 <input id="new_customer_name" name="new_customer_name" type="text" value="{{ old('new_customer_name') }}"
-                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
 
             <div>
                 <label for="new_customer_email" class="block text-sm font-medium text-slate-700">Email</label>
                 <input id="new_customer_email" name="new_customer_email" type="email" value="{{ old('new_customer_email') }}"
-                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
 
             <div>
                 <label for="new_customer_phone" class="block text-sm font-medium text-slate-700">Phone (optional)</label>
                 <input id="new_customer_phone" name="new_customer_phone" type="text" value="{{ old('new_customer_phone') }}"
-                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
         </fieldset>
 
         <div>
             <label for="notes" class="block text-sm font-medium text-slate-700">Notes (optional)</label>
-            <textarea id="notes" name="notes" rows="2" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">{{ old('notes') }}</textarea>
+            <textarea id="notes" name="notes" rows="2" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">{{ old('notes') }}</textarea>
         </div>
 
         <x-button type="submit" class="w-full">Create Booking</x-button>

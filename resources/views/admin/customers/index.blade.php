@@ -9,7 +9,7 @@
 
     <form method="GET" action="{{ route('admin.customers.index') }}" class="flex flex-wrap gap-2 mb-6 text-sm bg-white border border-slate-200 rounded-xl shadow-sm p-3">
         <input type="text" name="q" value="{{ $q }}" placeholder="Search name, email, or phone"
-               class="rounded-lg border-slate-300 shadow-sm w-64 focus:border-teal-500 focus:ring-teal-500">
+               class="rounded-lg border-slate-300 shadow-sm w-64 focus:border-blue-500 focus:ring-blue-500">
         <x-button type="submit">Search</x-button>
         <x-button tag="a" href="{{ route('admin.customers.index') }}" variant="ghost" class="self-center">Clear</x-button>
     </form>
@@ -40,7 +40,7 @@
                                 <x-badge :color="$customer->is_active ? 'green' : 'slate'">{{ $customer->is_active ? 'Active' : 'Disabled' }}</x-badge>
                             </td>
                             <td class="py-3 pr-4 text-right">
-                                <a href="{{ route('admin.customers.show', $customer) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">View</a>
+                                <a href="{{ route('admin.customers.show', $customer) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">View</a>
                             </td>
                         </tr>
                     @endforeach

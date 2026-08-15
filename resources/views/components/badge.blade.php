@@ -2,11 +2,11 @@
 
 @php
     $colors = [
-        'green' => 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+        'green' => 'bg-green-50 text-green-700 ring-green-600/20',
         'amber' => 'bg-amber-50 text-amber-700 ring-amber-600/20',
         'red' => 'bg-red-50 text-red-700 ring-red-600/10',
         'slate' => 'bg-slate-100 text-slate-600 ring-slate-500/10',
-        'teal' => 'bg-teal-50 text-teal-700 ring-teal-600/20',
+        'teal' => 'bg-blue-50 text-blue-700 ring-blue-600/20',
         'blue' => 'bg-blue-50 text-blue-700 ring-blue-600/20',
     ];
 @endphp

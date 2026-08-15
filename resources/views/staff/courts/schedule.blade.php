@@ -21,7 +21,7 @@
     <form method="GET" action="{{ route('manage.courts.schedule') }}" class="mb-6">
         <input type="hidden" name="date" value="{{ $date }}">
         <label for="court" class="block text-sm font-medium text-slate-700 mb-1">Court</label>
-        <select id="court" name="court" class="rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500" onchange="this.form.requestSubmit()">
+        <select id="court" name="court" class="rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500" onchange="this.form.requestSubmit()">
             @foreach ($courts as $court)
                 <option value="{{ $court->id }}" @selected($court->id === $selectedCourtId)>{{ $court->name }}</option>
             @endforeach
@@ -60,7 +60,7 @@
                             <td class="py-2.5 pr-4"><x-badge :color="$color">{{ $slot->status->label() }}</x-badge></td>
                             <td class="py-2.5 pr-4">
                                 @if ($slot->bookingId)
-                                    <a href="{{ route('bookings.show', $slot->bookingId) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">View Booking</a>
+                                    <a href="{{ route('bookings.show', $slot->bookingId) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">View Booking</a>
                                 @endif
                             </td>
                         </tr>

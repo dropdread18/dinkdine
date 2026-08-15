@@ -31,14 +31,14 @@
                                 <x-badge :color="$member->is_active ? 'green' : 'slate'">{{ $member->is_active ? 'Active' : 'Disabled' }}</x-badge>
                             </td>
                             <td class="py-3 pr-4 text-right space-x-3">
-                                <a href="{{ route('admin.staff.edit', $member) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">Edit</a>
+                                <a href="{{ route('admin.staff.edit', $member) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Edit</a>
                                 <form method="POST" action="{{ route('admin.staff.toggle-active', $member) }}" class="inline">
                                     @csrf
                                     @method('PATCH')
                                     @if ($member->is_active)
                                         <button type="submit" class="text-red-600 hover:text-red-700 underline underline-offset-2">Disable</button>
                                     @else
-                                        <button type="submit" class="text-emerald-600 hover:text-emerald-700 underline underline-offset-2">Enable</button>
+                                        <button type="submit" class="text-green-600 hover:text-green-700 underline underline-offset-2">Enable</button>
                                     @endif
                                 </form>
                             </td>

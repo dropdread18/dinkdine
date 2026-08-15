@@ -100,7 +100,7 @@
                             </div>
 
                             <div class="flex items-center">
-                                <input id="remember" name="remember" type="checkbox" class="rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+                                <input id="remember" name="remember" type="checkbox" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
                                 <label for="remember" class="ml-2 text-sm" style="color: var(--db-ink-soft);">Remember me</label>
                             </div>
 

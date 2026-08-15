@@ -5,9 +5,9 @@
 
     <form method="GET" action="{{ route('manage.payments.index') }}" class="flex flex-wrap gap-2 mb-6 text-sm bg-white border border-slate-200 rounded-xl shadow-sm p-3">
         <input type="text" name="q" value="{{ request('q') }}" placeholder="Search customer, phone, email, or booking #"
-               class="rounded-lg border-slate-300 shadow-sm w-64 focus:border-teal-500 focus:ring-teal-500">
+               class="rounded-lg border-slate-300 shadow-sm w-64 focus:border-blue-500 focus:ring-blue-500">
 
-        <select name="status" class="rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+        <select name="status" class="rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             <option value="">Any Status</option>
             @foreach (\App\Enums\PaymentStatus::cases() as $status)
                 <option value="{{ $status->value }}" @selected(request('status') === $status->value)>{{ $status->label() }}</option>
@@ -43,7 +43,7 @@
                             <td class="py-3 pr-4 text-slate-600">{{ $payment->method ?: '—' }}</td>
                             <td class="py-3 pr-4 text-slate-600">{{ $payment->status->label() }}</td>
                             <td class="py-3 pr-4 text-slate-600 whitespace-nowrap">{{ $payment->paid_at?->format('M j, Y g:i A') ?: '—' }}</td>
-                            <td class="py-3 pr-4"><a href="{{ route('bookings.show', $payment->booking) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">View Booking</a></td>
+                            <td class="py-3 pr-4"><a href="{{ route('bookings.show', $payment->booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">View Booking</a></td>
                         </tr>
                     @endforeach
                 </tbody>

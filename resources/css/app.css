@@ -4,16 +4,20 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-mint: #EEF1EA;
+    --color-accent: #B8E63E;
 }
 
 /*
- * Design system, Requirements.md §48 (clean, modern, minimal,
- * Calendly-style "professional booking-SaaS" feel): teal accent on a
- * slate neutral base, soft rounded cards, gentle shadows. Tailwind v4's
- * built-in teal/slate scales are used directly (no custom color tokens
- * needed) - these utility classes just document the recurring patterns
- * so every view stays visually consistent instead of drifting.
+ * Design system ("Dink Dine" brand pass): dark navy (slate-900, an exact
+ * hex match to Tailwind's built-in slate scale) chrome, a lime accent
+ * for primary actions, a mint page background, on a slate neutral base
+ * - soft rounded cards, gentle shadows. Tailwind v4's built-in slate
+ * scale already matches this palette's neutrals exactly (verified
+ * hex-for-hex against the brand's own tokens), so only the accent
+ * (teal -> lime/blue) and page background (slate-50 -> mint) actually
+ * needed new tokens; everything else already lined up.
  */
 

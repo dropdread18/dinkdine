@@ -61,7 +61,7 @@
                             <td class="py-3 pr-4 text-slate-600">{{ $booking->booking_date->toDateString() }}</td>
                             <td class="py-3 pr-4 text-slate-600">{{ $booking->start_time }}–{{ $booking->end_time }}</td>
                             <td class="py-3 pr-4 text-slate-600">{{ $booking->status->label() }}</td>
-                            <td class="py-3 pr-4"><a href="{{ route('bookings.show', $booking) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">View</a></td>
+                            <td class="py-3 pr-4"><a href="{{ route('bookings.show', $booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">View</a></td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -69,5 +69,5 @@
         </div>
     @endif
 
-    <a href="{{ route('admin.customers.index') }}" class="block mt-6 text-sm text-teal-600 hover:text-teal-700 underline underline-offset-2">Back to Customers</a>
+    <a href="{{ route('admin.customers.index') }}" class="block mt-6 text-sm text-blue-600 hover:text-blue-700 underline underline-offset-2">Back to Customers</a>
 @endsection

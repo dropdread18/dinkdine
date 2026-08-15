@@ -14,19 +14,19 @@
                 <div>
                     <label for="name" class="block text-sm font-medium text-slate-700">Name</label>
                     <input id="name" name="name" type="text" value="{{ old('name', $user->name) }}" required
-                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
                 <div>
                     <label for="email" class="block text-sm font-medium text-slate-700">Email</label>
                     <input id="email" name="email" type="email" value="{{ old('email', $user->email) }}" required
-                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
                 <div>
                     <label for="phone" class="block text-sm font-medium text-slate-700">Phone (optional)</label>
                     <input id="phone" name="phone" type="text" value="{{ old('phone', $user->phone) }}"
-                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
                 <x-button type="submit">Save Changes</x-button>
@@ -45,26 +45,26 @@
                 <div>
                     <label for="current_password" class="block text-sm font-medium text-slate-700">Current Password</label>
                     <input id="current_password" name="current_password" type="password" required
-                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
                 <div>
                     <label for="password" class="block text-sm font-medium text-slate-700">New Password</label>
                     <input id="password" name="password" type="password" required
-                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
                 <div>
                     <label for="password_confirmation" class="block text-sm font-medium text-slate-700">Confirm New Password</label>
                     <input id="password_confirmation" name="password_confirmation" type="password" required
-                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
                 <x-button type="submit">Update Password</x-button>
 
                 <p class="text-sm text-slate-500 pt-2 border-t border-slate-100">
                     Don't know your current password (e.g. you booked as a guest)?
-                    <a href="{{ route('password.request') }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">Email me a reset link instead</a>.
+                    <a href="{{ route('password.request') }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Email me a reset link instead</a>.
                 </p>
             </form>
         </x-card>

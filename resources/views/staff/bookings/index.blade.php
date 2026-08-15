@@ -9,32 +9,32 @@
 
     <form method="GET" action="{{ route('manage.bookings.index') }}" class="flex flex-wrap gap-2 mb-6 text-sm bg-white border border-slate-200 rounded-xl shadow-sm p-3">
         <input type="text" name="q" value="{{ request('q') }}" placeholder="Search customer, phone, email, or booking #"
-               class="rounded-lg border-slate-300 shadow-sm w-64 focus:border-teal-500 focus:ring-teal-500">
+               class="rounded-lg border-slate-300 shadow-sm w-64 focus:border-blue-500 focus:ring-blue-500">
 
-        <input type="date" name="date" value="{{ request('date') }}" class="rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+        <input type="date" name="date" value="{{ request('date') }}" class="rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
 
-        <select name="court_id" class="rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+        <select name="court_id" class="rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             <option value="">All Courts</option>
             @foreach ($courts as $court)
                 <option value="{{ $court->id }}" @selected(request('court_id') == $court->id)>{{ $court->name }}</option>
             @endforeach
         </select>
 
-        <select name="status" class="rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+        <select name="status" class="rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             <option value="">Any Status</option>
             @foreach (\App\Enums\BookingStatus::cases() as $status)
                 <option value="{{ $status->value }}" @selected(request('status') === $status->value)>{{ $status->label() }}</option>
             @endforeach
         </select>
 
-        <select name="payment_status" class="rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+        <select name="payment_status" class="rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             <option value="">Any Payment</option>
             @foreach (\App\Enums\PaymentStatus::cases() as $paymentStatus)
                 <option value="{{ $paymentStatus->value }}" @selected(request('payment_status') === $paymentStatus->value)>{{ $paymentStatus->label() }}</option>
             @endforeach
         </select>
 
-        <select name="source" class="rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+        <select name="source" class="rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             <option value="">Any Source</option>
             @foreach (\App\Enums\BookingSource::cases() as $source)
                 <option value="{{ $source->value }}" @selected(request('source') === $source->value)>{{ $source->label() }}</option>
@@ -76,9 +76,9 @@
                             <td class="py-3 pr-4 text-slate-600">{{ $booking->payment_status->label() }}</td>
                             <td class="py-3 pr-4 text-slate-600">{{ $booking->source->label() }}</td>
                             <td class="py-3 pr-4 space-x-3 whitespace-nowrap">
-                                <a href="{{ route('bookings.show', $booking) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">View</a>
+                                <a href="{{ route('bookings.show', $booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">View</a>
                                 @if ($booking->status !== \App\Enums\BookingStatus::Cancelled)
-                                    <a href="{{ route('manage.bookings.reschedule', $booking) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">Reschedule</a>
+                                    <a href="{{ route('manage.bookings.reschedule', $booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Reschedule</a>
                                     <form method="POST" action="{{ route('manage.bookings.cancel', $booking) }}" class="inline">
                                         @csrf
                                         @method('PATCH')

@@ -2,7 +2,7 @@
 
 <div>
     <label for="court_id" class="block text-sm font-medium text-slate-700">Court</label>
-    <select id="court_id" name="court_id" required class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+    <select id="court_id" name="court_id" required class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
         <option value="">Select a court</option>
         @foreach ($courts as $court)
             <option value="{{ $court->id }}" @selected((int) old('court_id', $maintenance?->court_id) === $court->id)>
@@ -17,19 +17,19 @@
         <label for="starts_at" class="block text-sm font-medium text-slate-700">Starts</label>
         <input id="starts_at" name="starts_at" type="datetime-local" required
                value="{{ old('starts_at', $maintenance?->starts_at?->format('Y-m-d\TH:i')) }}"
-               class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+               class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
     </div>
 
     <div>
         <label for="ends_at" class="block text-sm font-medium text-slate-700">Ends</label>
         <input id="ends_at" name="ends_at" type="datetime-local" required
                value="{{ old('ends_at', $maintenance?->ends_at?->format('Y-m-d\TH:i')) }}"
-               class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+               class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
     </div>
 </div>
 
 <div>
     <label for="reason" class="block text-sm font-medium text-slate-700">Reason (optional)</label>
     <input id="reason" name="reason" type="text" value="{{ old('reason', $maintenance?->reason) }}"
-           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
 </div>

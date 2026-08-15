@@ -25,9 +25,9 @@
                 {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $booking->end_time)->format('g:i A') }}
             </div>
             <div class="mt-3 flex gap-4">
-                <a href="{{ route('bookings.show', $booking) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">View</a>
+                <a href="{{ route('bookings.show', $booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">View</a>
                 @if ($eligibleIds->contains($booking->id))
-                    <a href="{{ route('bookings.reschedule', $booking) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">Reschedule</a>
+                    <a href="{{ route('bookings.reschedule', $booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Reschedule</a>
                     <form method="POST" action="{{ route('bookings.cancel', $booking) }}">
                         @csrf
                         @method('PATCH')
@@ -38,13 +38,13 @@
         </x-card>
     @empty
         <x-card class="mb-4 text-sm text-slate-500">
-            No upcoming bookings. <a href="{{ route('bookings.index') }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">Book a court</a>.
+            No upcoming bookings. <a href="{{ route('bookings.index') }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Book a court</a>.
         </x-card>
     @endforelse
 
     <h2 class="text-sm font-medium text-slate-500 uppercase mt-8 mb-3">Past</h2>
     @forelse ($past as $booking)
-        <a href="{{ route('bookings.show', $booking) }}" class="block bg-white border border-slate-200 rounded-2xl shadow-sm p-4 mb-3 text-sm hover:border-teal-200 hover:shadow-md transition-shadow">
+        <a href="{{ route('bookings.show', $booking) }}" class="block bg-white border border-slate-200 rounded-2xl shadow-sm p-4 mb-3 text-sm hover:border-blue-200 hover:shadow-md transition-shadow">
             <div class="flex justify-between items-center">
                 <span class="font-medium text-slate-900">{{ $booking->court->name }}</span>
                 <x-badge :color="$statusColorFor($booking->status)">{{ $booking->status->label() }}</x-badge>

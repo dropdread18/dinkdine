@@ -39,7 +39,7 @@
                                 @endif
                             </td>
                             <td class="py-3 pr-4 text-right space-x-3">
-                                <a href="{{ route('admin.maintenance.edit', $period) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">Edit</a>
+                                <a href="{{ route('admin.maintenance.edit', $period) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Edit</a>
                                 <form method="POST" action="{{ route('admin.maintenance.destroy', $period) }}" class="inline">
                                     @csrf
                                     @method('DELETE')

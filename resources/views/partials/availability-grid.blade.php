@@ -3,7 +3,7 @@
 @php $extraRouteParams = $extraRouteParams ?? []; @endphp
 
 <div class="flex flex-wrap gap-4 text-xs text-slate-600 mb-4">
-    <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 align-middle mr-1.5"></span>Available</span>
+    <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500 align-middle mr-1.5"></span>Available</span>
     <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500 align-middle mr-1.5"></span>Booked</span>
     <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 align-middle mr-1.5"></span>Pending</span>
     <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-slate-300 align-middle mr-1.5"></span>Closed</span>
@@ -37,7 +37,7 @@
                                 $slotStart = \Illuminate\Support\Carbon::parse($date.' '.$slot->startTime);
                                 $bookable = $slot->status === \App\Enums\SlotStatus::Available && $slotStart->gte($bookableFrom);
                                 $classes = match ($slot->status) {
-                                    \App\Enums\SlotStatus::Available => 'bg-emerald-50 text-emerald-700',
+                                    \App\Enums\SlotStatus::Available => 'bg-green-50 text-green-700',
                                     \App\Enums\SlotStatus::Booked => 'bg-red-50 text-red-700',
                                     \App\Enums\SlotStatus::Pending => 'bg-amber-50 text-amber-700',
                                     \App\Enums\SlotStatus::Closed => 'bg-slate-100 text-slate-400',

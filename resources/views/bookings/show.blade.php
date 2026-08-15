@@ -40,10 +40,10 @@
 
     @if (auth()->user()->isCustomer())
         <div class="mt-6 flex gap-4 text-sm items-center">
-            <a href="{{ route('bookings.mine') }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">View my bookings</a>
-            <a href="{{ route('bookings.receipt', $booking) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">Print Receipt</a>
+            <a href="{{ route('bookings.mine') }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">View my bookings</a>
+            <a href="{{ route('bookings.receipt', $booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Print Receipt</a>
             @if ($canManage)
-                <a href="{{ route('bookings.reschedule', $booking) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">Reschedule</a>
+                <a href="{{ route('bookings.reschedule', $booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Reschedule</a>
                 <form method="POST" action="{{ route('bookings.cancel', $booking) }}">
                     @csrf
                     @method('PATCH')
@@ -55,10 +55,10 @@
         </div>
     @else
         <div class="mt-6 flex gap-4 text-sm items-center">
-            <a href="{{ route('manage.bookings.index') }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">Back to Bookings</a>
-            <a href="{{ route('bookings.receipt', $booking) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">Print Receipt</a>
+            <a href="{{ route('manage.bookings.index') }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Back to Bookings</a>
+            <a href="{{ route('bookings.receipt', $booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Print Receipt</a>
             @if ($booking->status !== \App\Enums\BookingStatus::Cancelled)
-                <a href="{{ route('manage.bookings.reschedule', $booking) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">Reschedule</a>
+                <a href="{{ route('manage.bookings.reschedule', $booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Reschedule</a>
                 <form method="POST" action="{{ route('manage.bookings.cancel', $booking) }}">
                     @csrf
                     @method('PATCH')

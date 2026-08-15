@@ -31,7 +31,7 @@
                                 <x-badge :color="$court->status === \App\Enums\CourtStatus::Active ? 'green' : 'slate'">{{ $court->status->label() }}</x-badge>
                             </td>
                             <td class="py-3 pr-4 text-right space-x-3">
-                                <a href="{{ route('admin.courts.edit', $court) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">Edit</a>
+                                <a href="{{ route('admin.courts.edit', $court) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Edit</a>
                                 <form method="POST" action="{{ route('admin.courts.destroy', $court) }}" class="inline">
                                     @csrf
                                     @method('DELETE')

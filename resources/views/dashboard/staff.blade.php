@@ -31,7 +31,7 @@
                             <td class="py-3 pr-4 text-slate-600">{{ $booking->court->name }}</td>
                             <td class="py-3 pr-4 text-slate-900 font-medium">{{ $booking->user->name }}</td>
                             <td class="py-3 pr-4 text-slate-600">{{ $booking->status->label() }}</td>
-                            <td class="py-3 pr-4"><a href="{{ route('bookings.show', $booking) }}" class="text-teal-600 hover:text-teal-700 underline underline-offset-2">View</a></td>
+                            <td class="py-3 pr-4"><a href="{{ route('bookings.show', $booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">View</a></td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -39,5 +39,5 @@
         </div>
     @endif
 
-    <a href="{{ route('manage.bookings.index') }}" class="inline-block mt-6 text-sm text-teal-600 hover:text-teal-700 underline underline-offset-2">View all bookings</a>
+    <a href="{{ route('manage.bookings.index') }}" class="inline-block mt-6 text-sm text-blue-600 hover:text-blue-700 underline underline-offset-2">View all bookings</a>
 @endsection

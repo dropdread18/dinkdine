@@ -24,7 +24,7 @@
 
         <div>
             <label for="notes" class="block text-sm font-medium text-slate-700">Notes (optional)</label>
-            <textarea id="notes" name="notes" rows="3" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">{{ old('notes') }}</textarea>
+            <textarea id="notes" name="notes" rows="3" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">{{ old('notes') }}</textarea>
         </div>
 
         <x-button type="submit" class="w-full">Confirm Booking</x-button>

@@ -15,14 +15,14 @@
                 <label for="facility_name" class="block text-sm font-medium text-slate-700">Facility Name</label>
                 <input id="facility_name" name="facility_name" type="text" required
                        value="{{ old('facility_name', $settings['facility_name']) }}"
-                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
 
             <div>
                 <label for="facility_address" class="block text-sm font-medium text-slate-700">Address (optional)</label>
                 <input id="facility_address" name="facility_address" type="text"
                        value="{{ old('facility_address', $settings['facility_address']) }}"
-                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
 
             <div class="grid grid-cols-2 gap-4">
@@ -30,14 +30,14 @@
                     <label for="facility_phone" class="block text-sm font-medium text-slate-700">Phone (optional)</label>
                     <input id="facility_phone" name="facility_phone" type="text"
                            value="{{ old('facility_phone', $settings['facility_phone']) }}"
-                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
                 <div>
                     <label for="facility_email" class="block text-sm font-medium text-slate-700">Email (optional)</label>
                     <input id="facility_email" name="facility_email" type="email"
                            value="{{ old('facility_email', $settings['facility_email']) }}"
-                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
             </div>
 
@@ -46,7 +46,7 @@
                     <label for="currency" class="block text-sm font-medium text-slate-700">Currency Code</label>
                     <input id="currency" name="currency" type="text" maxlength="3" required
                            value="{{ old('currency', $settings['currency']) }}"
-                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm uppercase focus:border-teal-500 focus:ring-teal-500">
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm uppercase focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
                 <div>
@@ -60,14 +60,14 @@
                     <label for="default_booking_duration_minutes" class="block text-sm font-medium text-slate-700">Default Slot Duration (min)</label>
                     <input id="default_booking_duration_minutes" name="default_booking_duration_minutes" type="number" min="15" step="1" required
                            value="{{ old('default_booking_duration_minutes', $settings['default_booking_duration_minutes']) }}"
-                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
                 <div>
                     <label for="max_booking_duration_minutes" class="block text-sm font-medium text-slate-700">Max Booking Duration (min)</label>
                     <input id="max_booking_duration_minutes" name="max_booking_duration_minutes" type="number" min="15" step="1" required
                            value="{{ old('max_booking_duration_minutes', $settings['max_booking_duration_minutes']) }}"
-                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
             </div>
 
@@ -76,14 +76,14 @@
                     <label for="min_booking_notice_minutes" class="block text-sm font-medium text-slate-700">Min Booking Notice (min)</label>
                     <input id="min_booking_notice_minutes" name="min_booking_notice_minutes" type="number" min="0" step="1" required
                            value="{{ old('min_booking_notice_minutes', $settings['min_booking_notice_minutes']) }}"
-                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
                 <div>
                     <label for="max_advance_booking_days" class="block text-sm font-medium text-slate-700">Max Advance Booking (days)</label>
                     <input id="max_advance_booking_days" name="max_advance_booking_days" type="number" min="1" step="1" required
                            value="{{ old('max_advance_booking_days', $settings['max_advance_booking_days']) }}"
-                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
             </div>
 
@@ -92,14 +92,14 @@
                     <label for="cancellation_deadline_hours" class="block text-sm font-medium text-slate-700">Cancellation Deadline (hrs)</label>
                     <input id="cancellation_deadline_hours" name="cancellation_deadline_hours" type="number" min="0" step="1" required
                            value="{{ old('cancellation_deadline_hours', $settings['cancellation_deadline_hours']) }}"
-                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
                 <div>
                     <label for="max_simultaneous_bookings_per_customer" class="block text-sm font-medium text-slate-700">Max Active Bookings / Customer</label>
                     <input id="max_simultaneous_bookings_per_customer" name="max_simultaneous_bookings_per_customer" type="number" min="1" step="1" required
                            value="{{ old('max_simultaneous_bookings_per_customer', $settings['max_simultaneous_bookings_per_customer']) }}"
-                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
             </div>
 
@@ -107,14 +107,14 @@
                 <label for="default_court_hourly_rate" class="block text-sm font-medium text-slate-700">Default Court Hourly Rate</label>
                 <input id="default_court_hourly_rate" name="default_court_hourly_rate" type="number" min="0" step="0.01" required
                        value="{{ old('default_court_hourly_rate', $settings['default_court_hourly_rate']) }}"
-                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
 
             <div>
                 <label for="payment_instructions" class="block text-sm font-medium text-slate-700">Guest Payment Instructions</label>
                 <p class="text-xs text-slate-500 mb-1">Shown to guest/non-logged-in customers after they select their slots - how to pay and where to enter their reference number.</p>
                 <textarea id="payment_instructions" name="payment_instructions" rows="3"
-                          class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">{{ old('payment_instructions', $settings['payment_instructions']) }}</textarea>
+                          class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">{{ old('payment_instructions', $settings['payment_instructions']) }}</textarea>
             </div>
 
             <div>
@@ -124,7 +124,7 @@
                     <div class="flex items-center gap-3 mt-1 mb-2">
                         <img src="{{ \Illuminate\Support\Facades\Storage::url($settings['payment_qr_code']) }}" alt="Payment QR code" class="w-24 h-24 object-contain rounded-lg border border-slate-200 bg-white p-1">
                         <label class="flex items-center gap-2 text-sm text-slate-600">
-                            <input type="checkbox" name="remove_payment_qr_code" value="1" class="rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+                            <input type="checkbox" name="remove_payment_qr_code" value="1" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
                             Remove QR code
                         </label>
                     </div>
@@ -166,18 +166,18 @@
                                 <td class="py-3 pr-4">
                                     <input type="hidden" name="hours[{{ $day }}][is_closed]" value="0">
                                     <input type="checkbox" name="hours[{{ $day }}][is_closed]" value="1"
-                                           class="rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                           class="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                                            @checked(old("hours.$day.is_closed", $hour?->is_closed))>
                                 </td>
                                 <td class="py-3 pr-4">
                                     <input type="time" step="1" name="hours[{{ $day }}][opens_at]"
                                            value="{{ old("hours.$day.opens_at", $hour?->opens_at) }}"
-                                           class="rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                                           class="rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                                 </td>
                                 <td class="py-3 pr-4">
                                     <input type="time" step="1" name="hours[{{ $day }}][closes_at]"
                                            value="{{ old("hours.$day.closes_at", $hour?->closes_at) }}"
-                                           class="rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">
+                                           class="rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                                 </td>
                             </tr>
                         @endforeach
