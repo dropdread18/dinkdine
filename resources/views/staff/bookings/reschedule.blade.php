@@ -16,12 +16,9 @@
                 <span class="flex h-8 w-8 items-center justify-center text-slate-300">&lt;</span>
             @endif
 
-            <div class="relative">
-                <span class="block font-medium text-slate-900 px-2 cursor-pointer">{{ \Illuminate\Support\Carbon::parse($date)->format('l, F j, Y') }}</span>
-                <input type="date" value="{{ $date }}" min="{{ $minDate }}" max="{{ $maxDate }}" aria-label="Jump to date"
-                       class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                       onchange="if (this.value) window.location.href = '{{ route('manage.bookings.reschedule', ['booking' => $booking, 'date' => '__DATE__']) }}'.replace('__DATE__', this.value)">
-            </div>
+            <input type="date" value="{{ $date }}" min="{{ $minDate }}" max="{{ $maxDate }}" aria-label="Jump to date"
+                   onchange="if (this.value) window.location.href = '{{ route('manage.bookings.reschedule', ['booking' => $booking, 'date' => '__DATE__']) }}'.replace('__DATE__', this.value)"
+                   class="font-medium text-slate-900 px-2 bg-transparent border-0 focus:outline-none cursor-pointer">
 
             @if ($nextDate <= $maxDate)
                 <a href="{{ route('manage.bookings.reschedule', ['booking' => $booking, 'date' => $nextDate]) }}" class="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900">&gt;</a>

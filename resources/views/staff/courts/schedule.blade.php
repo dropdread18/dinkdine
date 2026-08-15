@@ -11,12 +11,9 @@
 
         <div class="flex items-center gap-1 text-sm bg-white border border-slate-200 rounded-lg shadow-sm p-1">
             <a href="{{ route('manage.courts.schedule', ['court' => $selectedCourtId, 'date' => $prevDate]) }}" class="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900">&lt;</a>
-            <div class="relative">
-                <span class="block font-medium text-slate-900 px-2 cursor-pointer">{{ \Illuminate\Support\Carbon::parse($date)->format('l, F j, Y') }}</span>
-                <input type="date" value="{{ $date }}" aria-label="Jump to date"
-                       class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                       onchange="if (this.value) window.location.href = '{{ route('manage.courts.schedule', ['court' => $selectedCourtId, 'date' => '__DATE__']) }}'.replace('__DATE__', this.value)">
-            </div>
+            <input type="date" value="{{ $date }}" aria-label="Jump to date"
+                   onchange="if (this.value) window.location.href = '{{ route('manage.courts.schedule', ['court' => $selectedCourtId, 'date' => '__DATE__']) }}'.replace('__DATE__', this.value)"
+                   class="font-medium text-slate-900 px-2 bg-transparent border-0 focus:outline-none cursor-pointer">
             <a href="{{ route('manage.courts.schedule', ['court' => $selectedCourtId, 'date' => $nextDate]) }}" class="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900">&gt;</a>
         </div>
     </div>

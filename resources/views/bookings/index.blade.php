@@ -81,13 +81,11 @@
                         <span class="w-8 h-8 flex items-center justify-center text-lg" style="color: var(--db-border);">&lsaquo;</span>
                     @endif
 
-                    <div class="relative min-w-[150px] sm:min-w-[170px]">
-                        <span class="block text-sm sm:text-base font-bold text-center cursor-pointer" style="color: var(--db-ink);">{{ \Illuminate\Support\Carbon::parse($date)->format('F j, Y') }}</span>
-                        <input type="date" value="{{ $date }}" min="{{ $minDate }}" max="{{ $maxDate }}"
-                               aria-label="Jump to date"
-                               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                               onchange="if (this.value) window.location.href = '{{ route('bookings.index', ['date' => '__DATE__']) }}'.replace('__DATE__', this.value)">
-                    </div>
+                    <input type="date" value="{{ $date }}" min="{{ $minDate }}" max="{{ $maxDate }}"
+                           aria-label="Jump to date"
+                           onchange="if (this.value) window.location.href = '{{ route('bookings.index', ['date' => '__DATE__']) }}'.replace('__DATE__', this.value)"
+                           class="text-sm sm:text-base font-bold bg-transparent border-0 focus:outline-none cursor-pointer min-w-[150px] sm:min-w-[170px]"
+                           style="color: var(--db-ink);">
 
                     @if ($nextDate <= $maxDate)
                         <a href="{{ route('bookings.index', ['date' => $nextDate]) }}" class="w-8 h-8 rounded-lg flex items-center justify-center text-lg" style="color: var(--db-ink);">&rsaquo;</a>
