@@ -46,8 +46,11 @@ class BookingService
      *                                     (feedback session, post-launch):
      *                                     instead of going straight to
      *                                     Confirmed, the booking is created
-     *                                     Pending with a 10-minute
-     *                                     hold_expires_at. It still blocks
+     *                                     Pending with a hold_expires_at
+     *                                     set payment_hold_minutes out (a
+     *                                     Setting, admin-adjustable - see
+     *                                     the SettingSeeder default). It
+     *                                     still blocks
      *                                     the slot exactly like a Confirmed
      *                                     booking (assertSlotIsAvailable/the
      *                                     conflict check below both already
@@ -108,7 +111,8 @@ class BookingService
             ]);
 
             if ($requiresPaymentHold) {
-                $booking->forceFill(['hold_expires_at' => now()->addMinutes(10)])->save();
+                $holdMinutes = (int) (Setting::get('payment_hold_minutes') ?? 10);
+                $booking->forceFill(['hold_expires_at' => now()->addMinutes($holdMinutes)])->save();
             }
 
             Payment::create([
@@ -229,7 +233,7 @@ class BookingService
                 }
 
                 if ($fresh->hold_expires_at->isPast()) {
-                    throw new BookingUnavailableException('The 10-minute payment window has expired. Please select your slots again.');
+                    throw new BookingUnavailableException('The payment window has expired. Please select your slots again.');
                 }
 
                 // Booking.payment_status is a denormalized copy of

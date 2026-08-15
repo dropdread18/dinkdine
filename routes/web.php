@@ -21,7 +21,13 @@ use App\Http\Controllers\Staff\WalkInBookingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('home');
+    return view('home', [
+        'courts' => \App\Models\Court::query()
+            ->where('status', \App\Enums\CourtStatus::Active)
+            ->orderBy('sort_order')->orderBy('court_number')
+            ->get(),
+        'businessHours' => \App\Models\BusinessHour::orderBy('day_of_week')->get(),
+    ]);
 })->name('home');
 
 Route::middleware('guest')->group(function () {
@@ -68,11 +74,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::patch('staff/{staff}/toggle-active', [StaffController::class, 'toggleActive'])->name('staff.toggle-active');
 });
 
-// Payments is an admin-only capability (Requirements.md §51 lists it under
-// Admin Navigation only - Staff Navigation §52 does not include it).
+// Marking a payment paid/failed and refunding it used to be entirely
+// admin-only (Requirements.md §51/§52). Owner feedback: staff collect
+// walk-in payment in person and need to confirm it themselves, so viewing
+// the list and marking paid are now role:admin,staff (grouped with the
+// rest of staff's operational routes below). Failing/refunding a payment
+// stays admin-only here - a materially more sensitive action than
+// confirming a payment was received.
 Route::middleware(['auth', 'role:admin'])->prefix('manage')->name('manage.')->group(function () {
-    Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
-    Route::patch('payments/{payment}/mark-paid', [PaymentController::class, 'markPaid'])->name('payments.mark-paid');
     Route::patch('payments/{payment}/mark-failed', [PaymentController::class, 'markFailed'])->name('payments.mark-failed');
     Route::patch('payments/{payment}/refund', [PaymentController::class, 'refund'])->name('payments.refund');
 
@@ -85,17 +94,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('manage')->name('manage.')->gr
     Route::put('settings/business-hours', [SettingController::class, 'updateBusinessHours'])->name('settings.business-hours.update');
 });
 
-Route::middleware(['auth', 'role:admin,staff'])->get('/staff/dashboard', function () {
-    return view('dashboard.staff', [
-        'todaysBookings' => \App\Models\Booking::query()
-            ->with(['court', 'user'])
-            ->whereDate('booking_date', now())
-            ->orderBy('start_time')
-            ->get(),
-    ]);
-})->name('staff.dashboard');
+// Staff get the exact same operational dashboard as admin (same controller,
+// same view) - both roles need to immediately see pending payments and
+// today's bookings the moment they log in, not just admin.
+Route::middleware(['auth', 'role:admin,staff'])->get('/staff/dashboard', [DashboardController::class, 'index'])->name('staff.dashboard');
 
 Route::middleware(['auth', 'role:admin,staff'])->prefix('manage')->name('manage.')->group(function () {
+    Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+    Route::patch('payments/{payment}/mark-paid', [PaymentController::class, 'markPaid'])->name('payments.mark-paid');
+
     Route::get('bookings', [StaffBookingController::class, 'index'])->name('bookings.index');
     Route::patch('bookings/{booking}/cancel', [StaffBookingController::class, 'cancel'])->name('bookings.cancel');
     Route::get('bookings/{booking}/reschedule', [StaffBookingController::class, 'reschedule'])->name('bookings.reschedule');

@@ -1,17 +1,19 @@
 @php
-    $navItems = [
-        ['label' => 'Dashboard', 'route' => 'admin.dashboard'],
-        ['label' => 'Courts', 'route' => 'admin.courts.index'],
-        ['label' => 'Maintenance', 'route' => 'admin.maintenance.index'],
-        ['label' => 'Court Schedule', 'route' => 'manage.courts.schedule'],
-        ['label' => 'Bookings', 'route' => 'manage.bookings.index'],
-        ['label' => 'Walk-in Booking', 'route' => 'manage.walkin.index'],
-        ['label' => 'Payments', 'route' => 'manage.payments.index'],
-        ['label' => 'Reports', 'route' => 'manage.reports.index'],
-        ['label' => 'Settings', 'route' => 'manage.settings.index'],
-        ['label' => 'Customers', 'route' => 'admin.customers.index'],
-        ['label' => 'Staff', 'route' => 'admin.staff.index'],
-    ];
+    $isAdminUser = auth()->user()->isAdmin();
+    $navItems = array_filter([
+        ['label' => 'Dashboard', 'route' => $isAdminUser ? 'admin.dashboard' : 'staff.dashboard', 'adminOnly' => false],
+        ['label' => 'Courts', 'route' => 'admin.courts.index', 'adminOnly' => true],
+        ['label' => 'Maintenance', 'route' => 'admin.maintenance.index', 'adminOnly' => true],
+        ['label' => 'Court Schedule', 'route' => 'manage.courts.schedule', 'adminOnly' => false],
+        ['label' => 'Bookings', 'route' => 'manage.bookings.index', 'adminOnly' => false],
+        ['label' => 'Walk-in Booking', 'route' => 'manage.walkin.index', 'adminOnly' => false],
+        ['label' => 'Check-in', 'route' => 'manage.checkin.index', 'adminOnly' => false],
+        ['label' => 'Payments', 'route' => 'manage.payments.index', 'adminOnly' => false],
+        ['label' => 'Reports', 'route' => 'manage.reports.index', 'adminOnly' => true],
+        ['label' => 'Settings', 'route' => 'manage.settings.index', 'adminOnly' => true],
+        ['label' => 'Customers', 'route' => 'admin.customers.index', 'adminOnly' => true],
+        ['label' => 'Staff', 'route' => 'admin.staff.index', 'adminOnly' => true],
+    ], fn (array $item) => $isAdminUser || ! $item['adminOnly']);
 @endphp
 <header class="lg:hidden bg-slate-900">
     <div class="px-5 h-16 flex items-center justify-between">

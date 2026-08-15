@@ -22,7 +22,20 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended('/');
+        // Owner feedback: admin/staff should immediately see pending and
+        // current bookings after logging in, not land on the generic home
+        // page and have to click through. redirect()->intended() still
+        // takes priority - if middleware bounced them to /login from a
+        // specific deep link, they return there first; this is only the
+        // default when they logged in directly.
+        $user = $request->user();
+        $default = match (true) {
+            $user->isAdmin() => route('admin.dashboard'),
+            $user->isStaff() => route('staff.dashboard'),
+            default => '/',
+        };
+
+        return redirect()->intended($default);
     }
 
     public function destroy(Request $request): RedirectResponse

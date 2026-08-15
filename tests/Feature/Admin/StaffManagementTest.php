@@ -31,7 +31,7 @@ class StaffManagementTest extends TestCase
             ->assertSee('Jordan Reyes');
     }
 
-    public function test_staff_list_excludes_customers_and_admins(): void
+    public function test_staff_list_excludes_customers_but_includes_admins(): void
     {
         User::factory()->customer()->create(['name' => 'Some Customer']);
         User::factory()->admin()->create(['name' => 'Another Admin']);
@@ -39,7 +39,7 @@ class StaffManagementTest extends TestCase
         $response = $this->actingAs(User::factory()->admin()->create())->get('/admin/staff');
 
         $response->assertDontSee('Some Customer');
-        $response->assertDontSee('Another Admin');
+        $response->assertSee('Another Admin');
     }
 
     public function test_admin_can_create_a_staff_account(): void
@@ -59,6 +59,24 @@ class StaffManagementTest extends TestCase
         $this->assertNotNull($staff);
         $this->assertSame('staff', $staff->role->value);
         $this->assertTrue($staff->is_active);
+    }
+
+    public function test_admin_can_create_another_admin_account(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->post('/admin/staff', [
+            'role' => 'admin',
+            'name' => 'New Admin',
+            'email' => 'newadmin@example.com',
+            'password' => 'a-secure-password',
+            'password_confirmation' => 'a-secure-password',
+        ]);
+
+        $response->assertRedirect('/admin/staff');
+        $newAdmin = User::where('email', 'newadmin@example.com')->first();
+        $this->assertNotNull($newAdmin);
+        $this->assertSame('admin', $newAdmin->role->value);
     }
 
     public function test_staff_creation_requires_matching_password_confirmation(): void
@@ -110,6 +128,16 @@ class StaffManagementTest extends TestCase
 
         $this->actingAs($admin)->patch("/admin/staff/{$staff->id}/toggle-active");
         $this->assertTrue($staff->fresh()->is_active);
+    }
+
+    public function test_admin_cannot_disable_their_own_account(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->patch("/admin/staff/{$admin->id}/toggle-active");
+
+        $response->assertSessionHasErrors('staff');
+        $this->assertTrue($admin->fresh()->is_active);
     }
 
     public function test_disabling_a_staff_account_prevents_them_from_logging_in(): void

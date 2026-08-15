@@ -9,19 +9,11 @@
             @auth
                 @php $user = auth()->user(); @endphp
 
-                {{-- Admins get a dedicated left sidebar instead (see layouts/app.blade.php) - this branch never renders for them. --}}
-                @if ($user->isStaff())
-                    <a href="{{ route('staff.dashboard') }}" class="text-slate-400 hover:text-white font-medium">Dashboard</a>
-                    <a href="{{ route('manage.courts.schedule') }}" class="text-slate-400 hover:text-white font-medium">Court Schedule</a>
-                    <a href="{{ route('manage.bookings.index') }}" class="text-slate-400 hover:text-white font-medium">Bookings</a>
-                    <a href="{{ route('manage.walkin.index') }}" class="text-slate-400 hover:text-white font-medium">Walk-in Booking</a>
-                    <a href="{{ route('manage.checkin.index') }}" class="text-slate-400 hover:text-white font-medium">Check-in</a>
-                @else
-                    <a href="{{ url('/') }}" class="text-slate-400 hover:text-white font-medium">Home</a>
-                    <a href="{{ route('bookings.index') }}" class="text-slate-400 hover:text-white font-medium">Book a Court</a>
-                    <a href="{{ route('bookings.mine') }}" class="text-slate-400 hover:text-white font-medium">My Bookings</a>
-                    <a href="{{ route('profile.edit') }}" class="text-slate-400 hover:text-white font-medium">Profile</a>
-                @endif
+                {{-- Admins and staff get a dedicated left sidebar instead (see layouts/app.blade.php) - this partial only ever renders for customers/guests now. --}}
+                <a href="{{ url('/') }}" class="text-slate-400 hover:text-white font-medium">Home</a>
+                <a href="{{ route('bookings.index') }}" class="text-slate-400 hover:text-white font-medium">Book a Court</a>
+                <a href="{{ route('bookings.mine') }}" class="text-slate-400 hover:text-white font-medium">My Bookings</a>
+                <a href="{{ route('profile.edit') }}" class="text-slate-400 hover:text-white font-medium">Profile</a>
 
                 <span class="hidden sm:inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-slate-300">
                     {{ $user->name }} &middot; {{ $user->role->label() }}

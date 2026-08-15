@@ -592,6 +592,23 @@ class BookingServiceTest extends TestCase
         );
     }
 
+    public function test_the_hold_window_respects_the_payment_hold_minutes_setting(): void
+    {
+        Setting::set('payment_hold_minutes', '20');
+        $court = Court::factory()->create();
+
+        $booking = $this->service->book(
+            User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00',
+            requiresPaymentHold: true,
+        );
+
+        $this->assertEqualsWithDelta(
+            now()->addMinutes(20)->timestamp,
+            $booking->hold_expires_at->timestamp,
+            5,
+        );
+    }
+
     public function test_a_payment_hold_blocks_the_slot_from_being_booked_by_someone_else(): void
     {
         $court = Court::factory()->create();

@@ -111,6 +111,14 @@
             </div>
 
             <div>
+                <label for="payment_hold_minutes" class="block text-sm font-medium text-slate-700">Payment Hold Window (min)</label>
+                <p class="text-xs text-slate-500 mb-1">How long a slot stays reserved while a customer completes payment before it's released back to Available.</p>
+                <input id="payment_hold_minutes" name="payment_hold_minutes" type="number" min="1" max="120" step="1" required
+                       value="{{ old('payment_hold_minutes', $settings['payment_hold_minutes']) }}"
+                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+
+            <div>
                 <label for="payment_instructions" class="block text-sm font-medium text-slate-700">Guest Payment Instructions</label>
                 <p class="text-xs text-slate-500 mb-1">Shown to guest/non-logged-in customers after they select their slots - how to pay and where to enter their reference number.</p>
                 <textarea id="payment_instructions" name="payment_instructions" rows="3"

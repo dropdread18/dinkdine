@@ -26,6 +26,7 @@ class SettingSeeder extends Seeder
             'cancellation_deadline_hours' => '4',
             'max_simultaneous_bookings_per_customer' => '3',
             'default_court_hourly_rate' => '300',
+            'payment_hold_minutes' => '10',
             'payment_instructions' => "GCash: 0917-000-0000 (Facility Name)\nPlease enter your reference number after paying.",
         ];
 

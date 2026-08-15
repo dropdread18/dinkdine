@@ -13,10 +13,37 @@ class PaymentManagementTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_customer_and_staff_cannot_access_payments(): void
+    public function test_customer_cannot_access_payments(): void
     {
         $this->actingAs(User::factory()->customer()->create())->get('/manage/payments')->assertForbidden();
-        $this->actingAs(User::factory()->staff()->create())->get('/manage/payments')->assertForbidden();
+    }
+
+    public function test_staff_can_view_the_payments_list_and_mark_a_payment_paid(): void
+    {
+        $booking = Booking::factory()->create();
+        $payment = Payment::factory()->create(['booking_id' => $booking->id]);
+        $staff = User::factory()->staff()->create();
+
+        $this->actingAs($staff)->get('/manage/payments')->assertOk()->assertSee($booking->user->name);
+
+        $response = $this->actingAs($staff)->patch("/manage/payments/{$payment->id}/mark-paid", [
+            'method' => 'cash', 'notes' => 'Paid at the counter',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertSame(PaymentStatus::Paid, $payment->fresh()->status);
+    }
+
+    public function test_staff_cannot_mark_a_payment_failed_or_refund_it(): void
+    {
+        $unpaidBooking = Booking::factory()->create();
+        $unpaidPayment = Payment::factory()->create(['booking_id' => $unpaidBooking->id]);
+        $paidBooking = Booking::factory()->create();
+        $paidPayment = Payment::factory()->paid()->create(['booking_id' => $paidBooking->id]);
+        $staff = User::factory()->staff()->create();
+
+        $this->actingAs($staff)->patch("/manage/payments/{$unpaidPayment->id}/mark-failed", ['reason' => 'test'])->assertForbidden();
+        $this->actingAs($staff)->patch("/manage/payments/{$paidPayment->id}/refund")->assertForbidden();
     }
 
     public function test_guest_is_redirected_to_login(): void
@@ -159,15 +186,24 @@ class PaymentManagementTest extends TestCase
         $response->assertSessionHasErrors('payment');
     }
 
-    public function test_only_admin_sees_payment_actions_on_the_booking_detail_page(): void
+    public function test_admin_sees_all_payment_actions_but_staff_only_sees_mark_paid(): void
     {
         $booking = Booking::factory()->create();
         Payment::factory()->create(['booking_id' => $booking->id]);
 
         $adminResponse = $this->actingAs(User::factory()->admin()->create())->get("/bookings/{$booking->id}");
-        $adminResponse->assertSee('Mark Paid');
+        $adminResponse->assertSee('Mark Paid')->assertSee('Mark Failed');
 
         $staffResponse = $this->actingAs(User::factory()->staff()->create())->get("/bookings/{$booking->id}");
-        $staffResponse->assertDontSee('Mark Paid');
+        $staffResponse->assertSee('Mark Paid')->assertDontSee('Mark Failed');
+    }
+
+    public function test_customer_does_not_see_payment_actions_on_the_booking_detail_page(): void
+    {
+        $customer = User::factory()->customer()->create();
+        $booking = Booking::factory()->create(['user_id' => $customer->id]);
+        Payment::factory()->create(['booking_id' => $booking->id]);
+
+        $this->actingAs($customer)->get("/bookings/{$booking->id}")->assertDontSee('Mark Paid');
     }
 }

@@ -29,6 +29,7 @@ class SettingsTest extends TestCase
             'cancellation_deadline_hours' => '4',
             'max_simultaneous_bookings_per_customer' => '3',
             'default_court_hourly_rate' => '350',
+            'payment_hold_minutes' => '10',
         ], $overrides);
     }
 
@@ -149,6 +150,29 @@ class SettingsTest extends TestCase
 
         $this->assertSame($path, Setting::get('payment_qr_code'));
         Storage::disk('public')->assertExists($path);
+    }
+
+    public function test_admin_can_change_the_payment_hold_window(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->put('/manage/settings', $this->validSettingsPayload([
+            'payment_hold_minutes' => '15',
+        ]));
+
+        $response->assertRedirect('/manage/settings');
+        $this->assertSame('15', Setting::get('payment_hold_minutes'));
+    }
+
+    public function test_payment_hold_minutes_must_be_within_a_sane_range(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->put('/manage/settings', $this->validSettingsPayload([
+            'payment_hold_minutes' => '0',
+        ]));
+
+        $response->assertSessionHasErrors('payment_hold_minutes');
     }
 
     public function test_staff_cannot_update_settings(): void

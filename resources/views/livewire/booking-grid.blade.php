@@ -182,7 +182,7 @@
                         Already have an account? <a href="{{ route('login') }}" class="font-semibold">Log in</a> first to book under it.
                     </p>
                     <p class="text-xs" style="color: var(--db-ink-faint);">
-                        You'll have 10 minutes to pay and enter a reference number after confirming — your slot is held during that time.
+                        You'll have {{ $paymentHoldMinutes }} minute{{ $paymentHoldMinutes === 1 ? '' : 's' }} to pay and enter a reference number after confirming — your slot is held during that time.
                     </p>
                 </div>
             @endguest

@@ -28,6 +28,24 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect('/');
     }
 
+    public function test_admin_lands_on_the_admin_dashboard_after_login(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->post('/login', ['email' => $admin->email, 'password' => 'password']);
+
+        $response->assertRedirect(route('admin.dashboard'));
+    }
+
+    public function test_staff_lands_on_the_staff_dashboard_after_login(): void
+    {
+        $staff = User::factory()->staff()->create();
+
+        $response = $this->post('/login', ['email' => $staff->email, 'password' => 'password']);
+
+        $response->assertRedirect(route('staff.dashboard'));
+    }
+
     public function test_users_cannot_authenticate_with_invalid_password(): void
     {
         $user = User::factory()->create();

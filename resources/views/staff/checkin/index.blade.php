@@ -29,16 +29,12 @@
         </style>
     </head>
     <body class="db-body">
-        <header style="background: var(--db-nav);">
-            <div class="mx-auto max-w-[1000px] px-5 sm:px-10 h-16 sm:h-[72px] flex items-center">
-                <div class="flex items-center gap-2">
-                    <span class="inline-block w-2.5 h-2.5 rounded-full" style="background: var(--db-accent);"></span>
-                    <span class="text-lg sm:text-xl font-extrabold text-white">Dink Dine <span class="font-medium text-sm" style="color: var(--db-ink-faintest);">Staff</span></span>
-                </div>
-            </div>
-        </header>
+        @include('partials.admin-dink-mobile-header')
 
-        <main class="mx-auto max-w-[1000px] px-5 py-6 sm:px-10 sm:py-8 flex flex-col gap-5">
+        <div class="lg:flex lg:min-h-screen">
+            @include('partials.admin-dink-sidebar')
+
+        <main class="flex-1 px-5 py-6 sm:px-10 sm:py-8 flex flex-col gap-5">
             @include('partials.flash-messages')
 
             <div class="text-[22px] sm:text-[32px] font-extrabold" style="color: var(--db-ink);">Today's Check-Ins</div>
@@ -171,5 +167,6 @@
                 @endforeach
             </div>
         </main>
+        </div>
     </body>
 </html>

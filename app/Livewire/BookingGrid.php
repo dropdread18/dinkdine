@@ -35,7 +35,8 @@ use Livewire\WithFileUploads;
  * Feedback session (post-launch), later revised (owner feedback: payment
  * must be collected before ANY online booking confirms, not just guest
  * ones): every online confirmation - guest or already-logged-in customer
- * alike - holds the slot(s) as Pending for 10 minutes
+ * alike - holds the slot(s) as Pending for a configurable window (Setting
+ * 'payment_hold_minutes', default 10)
  * (BookingService::bookMany(..., requiresPaymentHold: true)) while the
  * customer pays via the facility's own arrangement (Setting
  * 'payment_instructions'/QR code) and reports back a reference number
@@ -305,6 +306,7 @@ class BookingGrid extends Component
             'paymentInstructions' => Setting::get('payment_instructions'),
             'paymentQrCode' => Setting::get('payment_qr_code'),
             'pendingBookings' => $pendingBookings,
+            'paymentHoldMinutes' => (int) (Setting::get('payment_hold_minutes') ?? 10),
         ]);
     }
 }

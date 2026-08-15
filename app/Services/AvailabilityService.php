@@ -110,6 +110,19 @@ class AvailabilityService
             }
         }
 
+        // A slot that has already fully elapsed today can never be booked -
+        // by anyone, including a walk-in (which otherwise bypasses the
+        // online min-notice window entirely). Deliberately checks the END
+        // time, not the start time: the slot currently in progress (started
+        // but not yet finished) must stay Available, since "book the court
+        // right now" is the whole point of walk-in bookings - tested via
+        // WalkInBookingTest's soonSlot() helper, which relies on exactly
+        // this. Only applies to today; a future date's slots always end
+        // after now, so this is a no-op for every other date.
+        if ($day->isToday() && $day->setTimeFromTimeString($endTime)->lt(CarbonImmutable::now())) {
+            return new AvailabilitySlot($startTime, $endTime, SlotStatus::Closed);
+        }
+
         return new AvailabilitySlot($startTime, $endTime, SlotStatus::Available);
     }
 
