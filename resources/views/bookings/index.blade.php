@@ -1,30 +1,97 @@
-@extends('layouts.app', ['title' => 'Book a Court'])
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Book a Court - {{ config('app.name') }}</title>
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <style>
+            :root {
+                --db-nav: #0F172A;
+                --db-page-bg: #EEF1EA;
+                --db-surface: #FFFFFF;
+                --db-border: #E2E8F0;
+                --db-ink: #0F172A;
+                --db-ink-soft: #475569;
+                --db-ink-faint: #64748B;
+                --db-ink-faintest: #94A3B8;
+                --db-accent: #B8E63E;
+                --db-accent-hover: #7A9F20;
+                --db-accent-ink: #0F172A;
+                --db-link: #3B82F6;
+                --db-font: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+            }
+            body.db-body {
+                margin: 0;
+                background: var(--db-page-bg);
+                color: var(--db-ink);
+                font-family: var(--db-font);
+                -webkit-font-smoothing: antialiased;
+            }
+            .db-body a { color: var(--db-link); }
+            .db-body a:hover { color: var(--db-ink); }
+        </style>
+    </head>
+    <body class="db-body">
+        <header style="background: var(--db-nav);">
+            <div class="mx-auto max-w-[1440px] px-5 sm:px-10 h-16 sm:h-[72px] flex items-center justify-between">
+                <div class="flex items-center gap-4 sm:gap-9">
+                    <a href="{{ url('/') }}" class="flex items-center gap-2 shrink-0">
+                        <span class="inline-block w-2.5 h-2.5 rounded-full" style="background: var(--db-accent);"></span>
+                        <span class="text-lg sm:text-xl font-extrabold text-white tracking-tight" style="font-family: var(--db-font);">Dink Dine</span>
+                    </a>
+                    <nav class="hidden sm:flex items-center gap-7">
+                        <span class="text-[15px] font-semibold text-white pb-1 border-b-2" style="border-color: var(--db-accent);">Book a Court</span>
+                        @auth
+                            <a href="{{ route('bookings.mine') }}" class="text-[15px] font-medium" style="color: var(--db-ink-faintest);">My Bookings</a>
+                            <a href="{{ route('profile.edit') }}" class="text-[15px] font-medium" style="color: var(--db-ink-faintest);">Profile</a>
+                        @endauth
+                    </nav>
+                </div>
 
-@section('content')
-    @php
-        $prevDate = \Illuminate\Support\Carbon::parse($date)->subDay()->toDateString();
-        $nextDate = \Illuminate\Support\Carbon::parse($date)->addDay()->toDateString();
-    @endphp
+                @auth
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="text-sm font-semibold" style="color: var(--db-ink-faintest);">Logout</button>
+                    </form>
+                @else
+                    <a href="{{ route('login') }}" style="background: var(--db-accent); color: var(--db-accent-ink);" class="text-sm font-bold px-4 py-2.5 rounded-lg">Log In</a>
+                @endauth
+            </div>
+        </header>
 
-    <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">Book a Court</h1>
+        <main class="mx-auto max-w-[1440px] px-5 py-6 sm:px-10 sm:py-8">
+            @include('partials.flash-messages')
 
-        <div class="flex items-center gap-1 text-sm bg-white border border-slate-200 rounded-lg shadow-sm p-1">
-            @if ($prevDate >= $minDate)
-                <a href="{{ route('bookings.index', ['date' => $prevDate]) }}" class="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900">&lt;</a>
-            @else
-                <span class="flex h-8 w-8 items-center justify-center text-slate-300">&lt;</span>
-            @endif
+            @php
+                $prevDate = \Illuminate\Support\Carbon::parse($date)->subDay()->toDateString();
+                $nextDate = \Illuminate\Support\Carbon::parse($date)->addDay()->toDateString();
+            @endphp
 
-            <span class="font-medium text-slate-900 px-2">{{ \Illuminate\Support\Carbon::parse($date)->format('l, F j, Y') }}</span>
+            <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between mb-6">
+                <div>
+                    <h1 class="text-[28px] sm:text-[36px] font-extrabold leading-tight" style="color: var(--db-ink);">Book a Court</h1>
+                    <p class="text-sm sm:text-base mt-1" style="color: var(--db-ink-soft);">Select an available time slot to get started.</p>
+                </div>
 
-            @if ($nextDate <= $maxDate)
-                <a href="{{ route('bookings.index', ['date' => $nextDate]) }}" class="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900">&gt;</a>
-            @else
-                <span class="flex h-8 w-8 items-center justify-center text-slate-300">&gt;</span>
-            @endif
-        </div>
-    </div>
+                <div class="flex items-center gap-3 sm:gap-4 rounded-xl px-3 py-2 sm:px-4 self-start" style="background: var(--db-surface); border: 1px solid var(--db-border);">
+                    @if ($prevDate >= $minDate)
+                        <a href="{{ route('bookings.index', ['date' => $prevDate]) }}" class="w-8 h-8 rounded-lg flex items-center justify-center text-lg" style="color: var(--db-ink);">&lsaquo;</a>
+                    @else
+                        <span class="w-8 h-8 flex items-center justify-center text-lg" style="color: var(--db-border);">&lsaquo;</span>
+                    @endif
 
-    <livewire:booking-grid :date="$date" :key="$date" />
-@endsection
+                    <span class="text-sm sm:text-base font-bold min-w-[150px] sm:min-w-[170px] text-center" style="color: var(--db-ink);">{{ \Illuminate\Support\Carbon::parse($date)->format('F j, Y') }}</span>
+
+                    @if ($nextDate <= $maxDate)
+                        <a href="{{ route('bookings.index', ['date' => $nextDate]) }}" class="w-8 h-8 rounded-lg flex items-center justify-center text-lg" style="color: var(--db-ink);">&rsaquo;</a>
+                    @else
+                        <span class="w-8 h-8 flex items-center justify-center text-lg" style="color: var(--db-border);">&rsaquo;</span>
+                    @endif
+                </div>
+            </div>
+
+            <livewire:booking-grid :date="$date" :key="$date" />
+        </main>
+    </body>
+</html>

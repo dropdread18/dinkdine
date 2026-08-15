@@ -54,6 +54,14 @@ class BookingGrid extends Component
 
     public bool $awaitingPayment = false;
 
+    /**
+     * Mobile view shows one court at a time (a wide multi-court grid
+     * doesn't fit a phone screen) via a row of tabs. Null until the
+     * customer picks one; the view falls back to the first court in
+     * the day's availability so there's always something selected.
+     */
+    public ?int $mobileCourt = null;
+
     /** @var int[] */
     public array $pendingBookingIds = [];
 
@@ -100,6 +108,11 @@ class BookingGrid extends Component
             'start_time' => $startTime,
             'end_time' => $endTime,
         ];
+    }
+
+    public function selectMobileCourt(int $courtId): void
+    {
+        $this->mobileCourt = $courtId;
     }
 
     public function removeSlot(string $key): void
@@ -267,14 +280,15 @@ class BookingGrid extends Component
         $minNoticeMinutes = (int) (Setting::get('min_booking_notice_minutes') ?? 30);
         $bookableFrom = now()->addMinutes($minNoticeMinutes);
 
-        $totalPrice = collect($this->selected)->sum(
+        $slotPrices = collect($this->selected)->map(
             fn (array $s) => $pricingService->calculate(Court::find($s['court_id']), $s['start_time'], $s['end_time'])
         );
 
         return view('livewire.booking-grid', [
             'availability' => $availabilityService->forDate($this->date),
             'bookableFrom' => $bookableFrom,
-            'totalPrice' => $totalPrice,
+            'slotPrices' => $slotPrices,
+            'totalPrice' => $slotPrices->sum(),
             'slotStatus' => SlotStatus::class,
             'paymentInstructions' => Setting::get('payment_instructions'),
         ]);
