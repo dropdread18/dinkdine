@@ -33,32 +33,7 @@
         </style>
     </head>
     <body class="db-body">
-        <header style="background: var(--db-nav);">
-            <div class="mx-auto max-w-[1440px] px-5 sm:px-10 h-16 sm:h-[72px] flex items-center justify-between">
-                <div class="flex items-center gap-4 sm:gap-9">
-                    <a href="{{ url('/') }}" class="flex items-center gap-2 shrink-0">
-                        <span class="inline-block w-2.5 h-2.5 rounded-full" style="background: var(--db-accent);"></span>
-                        <span class="text-lg sm:text-xl font-extrabold text-white tracking-tight" style="font-family: var(--db-font);">Dink Dine</span>
-                    </a>
-                    <nav class="hidden sm:flex items-center gap-7">
-                        <span class="text-[15px] font-semibold text-white pb-1 border-b-2" style="border-color: var(--db-accent);">Book a Court</span>
-                        @auth
-                            <a href="{{ route('bookings.mine') }}" class="text-[15px] font-medium" style="color: var(--db-ink-faintest);">My Bookings</a>
-                            <a href="{{ route('profile.edit') }}" class="text-[15px] font-medium" style="color: var(--db-ink-faintest);">Profile</a>
-                        @endauth
-                    </nav>
-                </div>
-
-                @auth
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="text-sm font-semibold" style="color: var(--db-ink-faintest);">Logout</button>
-                    </form>
-                @else
-                    <a href="{{ route('login') }}" style="background: var(--db-accent); color: var(--db-accent-ink);" class="text-sm font-bold px-4 py-2.5 rounded-lg">Log In</a>
-                @endauth
-            </div>
-        </header>
+        @include('partials.nav')
 
         <main class="mx-auto max-w-[1440px] px-5 py-6 sm:px-10 sm:py-8">
             @include('partials.flash-messages')
