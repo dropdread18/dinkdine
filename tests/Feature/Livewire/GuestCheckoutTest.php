@@ -106,6 +106,36 @@ class GuestCheckoutTest extends TestCase
         $this->assertSame('GCASH-REF-12345', $booking->payment->reference_number);
     }
 
+    public function test_payment_hold_screen_shows_the_qr_code_when_one_is_configured(): void
+    {
+        Setting::set('payment_qr_code', 'settings/fake-qr.png');
+        $court = Court::factory()->create();
+
+        Livewire::test(BookingGrid::class, ['date' => $this->date])
+            ->call('toggleSlot', $court->id, $court->name, '09:00:00', '10:00:00')
+            ->call('startReview')
+            ->set('guestName', 'Juan Dela Cruz')
+            ->set('guestEmail', 'juan@example.com')
+            ->set('guestPhone', '09171234567')
+            ->call('confirmBookings')
+            ->assertSee('Scan QR Code')
+            ->assertSee('/storage/settings/fake-qr.png', false);
+    }
+
+    public function test_payment_hold_screen_has_no_scan_toggle_without_a_configured_qr_code(): void
+    {
+        $court = Court::factory()->create();
+
+        Livewire::test(BookingGrid::class, ['date' => $this->date])
+            ->call('toggleSlot', $court->id, $court->name, '09:00:00', '10:00:00')
+            ->call('startReview')
+            ->set('guestName', 'Juan Dela Cruz')
+            ->set('guestEmail', 'juan@example.com')
+            ->set('guestPhone', '09171234567')
+            ->call('confirmBookings')
+            ->assertDontSee('Scan QR Code');
+    }
+
     public function test_submitting_payment_reference_requires_a_value(): void
     {
         $court = Court::factory()->create();

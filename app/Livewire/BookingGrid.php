@@ -293,6 +293,7 @@ class BookingGrid extends Component
             'totalPrice' => $slotPrices->sum(),
             'slotStatus' => SlotStatus::class,
             'paymentInstructions' => Setting::get('payment_instructions'),
+            'paymentQrCode' => Setting::get('payment_qr_code'),
             'pendingBookings' => $pendingBookings,
         ]);
     }

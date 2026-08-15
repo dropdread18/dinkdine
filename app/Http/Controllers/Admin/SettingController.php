@@ -8,6 +8,7 @@ use App\Http\Requests\SettingRequest;
 use App\Models\BusinessHour;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class SettingController extends Controller
@@ -39,6 +40,7 @@ class SettingController extends Controller
         $settings = collect(self::KEYS)->mapWithKeys(
             fn (string $key) => [$key => Setting::get($key)]
         );
+        $settings['payment_qr_code'] = Setting::get('payment_qr_code');
 
         return view('admin.settings.index', [
             'settings' => $settings,
@@ -51,6 +53,24 @@ class SettingController extends Controller
     {
         foreach ($request->safe()->only(self::KEYS) as $key => $value) {
             Setting::set($key, (string) $value);
+        }
+
+        // Not in self::KEYS - it's a stored-file path, not a plain text
+        // value, so it can't go through the blind (string) cast loop above
+        // (that would store the file's temp path instead of the public-disk
+        // path, and would wipe the existing QR on every save with no new
+        // file chosen). Same store/replace pattern as CourtController's
+        // image handling: delete the old file before writing the new path.
+        if ($request->boolean('remove_payment_qr_code')) {
+            if ($existing = Setting::get('payment_qr_code')) {
+                Storage::disk('public')->delete($existing);
+            }
+            Setting::set('payment_qr_code', '');
+        } elseif ($request->hasFile('payment_qr_code')) {
+            if ($existing = Setting::get('payment_qr_code')) {
+                Storage::disk('public')->delete($existing);
+            }
+            Setting::set('payment_qr_code', $request->file('payment_qr_code')->store('settings', 'public'));
         }
 
         return redirect()->route('manage.settings.index')->with('status', 'Settings updated.');

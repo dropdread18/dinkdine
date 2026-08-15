@@ -69,7 +69,32 @@
                     <div class="px-4 py-2.5 rounded-lg text-sm font-semibold" style="border: 1px solid var(--db-border); color: var(--db-ink-faint);">Cash</div>
                 </div>
 
-                @if ($paymentInstructions)
+                @if ($paymentQrCode)
+                    <div x-data="{ payMode: 'scan' }" class="flex flex-col gap-3">
+                        <div class="flex gap-2">
+                            <button type="button" @click="payMode = 'scan'"
+                                    class="px-4 py-2.5 rounded-lg text-sm"
+                                    :style="payMode === 'scan' ? 'border:2px solid var(--db-ink);color:var(--db-ink);font-weight:700;' : 'border:1px solid var(--db-border);color:var(--db-ink-faint);font-weight:600;'">
+                                Scan QR Code
+                            </button>
+                            <button type="button" @click="payMode = 'manual'"
+                                    class="px-4 py-2.5 rounded-lg text-sm"
+                                    :style="payMode === 'manual' ? 'border:2px solid var(--db-ink);color:var(--db-ink);font-weight:700;' : 'border:1px solid var(--db-border);color:var(--db-ink-faint);font-weight:600;'">
+                                Enter Manually
+                            </button>
+                        </div>
+
+                        <div x-show="payMode === 'scan'" class="flex flex-col items-center gap-2 py-2">
+                            <img src="{{ \Illuminate\Support\Facades\Storage::url($paymentQrCode) }}" alt="Payment QR code"
+                                 class="w-40 h-40 object-contain rounded-lg p-1" style="border: 1px solid var(--db-border); background: #FFFFFF;">
+                            <div class="text-xs font-semibold text-center" style="color: var(--db-ink-faint);">Open your payment app and scan this code.</div>
+                        </div>
+
+                        @if ($paymentInstructions)
+                            <div x-show="payMode === 'manual'" class="rounded-xl p-3 text-sm whitespace-pre-line" style="background: #F8FAF5; border: 1px solid var(--db-border); color: var(--db-ink-soft);">{{ $paymentInstructions }}</div>
+                        @endif
+                    </div>
+                @elseif ($paymentInstructions)
                     <div class="rounded-xl p-3 text-sm whitespace-pre-line" style="background: #F8FAF5; border: 1px solid var(--db-border); color: var(--db-ink-soft);">{{ $paymentInstructions }}</div>
                 @endif
 

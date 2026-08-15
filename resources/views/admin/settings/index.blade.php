@@ -7,7 +7,7 @@
         <h2 class="text-sm font-medium text-slate-500 uppercase mb-3">Facility &amp; Booking Rules</h2>
 
         <x-card class="max-w-lg">
-        <form method="POST" action="{{ route('manage.settings.update') }}" class="space-y-4">
+        <form method="POST" action="{{ route('manage.settings.update') }}" enctype="multipart/form-data" class="space-y-4">
             @csrf
             @method('PUT')
 
@@ -115,6 +115,21 @@
                 <p class="text-xs text-slate-500 mb-1">Shown to guest/non-logged-in customers after they select their slots - how to pay and where to enter their reference number.</p>
                 <textarea id="payment_instructions" name="payment_instructions" rows="3"
                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-teal-500 focus:ring-teal-500">{{ old('payment_instructions', $settings['payment_instructions']) }}</textarea>
+            </div>
+
+            <div>
+                <label for="payment_qr_code" class="block text-sm font-medium text-slate-700">Payment QR Code (optional)</label>
+                <p class="text-xs text-slate-500 mb-1">Shown to guest customers on the payment screen so they can scan to pay instead of typing the details in manually.</p>
+                @if ($settings['payment_qr_code'])
+                    <div class="flex items-center gap-3 mt-1 mb-2">
+                        <img src="{{ \Illuminate\Support\Facades\Storage::url($settings['payment_qr_code']) }}" alt="Payment QR code" class="w-24 h-24 object-contain rounded-lg border border-slate-200 bg-white p-1">
+                        <label class="flex items-center gap-2 text-sm text-slate-600">
+                            <input type="checkbox" name="remove_payment_qr_code" value="1" class="rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+                            Remove QR code
+                        </label>
+                    </div>
+                @endif
+                <input id="payment_qr_code" name="payment_qr_code" type="file" accept="image/*" class="mt-1 block w-full text-sm">
             </div>
 
             <x-button type="submit">Save Settings</x-button>
