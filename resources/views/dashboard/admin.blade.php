@@ -38,7 +38,7 @@
         @include('partials.admin-dink-mobile-header')
 
         <div class="lg:flex lg:min-h-screen">
-            @include('partials.admin-dink-sidebar', ['activeRoute' => 'admin.dashboard'])
+            @include('partials.admin-dink-sidebar')
 
             <main class="flex-1 px-5 py-6 sm:px-8 lg:px-10 lg:py-8">
                 @include('partials.flash-messages')

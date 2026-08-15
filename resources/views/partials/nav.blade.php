@@ -9,18 +9,8 @@
             @auth
                 @php $user = auth()->user(); @endphp
 
-                @if ($user->isAdmin())
-                    <a href="{{ route('admin.dashboard') }}" class="text-slate-400 hover:text-white font-medium">Dashboard</a>
-                    <a href="{{ route('admin.courts.index') }}" class="text-slate-400 hover:text-white font-medium">Courts</a>
-                    <a href="{{ route('admin.maintenance.index') }}" class="text-slate-400 hover:text-white font-medium">Maintenance</a>
-                    <a href="{{ route('manage.courts.schedule') }}" class="text-slate-400 hover:text-white font-medium">Court Schedule</a>
-                    <a href="{{ route('manage.bookings.index') }}" class="text-slate-400 hover:text-white font-medium">Bookings</a>
-                    <a href="{{ route('manage.payments.index') }}" class="text-slate-400 hover:text-white font-medium">Payments</a>
-                    <a href="{{ route('manage.reports.index') }}" class="text-slate-400 hover:text-white font-medium">Reports</a>
-                    <a href="{{ route('manage.settings.index') }}" class="text-slate-400 hover:text-white font-medium">Settings</a>
-                    <a href="{{ route('admin.customers.index') }}" class="text-slate-400 hover:text-white font-medium">Customers</a>
-                    <a href="{{ route('admin.staff.index') }}" class="text-slate-400 hover:text-white font-medium">Staff</a>
-                @elseif ($user->isStaff())
+                {{-- Admins get a dedicated left sidebar instead (see layouts/app.blade.php) - this branch never renders for them. --}}
+                @if ($user->isStaff())
                     <a href="{{ route('staff.dashboard') }}" class="text-slate-400 hover:text-white font-medium">Dashboard</a>
                     <a href="{{ route('manage.courts.schedule') }}" class="text-slate-400 hover:text-white font-medium">Court Schedule</a>
                     <a href="{{ route('manage.bookings.index') }}" class="text-slate-400 hover:text-white font-medium">Bookings</a>

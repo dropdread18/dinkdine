@@ -7,12 +7,26 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="min-h-screen bg-mint text-slate-900">
-        @include('partials.nav')
+        @if (auth()->check() && auth()->user()->isAdmin())
+            @include('partials.admin-dink-mobile-header')
 
-        <main class="max-w-5xl mx-auto px-4 py-10 sm:px-6">
-            @include('partials.flash-messages')
+            <div class="lg:flex lg:min-h-screen">
+                @include('partials.admin-dink-sidebar')
 
-            @yield('content')
-        </main>
+                <main class="flex-1 px-5 py-6 sm:px-8 lg:px-10 lg:py-8">
+                    @include('partials.flash-messages')
+
+                    @yield('content')
+                </main>
+            </div>
+        @else
+            @include('partials.nav')
+
+            <main class="max-w-5xl mx-auto px-4 py-10 sm:px-6">
+                @include('partials.flash-messages')
+
+                @yield('content')
+            </main>
+        @endif
     </body>
 </html>
