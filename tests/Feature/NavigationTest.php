@@ -41,11 +41,16 @@ class NavigationTest extends TestCase
 
     public function test_admin_sees_admin_navigation(): void
     {
+        // Settings/Maintenance/Staff are deliberately not on the dashboard's
+        // own sidebar (mockup-driven, matches Admin Dashboard.dc.html's 6
+        // nav items) - still reachable via the top nav on every other admin
+        // page, which this route no longer renders since it's now a
+        // standalone Dink Dine-branded page like the booking flow.
         $admin = User::factory()->admin()->create();
 
         $this->actingAs($admin)->get('/admin/dashboard')
             ->assertOk()
-            ->assertSee('Settings')
+            ->assertSee('Bookings')
             ->assertSee('Reports')
             ->assertDontSee('Book a Court');
     }

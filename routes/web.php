@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CourtController;
 use App\Http\Controllers\Admin\CourtMaintenanceController;
 use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingController;
@@ -47,11 +48,7 @@ Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('p
 
 Route::middleware('auth')->post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
-// Admin dashboard content is still a placeholder — real modules
-// (Requirements.md module 13) will fill this in.
-Route::middleware(['auth', 'role:admin'])->get('/admin/dashboard', function () {
-    return view('dashboard.admin');
-})->name('admin.dashboard');
+Route::middleware(['auth', 'role:admin'])->get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('courts', CourtController::class)->except(['show']);
