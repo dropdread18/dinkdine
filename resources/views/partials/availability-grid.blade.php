@@ -5,7 +5,6 @@
 <div class="flex flex-wrap gap-4 text-xs text-slate-600 mb-4">
     <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500 align-middle mr-1.5"></span>Available</span>
     <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500 align-middle mr-1.5"></span>Booked</span>
-    <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 align-middle mr-1.5"></span>Pending</span>
     <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-violet-400 align-middle mr-1.5"></span>In Progress</span>
     <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-slate-300 align-middle mr-1.5"></span>Closed</span>
 </div>
@@ -40,7 +39,6 @@
                                 $classes = match ($slot->status) {
                                     \App\Enums\SlotStatus::Available => 'bg-green-50 text-green-700',
                                     \App\Enums\SlotStatus::Booked => 'bg-red-50 text-red-700',
-                                    \App\Enums\SlotStatus::Pending => 'bg-amber-50 text-amber-700',
                                     \App\Enums\SlotStatus::InProgress => 'bg-violet-50 text-violet-700',
                                     \App\Enums\SlotStatus::Closed => 'bg-slate-100 text-slate-400',
                                 };
@@ -51,6 +49,16 @@
                                        class="block text-center rounded-lg px-2 py-1.5 font-medium {{ $classes }} hover:opacity-80 transition-opacity">
                                         {{ $slot->status->label() }}
                                     </a>
+                                @elseif ($slot->holdExpiresAt)
+                                    <span class="block text-center rounded-lg px-2 py-1.5 {{ $classes }} tabular-nums"
+                                          x-data="{
+                                              expiresAt: new Date('{{ $slot->holdExpiresAt }}').getTime(),
+                                              remaining: 0,
+                                              tick() { this.remaining = Math.max(0, Math.floor((this.expiresAt - Date.now()) / 1000)); },
+                                              get timeLabel() { return Math.floor(this.remaining / 60) + ':' + String(this.remaining % 60).padStart(2, '0'); },
+                                          }"
+                                          x-init="tick(); setInterval(() => tick(), 1000)"
+                                          x-text="timeLabel"></span>
                                 @else
                                     <span class="block text-center rounded-lg px-2 py-1.5 {{ $classes }}">
                                         {{ $slot->status->label() }}

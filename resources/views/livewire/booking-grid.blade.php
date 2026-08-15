@@ -218,7 +218,6 @@
                 'available' => ['bg' => '#F0FDF4', 'border' => '#BBF7D0', 'text' => '#15803D', 'dot' => '#22C55E', 'icon' => '●', 'label' => 'Available'],
                 'selected' => ['bg' => '#3B82F6', 'border' => '#3B82F6', 'text' => '#FFFFFF', 'dot' => '#3B82F6', 'icon' => '✓', 'label' => 'Selected'],
                 'booked' => ['bg' => '#FEF2F2', 'border' => '#FECACA', 'text' => '#B91C1C', 'dot' => '#EF4444', 'icon' => '●', 'label' => 'Booked'],
-                'pending' => ['bg' => '#FFFBEB', 'border' => '#FDE68A', 'text' => '#B45309', 'dot' => '#F59E0B', 'icon' => '◐', 'label' => 'Pending'],
                 'in_progress' => ['bg' => '#F5F3FF', 'border' => '#DDD6FE', 'text' => '#6D28D9', 'dot' => '#8B5CF6', 'icon' => '◔', 'label' => 'In Progress'],
                 'closed' => ['bg' => '#F1F5F9', 'border' => '#E2E8F0', 'text' => '#64748B', 'dot' => '#94A3B8', 'icon' => '—', 'label' => 'Closed'],
             ];
@@ -275,6 +274,19 @@
                                                 style="background: {{ $meta['bg'] }}; border: 1px solid {{ $meta['border'] }}; color: {{ $meta['text'] }};">
                                             {{ $meta['icon'] }} {{ $isSelected ? 'Selected' : $slot->status->label() }}
                                         </button>
+                                    @elseif ($slot->holdExpiresAt)
+                                        <div class="w-full h-14 rounded-lg text-[13px] font-bold flex flex-col items-center justify-center tabular-nums"
+                                             style="background: {{ $meta['bg'] }}; border: 1px solid {{ $meta['border'] }}; color: {{ $meta['text'] }};"
+                                             x-data="{
+                                                 expiresAt: new Date('{{ $slot->holdExpiresAt }}').getTime(),
+                                                 remaining: 0,
+                                                 tick() { this.remaining = Math.max(0, Math.floor((this.expiresAt - Date.now()) / 1000)); },
+                                                 get timeLabel() { return Math.floor(this.remaining / 60) + ':' + String(this.remaining % 60).padStart(2, '0'); },
+                                             }"
+                                             x-init="tick(); setInterval(() => tick(), 1000)">
+                                            <span class="text-[10px] font-semibold opacity-80">{{ $meta['icon'] }} In Progress</span>
+                                            <span x-text="timeLabel"></span>
+                                        </div>
                                     @else
                                         <div class="w-full h-14 rounded-lg text-[13px] font-bold flex items-center justify-center"
                                              style="background: {{ $meta['bg'] }}; border: 1px solid {{ $meta['border'] }}; color: {{ $meta['text'] }};">
@@ -353,6 +365,23 @@
                                     {{ $meta['icon'] }} {{ $isSelected ? 'Selected' : $slot->status->label() }}
                                 </span>
                             </button>
+                        @elseif ($slot->holdExpiresAt)
+                            <div class="flex justify-between items-center px-4 py-3.5 rounded-xl"
+                                 style="border: 1px solid {{ $meta['border'] }}; background: var(--db-surface);"
+                                 x-data="{
+                                     expiresAt: new Date('{{ $slot->holdExpiresAt }}').getTime(),
+                                     remaining: 0,
+                                     tick() { this.remaining = Math.max(0, Math.floor((this.expiresAt - Date.now()) / 1000)); },
+                                     get timeLabel() { return Math.floor(this.remaining / 60) + ':' + String(this.remaining % 60).padStart(2, '0'); },
+                                 }"
+                                 x-init="tick(); setInterval(() => tick(), 1000)">
+                                <span class="text-[15px] font-bold" style="color: var(--db-ink);">
+                                    {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->startTime)->format('g:i A') }} – {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->endTime)->format('g:i A') }}
+                                </span>
+                                <span class="text-[13px] font-bold px-3 py-1.5 rounded-full tabular-nums" style="color: {{ $meta['text'] }}; background: {{ $meta['bg'] }};">
+                                    {{ $meta['icon'] }} <span x-text="timeLabel"></span>
+                                </span>
+                            </div>
                         @else
                             <div class="flex justify-between items-center px-4 py-3.5 rounded-xl"
                                  style="border: 1px solid {{ $meta['border'] }}; background: var(--db-surface);">

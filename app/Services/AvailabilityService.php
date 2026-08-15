@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Enums\BookingStatus;
-use App\Enums\PaymentStatus;
 use App\Enums\SlotStatus;
 use App\Models\Booking;
 use App\Models\BusinessHour;
@@ -41,7 +40,6 @@ class AvailabilityService
         $courts = Court::orderBy('sort_order')->orderBy('court_number')->get();
 
         $bookingsByCourt = Booking::query()
-            ->with('payment')
             ->whereDate('booking_date', $day)
             ->whereIn('status', [BookingStatus::Pending, BookingStatus::Confirmed])
             ->when($excludeBookingId, fn ($query, $id) => $query->where('id', '!=', $id))
@@ -106,7 +104,25 @@ class AvailabilityService
 
         foreach ($courtBookings as $booking) {
             if ($this->timeRangesOverlap($startTime, $endTime, $booking->start_time, $booking->end_time)) {
-                return new AvailabilitySlot($startTime, $endTime, $this->slotStatusFor($booking), $booking->id);
+                // Owner feedback (reverses the earlier three-stage split):
+                // no approval step before a slot shows Booked - the moment
+                // a booking is Confirmed (BookingService::confirmWithReference()
+                // runs as soon as the customer submits a reference number
+                // or screenshot, no staff action needed), the slot is
+                // Booked. Staff still separately verifies the *payment*
+                // itself via Mark Paid on the booking detail page for their
+                // own bookkeeping, but that no longer gates what this grid
+                // shows. Only a still-Pending booking (the hold countdown
+                // running, nothing submitted yet) is InProgress.
+                $isInProgress = $booking->status === BookingStatus::Pending;
+
+                return new AvailabilitySlot(
+                    $startTime,
+                    $endTime,
+                    $isInProgress ? SlotStatus::InProgress : SlotStatus::Booked,
+                    $booking->id,
+                    $isInProgress ? $booking->hold_expires_at?->toIso8601String() : null,
+                );
             }
         }
 
@@ -124,39 +140,6 @@ class AvailabilityService
         }
 
         return new AvailabilitySlot($startTime, $endTime, SlotStatus::Available);
-    }
-
-    /**
-     * Owner feedback: a bare "Pending" label didn't distinguish three very
-     * different real situations, so this now maps to three SlotStatus
-     * values instead of two:
-     *   - Booking still Pending (the payment-hold countdown is running,
-     *     nothing submitted yet) -> InProgress ("someone is already
-     *     trying to book").
-     *   - Booking Confirmed but its Payment is still Pending (the
-     *     customer submitted a reference number/screenshot via
-     *     confirmWithReference(), but staff hasn't verified it yet) ->
-     *     Pending.
-     *   - Everything else Confirmed (staff verified payment, OR a
-     *     walk-in booking - those never pass through PaymentStatus::
-     *     Pending at all, they go straight Unpaid -> Paid when staff
-     *     collects cash in person) -> Booked.
-     * PaymentStatus::Pending is set in exactly one place in the whole
-     * app (BookingService::confirmWithReference()), so checking it here
-     * can't misfire on an unrelated Payment state - verified by grep
-     * before relying on it this way.
-     */
-    private function slotStatusFor(Booking $booking): SlotStatus
-    {
-        if ($booking->status === BookingStatus::Pending) {
-            return SlotStatus::InProgress;
-        }
-
-        if ($booking->payment?->status === PaymentStatus::Pending) {
-            return SlotStatus::Pending;
-        }
-
-        return SlotStatus::Booked;
     }
 
     /**

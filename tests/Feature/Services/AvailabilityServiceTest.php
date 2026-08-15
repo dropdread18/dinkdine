@@ -72,74 +72,60 @@ class AvailabilityServiceTest extends TestCase
         $this->assertSame(SlotStatus::Available, $slots['10:00:00']->status);
     }
 
-    public function test_pending_booking_with_no_payment_submitted_marks_slot_in_progress(): void
+    public function test_pending_booking_marks_slot_in_progress_with_a_hold_expiry(): void
     {
-        // Owner feedback: a bare "Pending" label didn't distinguish "the
-        // 10-minute hold countdown is running, nothing submitted yet" from
-        // "a reference number/screenshot was submitted, staff hasn't
-        // verified it" - see AvailabilityService::slotStatusFor().
+        // Owner feedback: the payment-hold countdown should be visible to
+        // every viewer of the grid, not just the person actively booking -
+        // AvailabilitySlot carries holdExpiresAt so the view can render a
+        // live countdown for anyone looking at this slot.
         $court = Court::factory()->create();
-        Booking::factory()->pending()->create([
+        $booking = Booking::factory()->pending()->create([
             'court_id' => $court->id,
             'booking_date' => self::DATE,
             'start_time' => '09:00:00',
             'end_time' => '10:00:00',
         ]);
+        $booking->forceFill(['hold_expires_at' => now()->addMinutes(10)])->save();
 
-        $slots = $this->slotsFor($court);
+        $slot = $this->slotsFor($court)['09:00:00'];
 
-        $this->assertSame(SlotStatus::InProgress, $slots['09:00:00']->status);
+        $this->assertSame(SlotStatus::InProgress, $slot->status);
+        $this->assertSame($booking->hold_expires_at->toIso8601String(), $slot->holdExpiresAt);
     }
 
-    public function test_confirmed_booking_with_a_pending_payment_marks_slot_pending(): void
+    public function test_confirmed_booking_marks_slot_booked_regardless_of_payment_status(): void
     {
-        $court = Court::factory()->create();
-        $booking = Booking::factory()->create([
-            'court_id' => $court->id,
-            'booking_date' => self::DATE,
-            'start_time' => '09:00:00',
-            'end_time' => '10:00:00',
-        ]);
-        \App\Models\Payment::factory()->create([
-            'booking_id' => $booking->id,
-            'status' => \App\Enums\PaymentStatus::Pending,
-        ]);
+        // Owner feedback: reverses the earlier three-stage split - there is
+        // no separate "awaiting staff approval" grid status any more. The
+        // moment a booking is Confirmed (which happens as soon as the
+        // customer submits a reference number/screenshot, no staff action
+        // required), the slot is Booked - whether it's a walk-in that's
+        // still Unpaid, an online booking with a submitted-but-unverified
+        // Payment::Pending, or one staff has already verified as Paid.
+        // Staff still separately tracks payment verification via the
+        // booking detail page's Mark Paid action; it just no longer gates
+        // this grid.
+        $cases = [
+            \App\Enums\PaymentStatus::Unpaid,
+            \App\Enums\PaymentStatus::Pending,
+            \App\Enums\PaymentStatus::Paid,
+        ];
 
-        $slots = $this->slotsFor($court);
+        foreach ($cases as $paymentStatus) {
+            $court = Court::factory()->create();
+            $booking = Booking::factory()->create([
+                'court_id' => $court->id,
+                'booking_date' => self::DATE,
+                'start_time' => '09:00:00',
+                'end_time' => '10:00:00',
+            ]);
+            \App\Models\Payment::factory()->create(['booking_id' => $booking->id, 'status' => $paymentStatus]);
 
-        $this->assertSame(SlotStatus::Pending, $slots['09:00:00']->status);
-    }
+            $slot = $this->slotsFor($court)['09:00:00'];
 
-    public function test_confirmed_booking_with_an_unpaid_or_paid_payment_marks_slot_booked(): void
-    {
-        // A walk-in booking is Confirmed immediately and stays Unpaid until
-        // staff collects cash in person - it never passes through
-        // PaymentStatus::Pending, so it must show Booked the whole time,
-        // not Pending (which is reserved for the online reference-number-
-        // submitted-but-unverified case).
-        $court = Court::factory()->create();
-        $walkIn = Booking::factory()->create([
-            'court_id' => $court->id,
-            'booking_date' => self::DATE,
-            'start_time' => '09:00:00',
-            'end_time' => '10:00:00',
-        ]);
-        \App\Models\Payment::factory()->create([
-            'booking_id' => $walkIn->id,
-            'status' => \App\Enums\PaymentStatus::Unpaid,
-        ]);
-
-        $paidCourt = Court::factory()->create();
-        $paid = Booking::factory()->create([
-            'court_id' => $paidCourt->id,
-            'booking_date' => self::DATE,
-            'start_time' => '09:00:00',
-            'end_time' => '10:00:00',
-        ]);
-        \App\Models\Payment::factory()->paid()->create(['booking_id' => $paid->id]);
-
-        $this->assertSame(SlotStatus::Booked, $this->slotsFor($court)['09:00:00']->status);
-        $this->assertSame(SlotStatus::Booked, $this->slotsFor($paidCourt)['09:00:00']->status);
+            $this->assertSame(SlotStatus::Booked, $slot->status, "Payment {$paymentStatus->value} should still show Booked");
+            $this->assertNull($slot->holdExpiresAt);
+        }
     }
 
     public function test_cancelled_booking_does_not_block_availability(): void
@@ -255,11 +241,9 @@ class AvailabilityServiceTest extends TestCase
 
         (new AvailabilityService)->forDate(self::DATE);
 
-        // Fixed number of queries: business hour, courts, bookings (+ their
-        // eager-loaded payments, added for the in-progress/pending/booked
-        // status split), maintenance, closures — must not scale with
-        // court/booking count.
-        $this->assertLessThanOrEqual(7, $queryCount);
+        // Fixed number of queries: business hour, courts, bookings,
+        // maintenance, closures — must not scale with court/booking count.
+        $this->assertLessThanOrEqual(6, $queryCount);
     }
 
     /**

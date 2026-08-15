@@ -50,7 +50,6 @@
                             $color = match ($slot->status) {
                                 \App\Enums\SlotStatus::Available => 'green',
                                 \App\Enums\SlotStatus::Booked => 'red',
-                                \App\Enums\SlotStatus::Pending => 'amber',
                                 \App\Enums\SlotStatus::InProgress => 'blue',
                                 default => 'slate',
                             };
@@ -60,7 +59,22 @@
                                 {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->startTime)->format('g:i A') }} –
                                 {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->endTime)->format('g:i A') }}
                             </td>
-                            <td class="py-2.5 pr-4"><x-badge :color="$color">{{ $slot->status->label() }}</x-badge></td>
+                            <td class="py-2.5 pr-4">
+                                <div class="flex items-center gap-2">
+                                    <x-badge :color="$color">{{ $slot->status->label() }}</x-badge>
+                                    @if ($slot->holdExpiresAt)
+                                        <span class="text-xs font-semibold text-blue-700 tabular-nums"
+                                              x-data="{
+                                                  expiresAt: new Date('{{ $slot->holdExpiresAt }}').getTime(),
+                                                  remaining: 0,
+                                                  tick() { this.remaining = Math.max(0, Math.floor((this.expiresAt - Date.now()) / 1000)); },
+                                                  get timeLabel() { return Math.floor(this.remaining / 60) + ':' + String(this.remaining % 60).padStart(2, '0'); },
+                                              }"
+                                              x-init="tick(); setInterval(() => tick(), 1000)"
+                                              x-text="timeLabel"></span>
+                                    @endif
+                                </div>
+                            </td>
                             <td class="py-2.5 pr-4">
                                 @if ($slot->bookingId)
                                     <a href="{{ route('bookings.show', $slot->bookingId) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">View Booking</a>
