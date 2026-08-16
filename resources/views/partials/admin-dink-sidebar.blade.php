@@ -22,7 +22,7 @@
     <div>
         <div class="flex items-center gap-2 px-6 mb-6">
             <span class="inline-block w-2.5 h-2.5 rounded-full bg-accent"></span>
-            <span class="text-lg font-extrabold text-white">Dink Dine</span>
+            <span class="text-lg font-extrabold text-white">{{ $brandName }}</span>
         </div>
         @foreach ($navItems as $item)
             @php $isActive = request()->routeIs($item['pattern']); @endphp

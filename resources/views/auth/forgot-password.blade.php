@@ -48,7 +48,7 @@
             <div class="hidden lg:flex lg:flex-1 lg:flex-col lg:justify-center gap-5 px-16" style="background: var(--db-nav);">
                 <div class="flex items-center gap-2.5">
                     <span class="inline-block w-3 h-3 rounded-full" style="background: var(--db-accent);"></span>
-                    <span class="text-[22px] font-extrabold text-white">Dink Dine</span>
+                    <span class="text-[22px] font-extrabold text-white">{{ $brandName }}</span>
                 </div>
                 <div class="text-[44px] font-extrabold text-white leading-[1.1] max-w-[440px]">Book your next match in seconds.</div>
                 <div class="text-base max-w-[400px]" style="color: var(--db-ink-faintest);">Real-time court availability, easy holds, and instant confirmations — all in one place.</div>
@@ -58,7 +58,7 @@
                 <div class="lg:hidden flex flex-col gap-2" style="background: var(--db-nav); padding: 40px 24px 32px;">
                     <div class="flex items-center gap-2">
                         <span class="inline-block w-2.5 h-2.5 rounded-full" style="background: var(--db-accent);"></span>
-                        <span class="text-lg font-extrabold text-white">Dink Dine</span>
+                        <span class="text-lg font-extrabold text-white">{{ $brandName }}</span>
                     </div>
                     <div class="text-2xl font-extrabold text-white mt-1">Reset your password</div>
                 </div>

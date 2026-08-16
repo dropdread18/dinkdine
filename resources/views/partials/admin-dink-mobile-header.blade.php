@@ -19,7 +19,7 @@
     <div class="px-5 h-16 flex items-center justify-between">
         <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2">
             <span class="inline-block w-2 h-2 rounded-full bg-accent"></span>
-            <span class="text-base font-extrabold text-white">Dink Dine</span>
+            <span class="text-base font-extrabold text-white">{{ $brandName }}</span>
         </a>
 
         <details class="relative">

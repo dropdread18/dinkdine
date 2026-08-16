@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Setting;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +21,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Deliberately a composer (evaluated lazily, per view render), not
+        // View::share() (evaluated eagerly at boot time) - this provider
+        // boots for every artisan command too, including `migrate` on a
+        // fresh install, before the settings table exists. A composer only
+        // ever queries it when a view is actually being rendered.
+        View::composer('*', function ($view) {
+            $view->with('brandName', Setting::get('facility_name', config('app.name')));
+        });
     }
 }

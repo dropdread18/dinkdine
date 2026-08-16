@@ -2,7 +2,7 @@
     <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between flex-wrap gap-3">
         <a href="{{ url('/') }}" class="flex items-center gap-2 shrink-0">
             <span class="inline-block w-2.5 h-2.5 rounded-full bg-accent"></span>
-            <span class="font-extrabold text-white">Dink Dine</span>
+            <span class="font-extrabold text-white">{{ $brandName }}</span>
         </a>
 
         <div class="flex items-center gap-1 sm:gap-4 text-sm flex-wrap">
