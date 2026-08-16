@@ -56,7 +56,7 @@ class BookingSelfServiceTest extends TestCase
         $other = User::factory()->customer()->create();
         $booking = Booking::factory()->create(['user_id' => $owner->id, 'booking_date' => $this->date]);
 
-        $this->actingAs($other)->patch("/bookings/{$booking->id}/cancel")->assertForbidden();
+        $this->actingAs($other)->patch("/bookings/{$booking->id}/cancel")->assertNotFound();
         $this->assertNotEquals(BookingStatus::Cancelled, $booking->fresh()->status);
     }
 
@@ -98,7 +98,7 @@ class BookingSelfServiceTest extends TestCase
         $other = User::factory()->customer()->create();
         $booking = Booking::factory()->create(['user_id' => $owner->id, 'booking_date' => $this->date]);
 
-        $this->actingAs($other)->get("/bookings/{$booking->id}/reschedule")->assertForbidden();
+        $this->actingAs($other)->get("/bookings/{$booking->id}/reschedule")->assertNotFound();
     }
 
     public function test_customer_can_reschedule_their_own_booking(): void
@@ -132,7 +132,7 @@ class BookingSelfServiceTest extends TestCase
 
         $this->actingAs($other)->put("/bookings/{$booking->id}/reschedule/{$court->id}", [
             'date' => $this->date, 'start_time' => '14:00:00', 'end_time' => '15:00:00',
-        ])->assertForbidden();
+        ])->assertNotFound();
 
         $this->assertSame('09:00:00', $booking->fresh()->start_time);
     }

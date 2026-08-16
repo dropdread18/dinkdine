@@ -134,7 +134,7 @@
                                         <span>Ref: <span class="font-mono">{{ $booking->payment->reference_number }}</span></span>
                                     @endif
                                     @if ($booking->payment->payment_proof_path)
-                                        <a href="{{ \Illuminate\Support\Facades\Storage::url($booking->payment->payment_proof_path) }}" target="_blank" rel="noopener" class="font-semibold" style="color: #3B82F6;">View Screenshot</a>
+                                        <a href="{{ route('bookings.payment-proof', $booking) }}" target="_blank" rel="noopener" class="font-semibold" style="color: #3B82F6;">View Screenshot</a>
                                     @endif
                                 </div>
                             @endif

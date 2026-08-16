@@ -32,10 +32,10 @@ Route::get('/', function (\App\Services\AvailabilityService $availability) {
 
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
-    Route::post('/register', [RegisteredUserController::class, 'store']);
+    Route::post('/register', [RegisteredUserController::class, 'store'])->middleware('throttle:5,1');
 
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
-    Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+    Route::post('/login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:5,1');
 });
 
 // Deliberately NOT behind 'guest' middleware, unlike login/register above -
@@ -47,10 +47,10 @@ Route::middleware('guest')->group(function () {
 // authorized by the emailed token + email match, not by auth state, and
 // NewPasswordController::store() never touches the current session.
 Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
-Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
+Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email')->middleware('throttle:3,1');
 
 Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
-Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.store');
+Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.store')->middleware('throttle:5,1');
 
 Route::middleware('auth')->post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
@@ -143,3 +143,4 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
 
 Route::middleware('auth')->get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
 Route::middleware('auth')->get('/bookings/{booking}/receipt', [BookingController::class, 'receipt'])->name('bookings.receipt');
+Route::middleware('auth')->get('/bookings/{booking}/payment-proof', [BookingController::class, 'paymentProof'])->name('bookings.payment-proof');

@@ -1,4 +1,4 @@
-{{-- Expects: $payment (nullable Payment) --}}
+{{-- Expects: $payment (nullable Payment), $booking (only needed if $payment->payment_proof_path is set) --}}
 @if ($payment)
     <x-card class="max-w-sm space-y-3 text-sm mt-4">
         <h2 class="font-medium text-slate-900">Payment</h2>
@@ -13,8 +13,8 @@
         @if ($payment->payment_proof_path)
             <div>
                 <span class="text-slate-500 block mb-1">Receipt Screenshot</span>
-                <a href="{{ \Illuminate\Support\Facades\Storage::url($payment->payment_proof_path) }}" target="_blank" rel="noopener">
-                    <img src="{{ \Illuminate\Support\Facades\Storage::url($payment->payment_proof_path) }}" alt="Payment receipt screenshot" class="w-full max-w-[200px] rounded-lg border border-slate-200">
+                <a href="{{ route('bookings.payment-proof', $booking) }}" target="_blank" rel="noopener">
+                    <img src="{{ route('bookings.payment-proof', $booking) }}" alt="Payment receipt screenshot" class="w-full max-w-[200px] rounded-lg border border-slate-200">
                 </a>
             </div>
         @endif

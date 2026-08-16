@@ -6,10 +6,13 @@ use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\BusinessHour;
 use App\Models\Court;
+use App\Models\Payment;
 use App\Models\Setting;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class BookingFlowTest extends TestCase
@@ -114,7 +117,7 @@ class BookingFlowTest extends TestCase
         $other = User::factory()->customer()->create();
         $booking = Booking::factory()->create(['user_id' => $owner->id]);
 
-        $this->actingAs($other)->get("/bookings/{$booking->id}")->assertForbidden();
+        $this->actingAs($other)->get("/bookings/{$booking->id}")->assertNotFound();
     }
 
     public function test_staff_and_admin_can_view_any_booking(): void
@@ -136,5 +139,49 @@ class BookingFlowTest extends TestCase
         $response->assertOk();
         $response->assertSee($mine->court->name);
         $this->assertSame(1, Booking::where('user_id', $customer->id)->count());
+    }
+
+    public function test_a_customer_can_view_their_own_payment_proof(): void
+    {
+        Storage::fake('local');
+        $customer = User::factory()->customer()->create();
+        $booking = Booking::factory()->create(['user_id' => $customer->id]);
+        $path = UploadedFile::fake()->image('receipt.jpg')->store('payment-proofs', 'local');
+        Payment::factory()->for($booking)->create(['payment_proof_path' => $path]);
+
+        $this->actingAs($customer)->get("/bookings/{$booking->id}/payment-proof")->assertOk();
+    }
+
+    public function test_a_customer_cannot_view_another_customers_payment_proof(): void
+    {
+        Storage::fake('local');
+        $owner = User::factory()->customer()->create();
+        $other = User::factory()->customer()->create();
+        $booking = Booking::factory()->create(['user_id' => $owner->id]);
+        $path = UploadedFile::fake()->image('receipt.jpg')->store('payment-proofs', 'local');
+        Payment::factory()->for($booking)->create(['payment_proof_path' => $path]);
+
+        $this->actingAs($other)->get("/bookings/{$booking->id}/payment-proof")->assertNotFound();
+    }
+
+    public function test_staff_can_view_any_customers_payment_proof(): void
+    {
+        Storage::fake('local');
+        $staff = User::factory()->staff()->create();
+        $customer = User::factory()->customer()->create();
+        $booking = Booking::factory()->create(['user_id' => $customer->id]);
+        $path = UploadedFile::fake()->image('receipt.jpg')->store('payment-proofs', 'local');
+        Payment::factory()->for($booking)->create(['payment_proof_path' => $path]);
+
+        $this->actingAs($staff)->get("/bookings/{$booking->id}/payment-proof")->assertOk();
+    }
+
+    public function test_payment_proof_route_404s_when_no_screenshot_was_uploaded(): void
+    {
+        $customer = User::factory()->customer()->create();
+        $booking = Booking::factory()->create(['user_id' => $customer->id]);
+        Payment::factory()->for($booking)->create(['payment_proof_path' => null]);
+
+        $this->actingAs($customer)->get("/bookings/{$booking->id}/payment-proof")->assertNotFound();
     }
 }

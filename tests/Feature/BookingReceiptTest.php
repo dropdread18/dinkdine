@@ -37,7 +37,7 @@ class BookingReceiptTest extends TestCase
         $booking = Booking::factory()->create();
         $other = User::factory()->customer()->create();
 
-        $this->actingAs($other)->get("/bookings/{$booking->id}/receipt")->assertForbidden();
+        $this->actingAs($other)->get("/bookings/{$booking->id}/receipt")->assertNotFound();
     }
 
     public function test_staff_and_admin_can_view_any_receipt(): void

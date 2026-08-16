@@ -71,7 +71,7 @@
             @if (auth()->user()->isAdmin() && $booking->status === \App\Enums\BookingStatus::Cancelled && $booking->payment?->status === \App\Enums\PaymentStatus::Paid)
                 <p class="text-amber-700 text-sm mt-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">This booking is cancelled but the payment is still marked Paid — refund it below if applicable.</p>
             @endif
-            @include('partials.payment-actions', ['payment' => $booking->payment])
+            @include('partials.payment-actions', ['payment' => $booking->payment, 'booking' => $booking])
         @endif
     @endif
 @endsection

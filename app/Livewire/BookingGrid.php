@@ -212,7 +212,11 @@ class BookingGrid extends Component
             return;
         }
 
-        $proofPath = $this->paymentProof?->store('payment-proofs', 'public');
+        // Private disk, deliberately - a payment screenshot is the
+        // customer's own financial record. The 'public' disk is served with
+        // zero auth checks by the webserver; this stays behind
+        // BookingController::paymentProof()'s ownership/staff check instead.
+        $proofPath = $this->paymentProof?->store('payment-proofs', 'local');
 
         $bookings = Booking::whereIn('id', $this->pendingBookingIds)->get()->all();
 

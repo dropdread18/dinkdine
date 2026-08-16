@@ -80,4 +80,21 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
         $response->assertRedirect('/');
     }
+
+    public function test_repeated_login_attempts_are_rate_limited(): void
+    {
+        $user = User::factory()->create();
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->post('/login', ['email' => $user->email, 'password' => 'wrong-password']);
+        }
+
+        // The 6th attempt within the window should be throttled, even with
+        // the correct password - this is what actually stops brute-forcing,
+        // not the "wrong password" rejection itself.
+        $response = $this->post('/login', ['email' => $user->email, 'password' => 'password']);
+
+        $response->assertStatus(429);
+        $this->assertGuest();
+    }
 }

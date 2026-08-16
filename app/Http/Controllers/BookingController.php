@@ -13,7 +13,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BookingController extends Controller
 {
@@ -65,7 +67,7 @@ class BookingController extends Controller
 
     public function show(Booking $booking, BookingService $bookingService): View
     {
-        Gate::authorize('view', $booking);
+        abort_unless(Gate::allows('view', $booking), 404);
 
         return view('bookings.show', [
             'booking' => $booking->load(['court', 'user', 'payment']),
@@ -80,11 +82,27 @@ class BookingController extends Controller
      */
     public function receipt(Booking $booking): View
     {
-        Gate::authorize('view', $booking);
+        abort_unless(Gate::allows('view', $booking), 404);
 
         return view('bookings.receipt', [
             'booking' => $booking->load(['court', 'user', 'payment']),
         ]);
+    }
+
+    /**
+     * Streams the customer's uploaded GCash payment screenshot. Deliberately
+     * not a public URL - the file lives on the 'local' (private) disk and
+     * this is the only path to it, gated by the same 'view' ownership check
+     * as the booking itself (owner, staff, or admin).
+     */
+    public function paymentProof(Booking $booking): StreamedResponse
+    {
+        abort_unless(Gate::allows('view', $booking), 404);
+
+        $path = $booking->payment?->payment_proof_path;
+        abort_if(! $path || ! Storage::disk('local')->exists($path), 404);
+
+        return Storage::disk('local')->response($path);
     }
 
     /**
@@ -128,7 +146,7 @@ class BookingController extends Controller
 
     public function cancel(Request $request, Booking $booking, BookingService $bookingService): RedirectResponse
     {
-        Gate::authorize('cancel', $booking);
+        abort_unless(Gate::allows('cancel', $booking), 404);
 
         try {
             $bookingService->cancel($booking, $request->input('reason'), enforcePolicy: true);
@@ -141,7 +159,7 @@ class BookingController extends Controller
 
     public function reschedule(Request $request, Booking $booking, AvailabilityService $availability): View
     {
-        Gate::authorize('reschedule', $booking);
+        abort_unless(Gate::allows('reschedule', $booking), 404);
 
         $date = $request->query('date', $booking->booking_date->toDateString());
         $minNoticeMinutes = (int) (Setting::get('min_booking_notice_minutes') ?? 30);
@@ -159,7 +177,7 @@ class BookingController extends Controller
 
     public function rescheduleForm(StoreBookingRequest $request, Booking $booking, Court $court): View
     {
-        Gate::authorize('reschedule', $booking);
+        abort_unless(Gate::allows('reschedule', $booking), 404);
 
         $data = $request->safe()->only(['date', 'start_time', 'end_time']);
 
@@ -174,7 +192,7 @@ class BookingController extends Controller
 
     public function rescheduleUpdate(StoreBookingRequest $request, Booking $booking, Court $court, BookingService $bookingService): RedirectResponse
     {
-        Gate::authorize('reschedule', $booking);
+        abort_unless(Gate::allows('reschedule', $booking), 404);
 
         $data = $request->validated();
 

@@ -157,7 +157,7 @@ class GuestCheckoutTest extends TestCase
 
     public function test_a_screenshot_alone_is_enough_to_confirm_payment_without_a_reference_number(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         $court = Court::factory()->create();
 
         Livewire::test(BookingGrid::class, ['date' => $this->date])
@@ -175,7 +175,7 @@ class GuestCheckoutTest extends TestCase
         $this->assertSame(BookingStatus::Confirmed, $booking->status);
         $this->assertNull($booking->payment->reference_number);
         $this->assertNotNull($booking->payment->payment_proof_path);
-        Storage::disk('public')->assertExists($booking->payment->payment_proof_path);
+        Storage::disk('local')->assertExists($booking->payment->payment_proof_path);
     }
 
     public function test_submitting_a_reference_after_the_hold_expired_fails_and_resets_to_the_grid(): void
