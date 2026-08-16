@@ -61,7 +61,9 @@
                                         <div class="text-xs text-slate-500 mt-0.5">{{ $court->court_type }}</div>
                                     @endif
                                 </div>
-                                <div class="text-sm font-bold text-slate-900 whitespace-nowrap">₱{{ number_format($court->hourly_rate, 0) }}<span class="font-normal text-slate-500">/hr</span></div>
+                                <div class="text-sm font-bold text-slate-900 whitespace-nowrap">
+                                    ₱{{ number_format($court->hourly_rate, 0) }}–₱{{ number_format($court->evening_hourly_rate, 0) }}<span class="font-normal text-slate-500">/hr</span>
+                                </div>
                             </div>
                             @if ($court->description)
                                 <p class="text-sm text-slate-600 mt-2 leading-relaxed">{{ $court->description }}</p>

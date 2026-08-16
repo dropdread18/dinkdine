@@ -145,6 +145,46 @@
         </x-card>
     </section>
 
+    <section class="mb-10">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm font-medium text-slate-500 uppercase">Courts</h2>
+            <x-button tag="a" href="{{ route('admin.courts.create') }}" variant="secondary" class="!py-1.5 !px-3 text-xs">New Court</x-button>
+        </div>
+
+        @if ($courts->isEmpty())
+            <x-card class="text-center text-slate-500 text-sm py-8">No courts yet.</x-card>
+        @else
+            <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm bg-white">
+                <table class="min-w-full text-sm">
+                    <thead>
+                        <tr class="bg-slate-50">
+                            <th class="text-left font-medium text-slate-500 py-3 pl-4 pr-4">#</th>
+                            <th class="text-left font-medium text-slate-500 py-3 pr-4">Name</th>
+                            <th class="text-left font-medium text-slate-500 py-3 pr-4">Rate</th>
+                            <th class="text-left font-medium text-slate-500 py-3 pr-4">Status</th>
+                            <th class="text-left font-medium text-slate-500 py-3 pr-4"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($courts as $court)
+                            <tr class="border-t border-slate-100 hover:bg-slate-50/60">
+                                <td class="py-3 pl-4 pr-4 text-slate-500">{{ $court->court_number }}</td>
+                                <td class="py-3 pr-4 text-slate-900 font-medium">{{ $court->name }}</td>
+                                <td class="py-3 pr-4 text-slate-600">₱{{ number_format($court->hourly_rate, 0) }} day / ₱{{ number_format($court->evening_hourly_rate, 0) }} evening</td>
+                                <td class="py-3 pr-4">
+                                    <x-badge :color="$court->status === \App\Enums\CourtStatus::Active ? 'green' : 'slate'">{{ $court->status->label() }}</x-badge>
+                                </td>
+                                <td class="py-3 pr-4 text-right">
+                                    <a href="{{ route('admin.courts.edit', $court) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Edit</a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+    </section>
+
     <section>
         <h2 class="text-sm font-medium text-slate-500 uppercase mb-3">Business Hours</h2>
 

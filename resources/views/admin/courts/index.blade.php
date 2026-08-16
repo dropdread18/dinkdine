@@ -26,7 +26,7 @@
                         <tr class="border-t border-slate-100 hover:bg-slate-50/60">
                             <td class="py-3 pl-4 pr-4 text-slate-500">{{ $court->court_number }}</td>
                             <td class="py-3 pr-4 text-slate-900 font-medium">{{ $court->name }}</td>
-                            <td class="py-3 pr-4 text-slate-600">₱{{ number_format($court->hourly_rate, 2) }}</td>
+                            <td class="py-3 pr-4 text-slate-600">₱{{ number_format($court->hourly_rate, 2) }} day / ₱{{ number_format($court->evening_hourly_rate, 2) }} evening</td>
                             <td class="py-3 pr-4">
                                 <x-badge :color="$court->status === \App\Enums\CourtStatus::Active ? 'green' : 'slate'">{{ $court->status->label() }}</x-badge>
                             </td>

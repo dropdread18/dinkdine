@@ -46,12 +46,24 @@ class DashboardController extends Controller
             ->limit(6)
             ->get();
 
+        // Owner feedback: the dashboard only ever showed a bare count of
+        // pending payments, with no way to act on it without navigating
+        // away to search for them. This surfaces who's actually waiting
+        // and links straight to the booking detail page's Mark Paid action.
+        $pendingPayments = Payment::query()
+            ->with(['booking.court', 'booking.user'])
+            ->where('status', PaymentStatus::Pending)
+            ->orderBy('created_at')
+            ->limit(6)
+            ->get();
+
         return view('dashboard.admin', [
             'todayRevenue' => $revenue['total'],
             'todayBookingsCount' => $bookingCounts['total'],
             'occupiedCourtCount' => $occupiedCourtCount,
             'totalCourtCount' => Court::count(),
             'pendingPaymentsCount' => Payment::where('status', PaymentStatus::Pending)->count(),
+            'pendingPayments' => $pendingPayments,
             'upcomingBookings' => $upcomingBookings,
             'utilization' => $utilization,
         ]);

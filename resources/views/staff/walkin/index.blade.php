@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'New Walk-in Booking'])
+@extends('layouts.app', ['title' => 'Walk-in Booking'])
 
 @section('content')
     @php
@@ -7,7 +7,10 @@
     @endphp
 
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">New Walk-in Booking</h1>
+        <div>
+            <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">Walk-in Booking</h1>
+            <p class="text-sm text-slate-500 mt-0.5">Check any court's availability for the day, or click an open slot to book a walk-in customer.</p>
+        </div>
 
         <div class="flex items-center gap-1 text-sm bg-white border border-slate-200 rounded-lg shadow-sm p-1">
             @if ($prevDate >= $minDate)

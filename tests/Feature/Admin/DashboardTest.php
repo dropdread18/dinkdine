@@ -111,6 +111,30 @@ class DashboardTest extends TestCase
         $response->assertSee('Pending Payments');
     }
 
+    public function test_pending_payments_panel_lists_who_is_waiting_with_an_approve_shortcut(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $customer = User::factory()->customer()->create(['name' => 'Awaiting Approval']);
+        $booking = Booking::factory()->create(['user_id' => $customer->id, 'price' => 250]);
+        Payment::factory()->create(['booking_id' => $booking->id, 'status' => PaymentStatus::Pending, 'amount' => 250]);
+
+        $response = $this->actingAs($admin)->get('/admin/dashboard');
+
+        $response->assertOk();
+        $response->assertSee('Awaiting Approval');
+        $response->assertSee(route('bookings.show', $booking));
+    }
+
+    public function test_pending_payments_panel_shows_an_empty_state_when_nothing_is_waiting(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->get('/admin/dashboard');
+
+        $response->assertOk();
+        $response->assertSee('No payments waiting on approval.');
+    }
+
     public function test_upcoming_bookings_excludes_ones_that_already_ended(): void
     {
         $admin = User::factory()->admin()->create();

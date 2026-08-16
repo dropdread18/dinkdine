@@ -13,7 +13,8 @@ class CourtSeeder extends Seeder
             Court::create([
                 'name' => "Court {$number}",
                 'court_number' => $number,
-                'hourly_rate' => 300,
+                'hourly_rate' => 250,
+                'evening_hourly_rate' => 350,
                 'sort_order' => $number,
             ]);
         }

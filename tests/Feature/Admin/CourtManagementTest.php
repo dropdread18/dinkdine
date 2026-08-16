@@ -41,12 +41,13 @@ class CourtManagementTest extends TestCase
         $response = $this->actingAs($admin)->post('/admin/courts', [
             'name' => 'Court 9',
             'court_number' => 9,
-            'hourly_rate' => 350,
+            'hourly_rate' => 250,
+            'evening_hourly_rate' => 350,
             'status' => CourtStatus::Active->value,
         ]);
 
         $response->assertRedirect(route('admin.courts.index'));
-        $this->assertDatabaseHas('courts', ['name' => 'Court 9', 'court_number' => 9]);
+        $this->assertDatabaseHas('courts', ['name' => 'Court 9', 'court_number' => 9, 'evening_hourly_rate' => 350]);
     }
 
     public function test_court_number_must_be_unique(): void
@@ -58,6 +59,7 @@ class CourtManagementTest extends TestCase
             'name' => 'Duplicate',
             'court_number' => 5,
             'hourly_rate' => 300,
+            'evening_hourly_rate' => 350,
             'status' => CourtStatus::Active->value,
         ]);
 
@@ -74,6 +76,7 @@ class CourtManagementTest extends TestCase
             'name' => 'New Name',
             'court_number' => $court->court_number,
             'hourly_rate' => $court->hourly_rate,
+            'evening_hourly_rate' => $court->evening_hourly_rate,
             'status' => CourtStatus::Maintenance->value,
         ]);
 
@@ -91,6 +94,7 @@ class CourtManagementTest extends TestCase
             'name' => $court->name,
             'court_number' => 3,
             'hourly_rate' => $court->hourly_rate,
+            'evening_hourly_rate' => $court->evening_hourly_rate,
             'status' => CourtStatus::Active->value,
         ]);
 
@@ -127,6 +131,7 @@ class CourtManagementTest extends TestCase
             'name' => 'Court With Image',
             'court_number' => 11,
             'hourly_rate' => 300,
+            'evening_hourly_rate' => 350,
             'status' => CourtStatus::Active->value,
             'image' => UploadedFile::fake()->image('court.jpg'),
         ]);

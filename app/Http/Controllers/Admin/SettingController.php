@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\BusinessHoursRequest;
 use App\Http\Requests\SettingRequest;
 use App\Models\BusinessHour;
+use App\Models\Court;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
@@ -47,6 +48,7 @@ class SettingController extends Controller
             'settings' => $settings,
             'businessHours' => BusinessHour::orderBy('day_of_week')->get(),
             'timezone' => Setting::get('timezone', config('app.timezone')),
+            'courts' => Court::orderBy('sort_order')->orderBy('court_number')->get(),
         ]);
     }
 

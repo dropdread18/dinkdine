@@ -12,10 +12,20 @@
            class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
 </div>
 
-<div>
-    <label for="hourly_rate" class="block text-sm font-medium text-slate-700">Hourly Rate (₱)</label>
-    <input id="hourly_rate" name="hourly_rate" type="number" step="0.01" min="0" value="{{ old('hourly_rate', $court?->hourly_rate) }}" required
-           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
+<div class="grid grid-cols-2 gap-4">
+    <div>
+        <label for="hourly_rate" class="block text-sm font-medium text-slate-700">Day Rate (₱/hr)</label>
+        <p class="text-xs text-slate-500 mb-1">6:00 AM – 5:00 PM</p>
+        <input id="hourly_rate" name="hourly_rate" type="number" step="0.01" min="0" value="{{ old('hourly_rate', $court?->hourly_rate) }}" required
+               class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
+    </div>
+
+    <div>
+        <label for="evening_hourly_rate" class="block text-sm font-medium text-slate-700">Evening Rate (₱/hr)</label>
+        <p class="text-xs text-slate-500 mb-1">5:00 PM onwards</p>
+        <input id="evening_hourly_rate" name="evening_hourly_rate" type="number" step="0.01" min="0" value="{{ old('evening_hourly_rate', $court?->evening_hourly_rate) }}" required
+               class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
+    </div>
 </div>
 
 <div>

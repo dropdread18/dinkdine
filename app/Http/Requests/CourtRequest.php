@@ -24,6 +24,7 @@ class CourtRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'court_number' => ['required', 'integer', 'min:1', Rule::unique('courts', 'court_number')->ignore($this->route('court'))],
             'hourly_rate' => ['required', 'numeric', 'min:0'],
+            'evening_hourly_rate' => ['required', 'numeric', 'min:0'],
             'status' => ['required', new Enum(CourtStatus::class)],
             'court_type' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],

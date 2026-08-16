@@ -67,7 +67,24 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-4">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4 lg:mb-6">
+                    <div class="rounded-xl lg:rounded-2xl p-5 lg:p-6 flex flex-col gap-3 lg:gap-4" style="background: #FFFBEB; border: 1px solid #FDE68A;">
+                        <div class="text-base lg:text-[17px] font-bold" style="color: #92400E;">Pending Payments</div>
+                        @forelse ($pendingPayments as $payment)
+                            <div class="flex justify-between items-center py-2.5" style="border-bottom: 1px solid #FEF3C7;">
+                                <div>
+                                    <div class="text-sm font-bold" style="color: var(--db-ink);">{{ $payment->booking->user->name }}</div>
+                                    <div class="text-[13px]" style="color: var(--db-ink-soft);">
+                                        PB-{{ $payment->booking->id }} &middot; {{ $payment->booking->court->name }} &middot; ₱{{ number_format($payment->amount, 0) }}
+                                    </div>
+                                </div>
+                                <a href="{{ route('bookings.show', $payment->booking) }}" class="text-xs font-bold rounded-lg px-3 py-2" style="background: #92400E; color: #FFFBEB;">Approve</a>
+                            </div>
+                        @empty
+                            <div class="text-sm text-center py-6" style="color: #92400E;">No payments waiting on approval.</div>
+                        @endforelse
+                    </div>
+
                     <div class="rounded-xl lg:rounded-2xl p-5 lg:p-6 flex flex-col gap-3 lg:gap-4" style="background: var(--db-surface); border: 1px solid var(--db-border);">
                         <div class="text-base lg:text-[17px] font-bold" style="color: var(--db-ink);">Upcoming Bookings</div>
                         @forelse ($upcomingBookings as $booking)
@@ -87,7 +104,9 @@
                             <div class="text-sm text-center py-6" style="color: var(--db-ink-faint);">No more bookings today.</div>
                         @endforelse
                     </div>
+                </div>
 
+                <div class="grid grid-cols-1 gap-4">
                     <div class="rounded-xl lg:rounded-2xl p-5 lg:p-6 flex flex-col gap-3 lg:gap-4" style="background: var(--db-surface); border: 1px solid var(--db-border);">
                         <div class="text-base lg:text-[17px] font-bold" style="color: var(--db-ink);">Court Utilization</div>
                         @forelse ($utilization as $row)

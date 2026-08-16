@@ -18,6 +18,7 @@ class CourtFactory extends Factory
             'description' => null,
             'court_number' => fake()->unique()->numberBetween(1, 100),
             'hourly_rate' => fake()->randomElement([250, 300, 350, 400]),
+            'evening_hourly_rate' => fake()->randomElement([300, 350, 400, 450]),
             'status' => CourtStatus::Active,
             'court_type' => null,
             'location' => null,

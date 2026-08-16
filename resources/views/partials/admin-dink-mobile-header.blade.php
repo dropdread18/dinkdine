@@ -1,18 +1,18 @@
 @php
     $isAdminUser = auth()->user()->isAdmin();
+    // Same order/grouping as partials/admin-dink-sidebar.blade.php - Courts
+    // now lives inside Settings, Court Schedule merged into Walk-in Booking.
     $navItems = array_filter([
         ['label' => 'Dashboard', 'route' => $isAdminUser ? 'admin.dashboard' : 'staff.dashboard', 'adminOnly' => false],
-        ['label' => 'Courts', 'route' => 'admin.courts.index', 'adminOnly' => true],
-        ['label' => 'Maintenance', 'route' => 'admin.maintenance.index', 'adminOnly' => true],
-        ['label' => 'Court Schedule', 'route' => 'manage.courts.schedule', 'adminOnly' => false],
         ['label' => 'Bookings', 'route' => 'manage.bookings.index', 'adminOnly' => false],
         ['label' => 'Walk-in Booking', 'route' => 'manage.walkin.index', 'adminOnly' => false],
         ['label' => 'Check-in', 'route' => 'manage.checkin.index', 'adminOnly' => false],
         ['label' => 'Payments', 'route' => 'manage.payments.index', 'adminOnly' => false],
-        ['label' => 'Reports', 'route' => 'manage.reports.index', 'adminOnly' => true],
-        ['label' => 'Settings', 'route' => 'manage.settings.index', 'adminOnly' => true],
+        ['label' => 'Maintenance', 'route' => 'admin.maintenance.index', 'adminOnly' => true],
         ['label' => 'Customers', 'route' => 'admin.customers.index', 'adminOnly' => true],
+        ['label' => 'Reports', 'route' => 'manage.reports.index', 'adminOnly' => true],
         ['label' => 'Staff', 'route' => 'admin.staff.index', 'adminOnly' => true],
+        ['label' => 'Settings', 'route' => 'manage.settings.index', 'adminOnly' => true],
     ], fn (array $item) => $isAdminUser || ! $item['adminOnly']);
 @endphp
 <header class="lg:hidden bg-slate-900">

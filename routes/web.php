@@ -16,7 +16,6 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Staff\BookingController as StaffBookingController;
 use App\Http\Controllers\Staff\CheckInController;
-use App\Http\Controllers\Staff\CourtScheduleController;
 use App\Http\Controllers\Staff\WalkInBookingController;
 use Illuminate\Support\Facades\Route;
 
@@ -112,8 +111,6 @@ Route::middleware(['auth', 'role:admin,staff'])->prefix('manage')->name('manage.
     Route::get('walk-in', [WalkInBookingController::class, 'index'])->name('walkin.index');
     Route::get('walk-in/{court}', [WalkInBookingController::class, 'create'])->name('walkin.create');
     Route::post('walk-in/{court}', [WalkInBookingController::class, 'store'])->name('walkin.store');
-
-    Route::get('courts/schedule', [CourtScheduleController::class, 'index'])->name('courts.schedule');
 
     Route::get('check-in', [CheckInController::class, 'index'])->name('checkin.index');
     Route::patch('check-in/bookings/{booking}/check-in', [CheckInController::class, 'checkIn'])->name('checkin.bookings.check-in');
