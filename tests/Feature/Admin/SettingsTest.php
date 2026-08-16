@@ -220,17 +220,23 @@ class SettingsTest extends TestCase
         $response->assertSessionHasErrors('hours.0.opens_at');
     }
 
-    public function test_closing_time_must_be_after_opening_time(): void
+    public function test_closing_time_before_opening_time_is_accepted_as_crossing_midnight(): void
     {
         $admin = User::factory()->admin()->create();
 
         $hours = [];
         for ($day = 0; $day <= 6; $day++) {
-            $hours[$day] = ['opens_at' => '20:00:00', 'closes_at' => '10:00:00'];
+            $hours[$day] = ['opens_at' => '06:00:00', 'closes_at' => '02:00:00'];
         }
 
         $response = $this->actingAs($admin)->put('/manage/settings/business-hours', ['hours' => $hours]);
 
-        $response->assertSessionHasErrors('hours.0.closes_at');
+        $response->assertSessionDoesntHaveErrors();
+        $response->assertRedirect('/manage/settings');
+
+        $sunday = BusinessHour::where('day_of_week', 0)->first();
+        $this->assertFalse($sunday->is_closed);
+        $this->assertSame('06:00:00', $sunday->opens_at);
+        $this->assertSame('02:00:00', $sunday->closes_at);
     }
 }

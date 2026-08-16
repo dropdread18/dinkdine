@@ -29,13 +29,24 @@ class AvailabilityService
     public function forDate(string $date, ?int $excludeBookingId = null): array
     {
         $day = CarbonImmutable::parse($date)->startOfDay();
+        $duration = $this->slotDurationMinutes();
 
-        $businessHour = BusinessHour::where('day_of_week', $day->dayOfWeek)->first();
-        $facilityClosed = ! $businessHour || $businessHour->is_closed;
+        $todayHour = BusinessHour::where('day_of_week', $day->dayOfWeek)->first();
+        $yesterdayHour = BusinessHour::where('day_of_week', $day->subDay()->dayOfWeek)->first();
 
-        $slotTimes = $facilityClosed
-            ? []
-            : $this->generateTimeSlots($businessHour->opens_at, $businessHour->closes_at, $this->slotDurationMinutes());
+        // A business day whose closing time crosses midnight (e.g. opens
+        // 06:00, closes 02:00) is split across two calendar dates: today's
+        // own slots run from opens_at through day-end, and the post-midnight
+        // portion (00:00 through closes_at) belongs to *tomorrow's* forDate()
+        // call - spilloverSlots() below pulls that in from yesterday's row.
+        // Both halves stay ordinary same-day time ranges, so no slot ever
+        // needs an ambiguous "ends at 00:00:00" boundary.
+        $slotTimes = [
+            ...$this->spilloverSlotTimes($yesterdayHour, $duration),
+            ...$this->businessHourSlotTimes($todayHour, $duration),
+        ];
+
+        $facilityClosed = empty($slotTimes);
 
         $courts = Court::orderBy('sort_order')->orderBy('court_number')->get();
 
@@ -140,6 +151,36 @@ class AvailabilityService
         }
 
         return new AvailabilitySlot($startTime, $endTime, SlotStatus::Available);
+    }
+
+    /**
+     * @return array<int, array{0: string, 1: string}>
+     */
+    private function businessHourSlotTimes(?BusinessHour $hour, int $durationMinutes): array
+    {
+        if (! $hour || $hour->is_closed) {
+            return [];
+        }
+
+        // closes_at <= opens_at means this business day runs past midnight
+        // (e.g. opens 06:00, closes 02:00) - the after-midnight portion is
+        // generated separately for tomorrow's date by spilloverSlotTimes().
+        // Today's own slots stop at day-end.
+        $closesToday = $hour->closes_at > $hour->opens_at ? $hour->closes_at : '23:59:59';
+
+        return $this->generateTimeSlots($hour->opens_at, $closesToday, $durationMinutes);
+    }
+
+    /**
+     * @return array<int, array{0: string, 1: string}>
+     */
+    private function spilloverSlotTimes(?BusinessHour $yesterday, int $durationMinutes): array
+    {
+        if (! $yesterday || $yesterday->is_closed || $yesterday->closes_at > $yesterday->opens_at) {
+            return [];
+        }
+
+        return $this->generateTimeSlots('00:00:00', $yesterday->closes_at, $durationMinutes);
     }
 
     /**

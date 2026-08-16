@@ -218,6 +218,86 @@ class AvailabilityServiceTest extends TestCase
         $this->assertSame([], $result['courts'][0]->slots);
     }
 
+    public function test_business_hours_crossing_midnight_spill_into_the_next_day(): void
+    {
+        // Yesterday's hours (opens 20:00, closes 01:00 - crosses midnight)
+        // should contribute an early-morning spillover to *today's* slots,
+        // on top of today's own 08:00-11:00 window from setUp().
+        $yesterday = CarbonImmutable::parse(self::DATE)->subDay();
+        BusinessHour::create([
+            'day_of_week' => $yesterday->dayOfWeek,
+            'opens_at' => '20:00:00',
+            'closes_at' => '01:00:00',
+            'is_closed' => false,
+        ]);
+
+        $court = Court::factory()->create();
+
+        $result = (new AvailabilityService)->forDate(self::DATE);
+
+        $this->assertFalse($result['is_facility_closed']);
+        $courtAvailability = collect($result['courts'])->firstWhere('court.id', $court->id);
+        $times = collect($courtAvailability->slots)->map(fn ($slot) => [$slot->startTime, $slot->endTime])->all();
+
+        // Spillover (00:00-01:00) comes first, then today's own 08:00-11:00.
+        $this->assertSame([
+            ['00:00:00', '01:00:00'],
+            ['08:00:00', '09:00:00'],
+            ['09:00:00', '10:00:00'],
+            ['10:00:00', '11:00:00'],
+        ], $times);
+    }
+
+    public function test_a_spillover_slot_can_be_booked_and_blocks_re_booking(): void
+    {
+        $yesterday = CarbonImmutable::parse(self::DATE)->subDay();
+        BusinessHour::create([
+            'day_of_week' => $yesterday->dayOfWeek,
+            'opens_at' => '20:00:00',
+            'closes_at' => '01:00:00',
+            'is_closed' => false,
+        ]);
+
+        $court = Court::factory()->create();
+        Booking::factory()->create([
+            'court_id' => $court->id,
+            'booking_date' => self::DATE,
+            'start_time' => '00:00:00',
+            'end_time' => '01:00:00',
+        ]);
+
+        $slots = $this->slotsFor($court);
+
+        $this->assertSame(SlotStatus::Booked, $slots['00:00:00']->status);
+    }
+
+    public function test_business_day_with_closing_equal_to_opening_runs_a_full_24_hours(): void
+    {
+        BusinessHour::where('day_of_week', CarbonImmutable::parse(self::DATE)->dayOfWeek)
+            ->update(['opens_at' => '06:00:00', 'closes_at' => '06:00:00']);
+
+        $yesterday = CarbonImmutable::parse(self::DATE)->subDay();
+        BusinessHour::create([
+            'day_of_week' => $yesterday->dayOfWeek,
+            'opens_at' => '06:00:00',
+            'closes_at' => '06:00:00',
+            'is_closed' => false,
+        ]);
+
+        $court = Court::factory()->create();
+
+        $result = (new AvailabilityService)->forDate(self::DATE);
+        $courtAvailability = collect($result['courts'])->firstWhere('court.id', $court->id);
+
+        // 00:00-06:00 spillover from "yesterday" plus 06:00-23:00 today =
+        // 23 hourly slots; the 23:00-00:00 hour is the pre-existing gap
+        // (AvailabilityService never generates a slot ending at 00:00:00).
+        $slots = $courtAvailability->slots;
+        $this->assertCount(23, $slots);
+        $this->assertSame('00:00:00', $slots[0]->startTime);
+        $this->assertSame('22:00:00', end($slots)->startTime);
+    }
+
     public function test_missing_business_hour_record_is_treated_as_closed(): void
     {
         BusinessHour::query()->delete();
@@ -241,9 +321,10 @@ class AvailabilityServiceTest extends TestCase
 
         (new AvailabilityService)->forDate(self::DATE);
 
-        // Fixed number of queries: business hour, courts, bookings,
+        // Fixed number of queries: today's business hour, yesterday's
+        // business hour (for midnight spillover), courts, bookings,
         // maintenance, closures — must not scale with court/booking count.
-        $this->assertLessThanOrEqual(6, $queryCount);
+        $this->assertLessThanOrEqual(7, $queryCount);
     }
 
     /**

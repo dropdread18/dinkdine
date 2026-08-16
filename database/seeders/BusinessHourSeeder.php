@@ -10,20 +10,21 @@ class BusinessHourSeeder extends Seeder
     /**
      * Requirements.md §16. Carbon day-of-week: 0 = Sunday .. 6 = Saturday.
      *
-     * Friday/Saturday close at midnight per the spec; stored as 23:59:59
-     * since the schema doesn't yet model hours that cross into the next
-     * calendar day. Revisit when the Availability Engine is built.
+     * Owner request (2026-08-16): every day now opens 6:00 AM and closes
+     * 2:00 AM the following morning, since players sometimes play past
+     * midnight. closes_at < opens_at is AvailabilityService's convention
+     * for "crosses into the next calendar day" (see its spilloverSlotTimes()).
      */
     public function run(): void
     {
         $hours = [
-            0 => ['06:00:00', '22:00:00'], // Sunday
-            1 => ['06:00:00', '23:00:00'], // Monday
-            2 => ['06:00:00', '23:00:00'], // Tuesday
-            3 => ['06:00:00', '23:00:00'], // Wednesday
-            4 => ['06:00:00', '23:00:00'], // Thursday
-            5 => ['06:00:00', '23:59:59'], // Friday
-            6 => ['06:00:00', '23:59:59'], // Saturday
+            0 => ['06:00:00', '02:00:00'], // Sunday
+            1 => ['06:00:00', '02:00:00'], // Monday
+            2 => ['06:00:00', '02:00:00'], // Tuesday
+            3 => ['06:00:00', '02:00:00'], // Wednesday
+            4 => ['06:00:00', '02:00:00'], // Thursday
+            5 => ['06:00:00', '02:00:00'], // Friday
+            6 => ['06:00:00', '02:00:00'], // Saturday
         ];
 
         foreach ($hours as $day => [$opens, $closes]) {

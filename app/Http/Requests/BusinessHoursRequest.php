@@ -35,13 +35,12 @@ class BusinessHoursRequest extends FormRequest
 
                 if (empty($row['opens_at']) || empty($row['closes_at'])) {
                     $validator->errors()->add("hours.{$day}.opens_at", 'Opening and closing time are required for an open day.');
-
-                    continue;
                 }
 
-                if ($row['closes_at'] <= $row['opens_at']) {
-                    $validator->errors()->add("hours.{$day}.closes_at", 'Closing time must be after opening time.');
-                }
+                // A closing time at or before the opening time is not an
+                // error - it means the day runs past midnight (e.g. opens
+                // 06:00, closes 02:00 the next morning). AvailabilityService
+                // splits that into today's slots plus tomorrow's spillover.
             }
         });
     }

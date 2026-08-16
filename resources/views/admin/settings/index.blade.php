@@ -181,6 +181,7 @@
 
     <section>
         <h2 class="text-sm font-medium text-slate-500 uppercase mb-3">Business Hours</h2>
+        <p class="text-sm text-slate-500 mb-3">To stay open past midnight, set a closing time earlier than the opening time (e.g. opens 6:00 AM, closes 2:00 AM) - it's treated as closing the next morning.</p>
 
         <form method="POST" action="{{ route('manage.settings.business-hours.update') }}" class="space-y-4">
             @csrf
