@@ -6,26 +6,26 @@
     <section class="mb-10">
         <h2 class="text-sm font-medium text-slate-500 uppercase mb-3">Facility &amp; Booking Rules</h2>
 
-        <x-card class="max-w-lg">
-        <form method="POST" action="{{ route('manage.settings.update') }}" enctype="multipart/form-data" class="space-y-4">
+        <x-card class="max-w-5xl">
+        <form method="POST" action="{{ route('manage.settings.update') }}" enctype="multipart/form-data" class="space-y-5">
             @csrf
             @method('PUT')
 
-            <div>
-                <label for="facility_name" class="block text-sm font-medium text-slate-700">Facility Name</label>
-                <input id="facility_name" name="facility_name" type="text" required
-                       value="{{ old('facility_name', $settings['facility_name']) }}"
-                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
-            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-4">
+                <div>
+                    <label for="facility_name" class="block text-sm font-medium text-slate-700">Facility Name</label>
+                    <input id="facility_name" name="facility_name" type="text" required
+                           value="{{ old('facility_name', $settings['facility_name']) }}"
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
 
-            <div>
-                <label for="facility_address" class="block text-sm font-medium text-slate-700">Address (optional)</label>
-                <input id="facility_address" name="facility_address" type="text"
-                       value="{{ old('facility_address', $settings['facility_address']) }}"
-                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
-            </div>
+                <div>
+                    <label for="facility_address" class="block text-sm font-medium text-slate-700">Address (optional)</label>
+                    <input id="facility_address" name="facility_address" type="text"
+                           value="{{ old('facility_address', $settings['facility_address']) }}"
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
 
-            <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label for="facility_phone" class="block text-sm font-medium text-slate-700">Phone (optional)</label>
                     <input id="facility_phone" name="facility_phone" type="text"
@@ -39,9 +39,7 @@
                            value="{{ old('facility_email', $settings['facility_email']) }}"
                            class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
-            </div>
 
-            <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label for="currency" class="block text-sm font-medium text-slate-700">Currency Code</label>
                     <input id="currency" name="currency" type="text" maxlength="3" required
@@ -53,9 +51,7 @@
                     <label class="block text-sm font-medium text-slate-700">Timezone</label>
                     <p class="mt-1 py-2 text-sm text-slate-500">{{ $timezone }} (fixed, not editable)</p>
                 </div>
-            </div>
 
-            <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label for="default_booking_duration_minutes" class="block text-sm font-medium text-slate-700">Default Slot Duration (min)</label>
                     <input id="default_booking_duration_minutes" name="default_booking_duration_minutes" type="number" min="15" step="1" required
@@ -69,9 +65,7 @@
                            value="{{ old('max_booking_duration_minutes', $settings['max_booking_duration_minutes']) }}"
                            class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
-            </div>
 
-            <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label for="min_booking_notice_minutes" class="block text-sm font-medium text-slate-700">Min Booking Notice (min)</label>
                     <input id="min_booking_notice_minutes" name="min_booking_notice_minutes" type="number" min="0" step="1" required
@@ -85,9 +79,7 @@
                            value="{{ old('max_advance_booking_days', $settings['max_advance_booking_days']) }}"
                            class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
-            </div>
 
-            <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label for="cancellation_deadline_hours" class="block text-sm font-medium text-slate-700">Cancellation Deadline (hrs)</label>
                     <input id="cancellation_deadline_hours" name="cancellation_deadline_hours" type="number" min="0" step="1" required
@@ -101,43 +93,45 @@
                            value="{{ old('max_simultaneous_bookings_per_customer', $settings['max_simultaneous_bookings_per_customer']) }}"
                            class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
+
+                <div>
+                    <label for="default_court_hourly_rate" class="block text-sm font-medium text-slate-700">Default Court Hourly Rate</label>
+                    <input id="default_court_hourly_rate" name="default_court_hourly_rate" type="number" min="0" step="0.01" required
+                           value="{{ old('default_court_hourly_rate', $settings['default_court_hourly_rate']) }}"
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+
+                <div>
+                    <label for="payment_hold_minutes" class="block text-sm font-medium text-slate-700">Payment Hold Window (min)</label>
+                    <input id="payment_hold_minutes" name="payment_hold_minutes" type="number" min="1" max="120" step="1" required
+                           value="{{ old('payment_hold_minutes', $settings['payment_hold_minutes']) }}"
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
+                    <p class="text-xs text-slate-500 mt-1">Time before an unpaid hold releases.</p>
+                </div>
             </div>
 
-            <div>
-                <label for="default_court_hourly_rate" class="block text-sm font-medium text-slate-700">Default Court Hourly Rate</label>
-                <input id="default_court_hourly_rate" name="default_court_hourly_rate" type="number" min="0" step="0.01" required
-                       value="{{ old('default_court_hourly_rate', $settings['default_court_hourly_rate']) }}"
-                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
-            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-1">
+                <div>
+                    <label for="payment_instructions" class="block text-sm font-medium text-slate-700">Guest Payment Instructions</label>
+                    <p class="text-xs text-slate-500 mb-1">Shown after selecting slots - how to pay and where to enter the reference number.</p>
+                    <textarea id="payment_instructions" name="payment_instructions" rows="3"
+                              class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">{{ old('payment_instructions', $settings['payment_instructions']) }}</textarea>
+                </div>
 
-            <div>
-                <label for="payment_hold_minutes" class="block text-sm font-medium text-slate-700">Payment Hold Window (min)</label>
-                <p class="text-xs text-slate-500 mb-1">How long a slot stays reserved while a customer completes payment before it's released back to Available.</p>
-                <input id="payment_hold_minutes" name="payment_hold_minutes" type="number" min="1" max="120" step="1" required
-                       value="{{ old('payment_hold_minutes', $settings['payment_hold_minutes']) }}"
-                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
-            </div>
-
-            <div>
-                <label for="payment_instructions" class="block text-sm font-medium text-slate-700">Guest Payment Instructions</label>
-                <p class="text-xs text-slate-500 mb-1">Shown to guest/non-logged-in customers after they select their slots - how to pay and where to enter their reference number.</p>
-                <textarea id="payment_instructions" name="payment_instructions" rows="3"
-                          class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">{{ old('payment_instructions', $settings['payment_instructions']) }}</textarea>
-            </div>
-
-            <div>
-                <label for="payment_qr_code" class="block text-sm font-medium text-slate-700">Payment QR Code (optional)</label>
-                <p class="text-xs text-slate-500 mb-1">Shown to guest customers on the payment screen so they can scan to pay instead of typing the details in manually.</p>
-                @if ($settings['payment_qr_code'])
-                    <div class="flex items-center gap-3 mt-1 mb-2">
-                        <img src="{{ \Illuminate\Support\Facades\Storage::url($settings['payment_qr_code']) }}" alt="Payment QR code" class="w-24 h-24 object-contain rounded-lg border border-slate-200 bg-white p-1">
-                        <label class="flex items-center gap-2 text-sm text-slate-600">
-                            <input type="checkbox" name="remove_payment_qr_code" value="1" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
-                            Remove QR code
-                        </label>
-                    </div>
-                @endif
-                <input id="payment_qr_code" name="payment_qr_code" type="file" accept="image/*" class="mt-1 block w-full text-sm">
+                <div>
+                    <label for="payment_qr_code" class="block text-sm font-medium text-slate-700">Payment QR Code (optional)</label>
+                    <p class="text-xs text-slate-500 mb-1">Shown on the payment screen so customers can scan to pay.</p>
+                    @if ($settings['payment_qr_code'])
+                        <div class="flex items-center gap-3 mt-1 mb-2">
+                            <img src="{{ \Illuminate\Support\Facades\Storage::url($settings['payment_qr_code']) }}" alt="Payment QR code" class="w-16 h-16 object-contain rounded-lg border border-slate-200 bg-white p-1">
+                            <label class="flex items-center gap-2 text-sm text-slate-600">
+                                <input type="checkbox" name="remove_payment_qr_code" value="1" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                                Remove QR code
+                            </label>
+                        </div>
+                    @endif
+                    <input id="payment_qr_code" name="payment_qr_code" type="file" accept="image/*" class="mt-1 block w-full text-sm">
+                </div>
             </div>
 
             <x-button type="submit">Save Settings</x-button>

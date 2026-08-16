@@ -19,13 +19,14 @@ use App\Http\Controllers\Staff\CheckInController;
 use App\Http\Controllers\Staff\WalkInBookingController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
+Route::get('/', function (\App\Services\AvailabilityService $availability) {
     return view('home', [
         'courts' => \App\Models\Court::query()
             ->where('status', \App\Enums\CourtStatus::Active)
             ->orderBy('sort_order')->orderBy('court_number')
             ->get(),
         'businessHours' => \App\Models\BusinessHour::orderBy('day_of_week')->get(),
+        'todayAvailability' => $availability->forDate(now()->toDateString()),
     ]);
 })->name('home');
 
