@@ -21,8 +21,12 @@
 <aside class="hidden lg:flex lg:flex-col lg:shrink-0 lg:justify-between bg-slate-900" style="width: 240px; padding: 24px 0;">
     <div>
         <div class="flex items-center gap-2 px-6 mb-6">
-            <span class="inline-block w-2.5 h-2.5 rounded-full bg-accent"></span>
-            <span class="text-lg font-extrabold text-white">{{ $brandName }}</span>
+            @if ($brandLogoUrl)
+                <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-7 w-auto">
+            @else
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-accent"></span>
+                <span class="text-lg font-extrabold text-white">{{ $brandName }}</span>
+            @endif
         </div>
         @foreach ($navItems as $item)
             @php $isActive = request()->routeIs($item['pattern']); @endphp

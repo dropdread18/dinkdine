@@ -31,8 +31,12 @@
         <header style="background: var(--db-nav);">
             <div class="mx-auto max-w-[1440px] px-5 sm:px-10 h-16 sm:h-[72px] flex items-center">
                 <a href="{{ url('/') }}" class="flex items-center gap-2">
-                    <span class="inline-block w-2.5 h-2.5 rounded-full" style="background: var(--db-accent);"></span>
-                    <span class="text-lg sm:text-xl font-extrabold text-white tracking-tight" style="font-family: var(--db-font);">{{ $brandName }}</span>
+                    @if ($brandLogoUrl)
+                        <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-7 sm:h-8 w-auto">
+                    @else
+                        <span class="inline-block w-2.5 h-2.5 rounded-full" style="background: var(--db-accent);"></span>
+                        <span class="text-lg sm:text-xl font-extrabold text-white tracking-tight" style="font-family: var(--db-font);">{{ $brandName }}</span>
+                    @endif
                 </a>
             </div>
         </header>

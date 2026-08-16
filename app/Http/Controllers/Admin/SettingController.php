@@ -43,6 +43,7 @@ class SettingController extends Controller
             fn (string $key) => [$key => Setting::get($key)]
         );
         $settings['payment_qr_code'] = Setting::get('payment_qr_code');
+        $settings['facility_logo'] = Setting::get('facility_logo');
 
         return view('admin.settings.index', [
             'settings' => $settings,
@@ -74,6 +75,18 @@ class SettingController extends Controller
                 Storage::disk('public')->delete($existing);
             }
             Setting::set('payment_qr_code', $request->file('payment_qr_code')->store('settings', 'public'));
+        }
+
+        if ($request->boolean('remove_facility_logo')) {
+            if ($existing = Setting::get('facility_logo')) {
+                Storage::disk('public')->delete($existing);
+            }
+            Setting::set('facility_logo', '');
+        } elseif ($request->hasFile('facility_logo')) {
+            if ($existing = Setting::get('facility_logo')) {
+                Storage::disk('public')->delete($existing);
+            }
+            Setting::set('facility_logo', $request->file('facility_logo')->store('settings', 'public'));
         }
 
         return redirect()->route('manage.settings.index')->with('status', 'Settings updated.');

@@ -1,8 +1,12 @@
 <nav class="bg-slate-900 sticky top-0 z-10">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between flex-wrap gap-3">
         <a href="{{ url('/') }}" class="flex items-center gap-2 shrink-0">
-            <span class="inline-block w-2.5 h-2.5 rounded-full bg-accent"></span>
-            <span class="font-extrabold text-white">{{ $brandName }}</span>
+            @if ($brandLogoUrl)
+                <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-6 w-auto">
+            @else
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-accent"></span>
+                <span class="font-extrabold text-white">{{ $brandName }}</span>
+            @endif
         </a>
 
         <div class="flex items-center gap-1 sm:gap-4 text-sm flex-wrap">

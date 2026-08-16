@@ -11,6 +11,21 @@
             @csrf
             @method('PUT')
 
+            <div>
+                <label for="facility_logo" class="block text-sm font-medium text-slate-700">Facility Logo (optional)</label>
+                <p class="text-xs text-slate-500 mb-1">Shown in the header/nav instead of the facility name text, if uploaded.</p>
+                @if ($settings['facility_logo'])
+                    <div class="flex items-center gap-3 mt-1 mb-2">
+                        <img src="{{ \Illuminate\Support\Facades\Storage::url($settings['facility_logo']) }}" alt="Facility logo" class="w-16 h-16 object-contain rounded-lg border border-slate-200 bg-white p-1">
+                        <label class="flex items-center gap-2 text-sm text-slate-600">
+                            <input type="checkbox" name="remove_facility_logo" value="1" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                            Remove logo
+                        </label>
+                    </div>
+                @endif
+                <input id="facility_logo" name="facility_logo" type="file" accept="image/*" class="mt-1 block w-full text-sm">
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-4">
                 <div>
                     <label for="facility_name" class="block text-sm font-medium text-slate-700">Facility Name</label>
