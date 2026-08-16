@@ -262,7 +262,7 @@
                                     $key = "{$court->id}|{$slot->startTime}";
                                     $isSelected = isset($selected[$key]);
                                     $slotStart = \Illuminate\Support\Carbon::parse($date.' '.$slot->startTime);
-                                    $bookable = $slot->status === $slotStatus::Available && $slotStart->gte($bookableFrom);
+                                    $bookable = $slot->status === $slotStatus::Available && ($slotStart->lte(\Illuminate\Support\Carbon::now()) || $slotStart->gte($bookableFrom));
                                     $statusKey = $isSelected ? 'selected' : $slot->status->value;
                                     $meta = $statusMeta[$statusKey] ?? $statusMeta['closed'];
                                 @endphp
@@ -350,7 +350,7 @@
                             $key = "{$court->id}|{$slot->startTime}";
                             $isSelected = isset($selected[$key]);
                             $slotStart = \Illuminate\Support\Carbon::parse($date.' '.$slot->startTime);
-                            $bookable = $slot->status === $slotStatus::Available && $slotStart->gte($bookableFrom);
+                            $bookable = $slot->status === $slotStatus::Available && ($slotStart->lte(\Illuminate\Support\Carbon::now()) || $slotStart->gte($bookableFrom));
                             $statusKey = $isSelected ? 'selected' : $slot->status->value;
                             $meta = $statusMeta[$statusKey] ?? $statusMeta['closed'];
                         @endphp

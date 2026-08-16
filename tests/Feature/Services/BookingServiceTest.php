@@ -213,6 +213,40 @@ class BookingServiceTest extends TestCase
         );
     }
 
+    public function test_a_customer_can_book_the_slot_currently_in_progress(): void
+    {
+        // Owner feedback: the min-notice buffer (30 minutes here) shouldn't
+        // block the hour that's already running - only genuinely-future
+        // slots need advance notice. This is the exact scenario
+        // test_rejects_booking_that_is_too_soon above still correctly
+        // rejects (a future slot inside the notice window); this one is a
+        // slot that has already started.
+        $court = Court::factory()->create();
+
+        BusinessHour::query()->delete();
+        $today = CarbonImmutable::now()->toDateString();
+        BusinessHour::create([
+            'day_of_week' => CarbonImmutable::parse($today)->dayOfWeek,
+            'opens_at' => '00:00:00',
+            'closes_at' => '23:59:00',
+            'is_closed' => false,
+        ]);
+
+        // Never 23:00 - AvailabilityService never generates a slot ending
+        // at "00:00:00" (documented elsewhere in this suite), so a naive
+        // "current hour" is flaky for roughly one hour a day.
+        $currentHour = CarbonImmutable::now()->startOfHour();
+        if ($currentHour->hour === 23) {
+            $this->markTestSkipped('Flaky at the 23:00 slot-generation boundary - see soonSlot() elsewhere in this suite.');
+        }
+
+        $booking = $this->service->book(
+            User::factory()->customer()->create(), $court, $currentHour->toDateString(), $currentHour->format('H:i:s'), $currentHour->addHour()->format('H:i:s')
+        );
+
+        $this->assertSame(BookingStatus::Confirmed, $booking->status);
+    }
+
     public function test_rejects_booking_too_far_in_advance(): void
     {
         $court = Court::factory()->create();

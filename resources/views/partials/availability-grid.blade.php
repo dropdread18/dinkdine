@@ -35,7 +35,7 @@
                             @php
                                 $slot = $courtAvailability->slots[$i];
                                 $slotStart = \Illuminate\Support\Carbon::parse($date.' '.$slot->startTime);
-                                $bookable = $slot->status === \App\Enums\SlotStatus::Available && $slotStart->gte($bookableFrom);
+                                $bookable = $slot->status === \App\Enums\SlotStatus::Available && ($slotStart->lte(\Illuminate\Support\Carbon::now()) || $slotStart->gte($bookableFrom));
                                 $classes = match ($slot->status) {
                                     \App\Enums\SlotStatus::Available => 'bg-green-50 text-green-700',
                                     \App\Enums\SlotStatus::Booked => 'bg-red-50 text-red-700',

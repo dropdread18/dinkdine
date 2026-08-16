@@ -458,7 +458,17 @@ class BookingService
         $minNotice = (int) (Setting::get('min_booking_notice_minutes') ?? 30);
         $maxAdvanceDays = (int) (Setting::get('max_advance_booking_days') ?? 30);
 
-        if ($slotStart->lt(CarbonImmutable::now()->addMinutes($minNotice))) {
+        // Owner feedback: the min-notice buffer shouldn't block the slot
+        // that's already in progress right now - a customer booking "the
+        // current hour" doesn't need advance notice for a slot that's
+        // already started, only genuinely-future slots do. This doesn't
+        // reopen already-elapsed hours: assertSlotIsAvailable() (called
+        // right after this) still rejects anything AvailabilityService has
+        // marked Closed, which is every slot whose END time has passed -
+        // this check only ever exempts the single slot currently running.
+        $alreadyInProgress = $slotStart->lte(CarbonImmutable::now());
+
+        if (! $alreadyInProgress && $slotStart->lt(CarbonImmutable::now()->addMinutes($minNotice))) {
             throw new BookingUnavailableException('This time is too soon to book. Please choose a later time.');
         }
 
