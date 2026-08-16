@@ -48,7 +48,7 @@
             <div class="hidden lg:flex lg:flex-1 lg:flex-col lg:justify-center gap-5 px-16" style="background: var(--db-nav);">
                 <div class="flex items-center gap-2.5">
                     @if ($brandLogoUrl)
-                        <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-8 w-auto">
+                        <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-8 w-auto max-w-[180px] object-contain">
                     @else
                         <span class="inline-block w-3 h-3 rounded-full" style="background: var(--db-accent);"></span>
                         <span class="text-[22px] font-extrabold text-white">{{ $brandName }}</span>
@@ -62,7 +62,7 @@
                 <div class="lg:hidden flex flex-col gap-2" style="background: var(--db-nav); padding: 40px 24px 32px;">
                     <div class="flex items-center gap-2">
                         @if ($brandLogoUrl)
-                            <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-7 w-auto">
+                            <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-7 w-auto max-w-[160px] object-contain">
                         @else
                             <span class="inline-block w-2.5 h-2.5 rounded-full" style="background: var(--db-accent);"></span>
                             <span class="text-lg font-extrabold text-white">{{ $brandName }}</span>

@@ -23,7 +23,8 @@
                         </label>
                     </div>
                 @endif
-                <input id="facility_logo" name="facility_logo" type="file" accept="image/*" class="mt-1 block w-full text-sm">
+                <input id="facility_logo" name="facility_logo" type="file" accept="image/*"
+                       class="mt-1 block w-full text-sm text-slate-500 cursor-pointer file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-accent file:px-4 file:py-2.5 file:text-sm file:font-bold file:text-slate-900 file:shadow-sm file:transition-colors hover:file:bg-[#7A9F20]">
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-4">
@@ -145,7 +146,8 @@
                             </label>
                         </div>
                     @endif
-                    <input id="payment_qr_code" name="payment_qr_code" type="file" accept="image/*" class="mt-1 block w-full text-sm">
+                    <input id="payment_qr_code" name="payment_qr_code" type="file" accept="image/*"
+                           class="mt-1 block w-full text-sm text-slate-500 cursor-pointer file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-accent file:px-4 file:py-2.5 file:text-sm file:font-bold file:text-slate-900 file:shadow-sm file:transition-colors hover:file:bg-[#7A9F20]">
                 </div>
             </div>
 

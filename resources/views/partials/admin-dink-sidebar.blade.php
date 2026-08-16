@@ -22,7 +22,7 @@
     <div>
         <div class="flex items-center gap-2 px-6 mb-6">
             @if ($brandLogoUrl)
-                <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-7 w-auto">
+                <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-7 w-auto max-w-[160px] object-contain">
             @else
                 <span class="inline-block w-2.5 h-2.5 rounded-full bg-accent"></span>
                 <span class="text-lg font-extrabold text-white">{{ $brandName }}</span>
