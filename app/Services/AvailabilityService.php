@@ -203,6 +203,24 @@ class AvailabilityService
             $slotStart = $slotEnd;
         }
 
+        // '23:59:59' is this class's own internal marker for "crosses
+        // midnight" (see businessHourSlotTimes()) - never a value an admin
+        // actually configures. The loop above always stops one slot short
+        // of midnight: a full-duration slot starting at e.g. 23:00 would
+        // end at 00:00:00 the NEXT day, and every time comparison in this
+        // app (timeRangesOverlap() below, BookingService::book()'s DB
+        // conflict query) treats times as plain strings/TIME values within
+        // a single day - '00:00:00' always sorts as the smallest time, not
+        // the largest, which would silently break double-booking
+        // protection for that slot. Capping this one final slot at
+        // 23:59:59 instead of a full $durationMinutes keeps its end_time
+        // safely within the same calendar day (a few seconds short of a
+        // full hour) rather than ambiguous with the next day's midnight -
+        // this is what makes the last hour before midnight bookable at all.
+        if ($closesAt === '23:59:59' && $slotStart->lt($closes)) {
+            $slots[] = [$slotStart->format('H:i:s'), $closes->format('H:i:s')];
+        }
+
         return $slots;
     }
 

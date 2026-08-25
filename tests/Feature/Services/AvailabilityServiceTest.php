@@ -289,13 +289,59 @@ class AvailabilityServiceTest extends TestCase
         $result = (new AvailabilityService)->forDate(self::DATE);
         $courtAvailability = collect($result['courts'])->firstWhere('court.id', $court->id);
 
-        // 00:00-06:00 spillover from "yesterday" plus 06:00-23:00 today =
-        // 23 hourly slots; the 23:00-00:00 hour is the pre-existing gap
-        // (AvailabilityService never generates a slot ending at 00:00:00).
+        // 00:00-06:00 spillover from "yesterday" (6 hourly slots) plus
+        // 06:00-23:00 today (17 hourly slots) plus one final short slot
+        // 23:00-23:59:59 (DEC-018's fix for the last-hour-before-midnight
+        // gap) = 24 slots total.
         $slots = $courtAvailability->slots;
-        $this->assertCount(23, $slots);
+        $this->assertCount(24, $slots);
         $this->assertSame('00:00:00', $slots[0]->startTime);
-        $this->assertSame('22:00:00', end($slots)->startTime);
+        $this->assertSame('23:00:00', end($slots)->startTime);
+        $this->assertSame('23:59:59', end($slots)->endTime);
+    }
+
+    /**
+     * DEC-018: the real-world scenario the facility owner actually hit -
+     * every day open 6am to 2am the next morning (this project's actual
+     * seeded business hours), and the 11pm-midnight hour specifically was
+     * never bookable online at all before this fix.
+     */
+    public function test_the_hour_before_midnight_is_bookable_when_business_hours_cross_midnight(): void
+    {
+        BusinessHour::where('day_of_week', CarbonImmutable::parse(self::DATE)->dayOfWeek)
+            ->update(['opens_at' => '06:00:00', 'closes_at' => '02:00:00']);
+
+        $court = Court::factory()->create();
+
+        $slots = $this->slotsFor($court);
+
+        $this->assertArrayHasKey('23:00:00', $slots);
+        $this->assertSame('23:59:59', $slots['23:00:00']->endTime);
+        $this->assertSame(SlotStatus::Available, $slots['23:00:00']->status);
+    }
+
+    /**
+     * The specific risk that made a naive fix unsafe in the first place:
+     * confirms double-booking protection genuinely still works for this
+     * slot, not just that it's generated - goes through the real
+     * BookingService::book() write path, not just AvailabilityService.
+     */
+    public function test_the_hour_before_midnight_still_blocks_a_second_booking(): void
+    {
+        Setting::set('default_booking_duration_minutes', '60');
+        Setting::set('min_booking_notice_minutes', '0');
+        Setting::set('max_advance_booking_days', '30');
+        BusinessHour::where('day_of_week', CarbonImmutable::parse(self::DATE)->dayOfWeek)
+            ->update(['opens_at' => '06:00:00', 'closes_at' => '02:00:00']);
+
+        $court = Court::factory()->create();
+        $user = \App\Models\User::factory()->customer()->create();
+        $bookingService = app(\App\Services\BookingService::class);
+
+        $bookingService->book($user, $court, self::DATE, '23:00:00', '23:59:59');
+
+        $this->expectException(\App\Exceptions\BookingUnavailableException::class);
+        $bookingService->book($user, $court, self::DATE, '23:00:00', '23:59:59');
     }
 
     public function test_missing_business_hour_record_is_treated_as_closed(): void
