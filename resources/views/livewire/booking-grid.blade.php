@@ -93,7 +93,7 @@
                         </div>
 
                         @if ($paymentInstructions)
-                            <div x-show="payMode === 'manual'" class="rounded-xl p-4 text-base font-bold whitespace-pre-line leading-relaxed" style="background: #F8FAF5; border: 1px solid var(--db-border); color: var(--db-ink);">{{ $paymentInstructions }}</div>
+                            <div x-show="payMode === 'manual'" class="rounded-xl p-4 text-base font-bold whitespace-pre-line leading-relaxed" style="background: #F8FAF5; border: 1px solid var(--db-border); color: #0257D8;">{{ $paymentInstructions }}</div>
                         @endif
 
                         <div x-show="qrLightbox" x-cloak @keydown.escape.window="qrLightbox = false"
@@ -110,7 +110,7 @@
                         </div>
                     </div>
                 @elseif ($paymentInstructions)
-                    <div class="rounded-xl p-4 text-base font-bold whitespace-pre-line leading-relaxed" style="background: #F8FAF5; border: 1px solid var(--db-border); color: var(--db-ink);">{{ $paymentInstructions }}</div>
+                    <div class="rounded-xl p-4 text-base font-bold whitespace-pre-line leading-relaxed" style="background: #F8FAF5; border: 1px solid var(--db-border); color: #0257D8;">{{ $paymentInstructions }}</div>
                 @endif
 
                 <div class="flex flex-col gap-1.5">
@@ -236,7 +236,15 @@
         @elseif (empty($availability['courts']))
             <div class="rounded-2xl p-8 text-center text-sm" style="background: var(--db-surface); border: 1px solid var(--db-border); color: var(--db-ink-faint);">No courts are configured yet.</div>
         @else
-            @php $times = $availability['courts'][0]->slots ?? []; @endphp
+            @php
+                $times = $availability['courts'][0]->slots ?? [];
+                // Owner request: don't make customers scroll past hours
+                // that have already ended today. Purely a time check, not
+                // a status check - a row for an already-elapsed hour is
+                // dropped regardless of why any individual court shows
+                // Closed there, since every court shares the same time axis.
+                $isToday = \Illuminate\Support\Carbon::parse($date)->isToday();
+            @endphp
 
             {{-- ============ Desktop: grid + live sidebar (lg and up) ============ --}}
             <div class="hidden lg:grid lg:items-start lg:gap-6" style="grid-template-columns: 1fr 340px;">
@@ -248,6 +256,7 @@
                         @endforeach
                     </div>
                     @foreach ($times as $i => $time)
+                        @continue($isToday && \Illuminate\Support\Carbon::parse($date.' '.$time->endTime)->lt(\Illuminate\Support\Carbon::now()))
                         <div class="grid gap-2 mb-2" style="grid-template-columns: 96px repeat({{ count($availability['courts']) }}, 1fr);">
                             <div class="text-[12px] font-semibold flex items-center" style="color: var(--db-ink-soft);">
                                 {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $time->startTime)->format('g:i A') }} – {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $time->endTime)->format('g:i A') }}
@@ -340,6 +349,7 @@
                 <div class="flex flex-col gap-2.5 {{ ! empty($selected) ? 'pb-24' : '' }}">
                     @php $activeCourtAvailability = collect($availability['courts'])->first(fn ($ca) => $ca->court->id === $effectiveMobileCourt); @endphp
                     @foreach ($times as $i => $time)
+                        @continue($isToday && \Illuminate\Support\Carbon::parse($date.' '.$time->endTime)->lt(\Illuminate\Support\Carbon::now()))
                         @php
                             $slot = $activeCourtAvailability->slots[$i] ?? null;
                             if (! $slot) continue;
