@@ -69,8 +69,8 @@
 
                 @if ($openPlayLink)
                     <div>
-                        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Open Play</div>
-                        <a href="{{ $openPlayLink }}" target="_blank" rel="noopener" class="text-sm text-blue-600 hover:text-blue-700 underline underline-offset-2 mt-1 inline-block">See Open Play Sessions</a>
+                        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Reclub</div>
+                        <a href="{{ $openPlayLink }}" target="_blank" rel="noopener" class="text-sm text-blue-600 hover:text-blue-700 underline underline-offset-2 mt-1 inline-block">Visit our Reclub Page</a>
                     </div>
                 @endif
 
