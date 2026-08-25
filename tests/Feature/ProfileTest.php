@@ -16,10 +16,26 @@ class ProfileTest extends TestCase
         $this->get('/profile')->assertRedirect('/login');
     }
 
-    public function test_staff_and_admin_cannot_access_the_customer_profile_page(): void
+    public function test_staff_and_admin_can_also_access_their_own_profile_page(): void
     {
-        $this->actingAs(User::factory()->staff()->create())->get('/profile')->assertForbidden();
-        $this->actingAs(User::factory()->admin()->create())->get('/profile')->assertForbidden();
+        // Previously customer-only by oversight - staff/admin had no route
+        // to change their own password at all until this was fixed.
+        $this->actingAs(User::factory()->staff()->create())->get('/profile')->assertOk();
+        $this->actingAs(User::factory()->admin()->create())->get('/profile')->assertOk();
+    }
+
+    public function test_admin_can_change_their_own_password(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->put('/profile/password', [
+            'current_password' => 'password',
+            'password' => 'a-new-secure-password',
+            'password_confirmation' => 'a-new-secure-password',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertTrue(Hash::check('a-new-secure-password', $admin->fresh()->password));
     }
 
     public function test_customer_can_view_their_profile(): void

@@ -36,6 +36,7 @@
                 @endforeach
                 <div class="border-t border-white/10 my-2"></div>
                 <div class="px-4 py-1 text-xs text-slate-500">{{ auth()->user()->name }} &middot; {{ auth()->user()->role->label() }}</div>
+                <a href="{{ route('profile.edit') }}" class="block px-4 text-sm text-slate-400 hover:text-white py-1">My Account</a>
                 <form method="POST" action="{{ route('logout') }}" class="px-4 pt-1">
                     @csrf
                     <button type="submit" class="text-sm text-slate-400 hover:text-white py-1">Logout</button>
