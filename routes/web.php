@@ -132,6 +132,7 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
     Route::get('/booking-confirmed', [BookingController::class, 'confirmation'])->name('bookings.confirmation');
 
     Route::patch('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
+    Route::post('/bookings/{booking}/continue-payment', [BookingController::class, 'continuePayment'])->name('bookings.continue-payment');
     Route::get('/bookings/{booking}/reschedule', [BookingController::class, 'reschedule'])->name('bookings.reschedule');
     Route::get('/bookings/{booking}/reschedule/{court}', [BookingController::class, 'rescheduleForm'])->name('bookings.reschedule-form');
     Route::put('/bookings/{booking}/reschedule/{court}', [BookingController::class, 'rescheduleUpdate'])->name('bookings.reschedule-update');

@@ -36,6 +36,10 @@
                 @endif
             </div>
         </x-card>
+
+        @if ($booking->status === \App\Enums\BookingStatus::Pending && $booking->hold_expires_at?->isFuture())
+            @include('partials.continue-payment', ['booking' => $booking])
+        @endif
     @empty
         <x-card class="mb-4 text-sm text-slate-500">
             No upcoming bookings. <a href="{{ route('bookings.index') }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Book a court</a>.

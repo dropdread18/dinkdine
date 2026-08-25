@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\BookingUnavailableException;
+use App\Http\Requests\ContinuePaymentRequest;
 use App\Http\Requests\StoreBookingRequest;
 use App\Models\Booking;
 use App\Models\Court;
@@ -155,6 +156,33 @@ class BookingController extends Controller
         }
 
         return back()->with('status', 'Booking cancelled.');
+    }
+
+    /**
+     * Resumes the payment-hold flow for a booking that's still Pending with
+     * time left on its hold - the customer accidentally navigated away from
+     * BookingGrid's in-memory awaitingPayment state (browser back button,
+     * closed tab, etc.) with no way back into it otherwise. Owner-only,
+     * same 404-not-403 pattern as every other ownership check here - not
+     * reusing BookingGrid's Livewire submitPaymentReference() since that's
+     * scoped to a whole in-progress checkout batch in memory, not a single
+     * already-persisted booking looked up fresh by ID.
+     */
+    public function continuePayment(ContinuePaymentRequest $request, Booking $booking, BookingService $bookingService): RedirectResponse
+    {
+        abort_unless($booking->user_id === $request->user()->id, 404);
+
+        $proofPath = $request->hasFile('payment_proof')
+            ? $request->file('payment_proof')->store('payment-proofs', 'local')
+            : null;
+
+        try {
+            $bookingService->confirmWithReference([$booking], $request->input('reference_number'), $proofPath);
+        } catch (BookingUnavailableException $e) {
+            return back()->withErrors(['reference_number' => $e->getMessage()]);
+        }
+
+        return redirect()->route('bookings.show', $booking)->with('status', 'Payment submitted - staff will verify it when you arrive.');
     }
 
     public function reschedule(Request $request, Booking $booking, AvailabilityService $availability): View

@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Enums\BookingStatus;
+use App\Enums\PaymentStatus;
 use App\Models\Booking;
 use App\Models\BusinessHour;
 use App\Models\Court;
+use App\Models\Payment;
 use App\Models\Setting;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -178,5 +180,86 @@ class BookingSelfServiceTest extends TestCase
 
         $response->assertOk();
         $response->assertDontSee('Cancel');
+    }
+
+    public function test_customer_can_resume_payment_for_their_own_pending_booking_with_an_active_hold(): void
+    {
+        $customer = User::factory()->customer()->create();
+        $booking = Booking::factory()->pending()->create([
+            'user_id' => $customer->id, 'booking_date' => $this->date, 'start_time' => '09:00:00', 'end_time' => '10:00:00',
+        ]);
+        $booking->forceFill(['hold_expires_at' => now()->addMinutes(10)])->save();
+        Payment::factory()->create(['booking_id' => $booking->id]);
+
+        $response = $this->actingAs($customer)->post("/bookings/{$booking->id}/continue-payment", [
+            'reference_number' => 'GCASH-REF-99',
+        ]);
+
+        $response->assertRedirect(route('bookings.show', $booking));
+        $fresh = $booking->fresh();
+        $this->assertSame(BookingStatus::Confirmed, $fresh->status);
+        $this->assertSame(PaymentStatus::Pending, $fresh->payment_status);
+        $this->assertSame('GCASH-REF-99', $fresh->payment->reference_number);
+    }
+
+    public function test_customer_cannot_resume_payment_for_someone_elses_booking(): void
+    {
+        $owner = User::factory()->customer()->create();
+        $other = User::factory()->customer()->create();
+        $booking = Booking::factory()->pending()->create([
+            'user_id' => $owner->id, 'booking_date' => $this->date, 'start_time' => '09:00:00', 'end_time' => '10:00:00',
+        ]);
+        $booking->forceFill(['hold_expires_at' => now()->addMinutes(10)])->save();
+
+        $response = $this->actingAs($other)->post("/bookings/{$booking->id}/continue-payment", [
+            'reference_number' => 'GCASH-REF-99',
+        ]);
+
+        $response->assertNotFound();
+        $this->assertSame(BookingStatus::Pending, $booking->fresh()->status);
+    }
+
+    public function test_resuming_payment_after_the_hold_expired_shows_a_clear_error(): void
+    {
+        $customer = User::factory()->customer()->create();
+        $booking = Booking::factory()->pending()->create([
+            'user_id' => $customer->id, 'booking_date' => $this->date, 'start_time' => '09:00:00', 'end_time' => '10:00:00',
+        ]);
+        $booking->forceFill(['hold_expires_at' => now()->subMinute()])->save();
+
+        $response = $this->actingAs($customer)->post("/bookings/{$booking->id}/continue-payment", [
+            'reference_number' => 'GCASH-REF-99',
+        ]);
+
+        $response->assertSessionHasErrors('reference_number');
+        $this->assertSame(BookingStatus::Pending, $booking->fresh()->status);
+    }
+
+    public function test_resuming_payment_requires_a_reference_number_or_a_screenshot(): void
+    {
+        $customer = User::factory()->customer()->create();
+        $booking = Booking::factory()->pending()->create([
+            'user_id' => $customer->id, 'booking_date' => $this->date, 'start_time' => '09:00:00', 'end_time' => '10:00:00',
+        ]);
+        $booking->forceFill(['hold_expires_at' => now()->addMinutes(10)])->save();
+
+        $response = $this->actingAs($customer)->post("/bookings/{$booking->id}/continue-payment", []);
+
+        $response->assertSessionHasErrors('reference_number');
+        $this->assertSame(BookingStatus::Pending, $booking->fresh()->status);
+    }
+
+    public function test_my_bookings_shows_the_continue_payment_form_for_an_active_hold(): void
+    {
+        $customer = User::factory()->customer()->create();
+        $booking = Booking::factory()->pending()->create([
+            'user_id' => $customer->id, 'booking_date' => $this->date, 'start_time' => '09:00:00', 'end_time' => '10:00:00',
+        ]);
+        $booking->forceFill(['hold_expires_at' => now()->addMinutes(10)])->save();
+
+        $response = $this->actingAs($customer)->get('/my-bookings');
+
+        $response->assertOk();
+        $response->assertSee(route('bookings.continue-payment', $booking), false);
     }
 }

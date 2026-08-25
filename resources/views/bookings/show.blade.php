@@ -39,6 +39,10 @@
     </x-card>
 
     @if (auth()->user()->isCustomer())
+        @if ($booking->status === \App\Enums\BookingStatus::Pending && $booking->hold_expires_at?->isFuture())
+            @include('partials.continue-payment', ['booking' => $booking])
+        @endif
+
         <div class="mt-6 flex gap-4 text-sm items-center">
             <a href="{{ route('bookings.mine') }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">View my bookings</a>
             <a href="{{ route('bookings.receipt', $booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Print Receipt</a>
