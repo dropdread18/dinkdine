@@ -50,7 +50,7 @@
             <h2 class="text-sm font-bold uppercase tracking-wide text-slate-500 mb-4">Find Us</h2>
             <x-card class="!p-0 overflow-hidden">
                 <iframe
-                    src="https://www.google.com/maps?q=Dink+%26+Dine+Pickleball+Courts,7.0874851,125.5864049&z=17&output=embed"
+                    src="https://www.google.com/maps?q=7.0874851,125.5864049&z=17&output=embed"
                     class="w-full h-[360px] border-0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
                     title="Map showing {{ $facilityName }}'s location"></iframe>
             </x-card>
