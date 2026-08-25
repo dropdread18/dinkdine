@@ -18,7 +18,12 @@
                 <a href="{{ url('/') }}" class="text-slate-400 hover:text-white font-medium">Home</a>
                 <a href="{{ route('bookings.index') }}" class="text-slate-400 hover:text-white font-medium">Book a Court</a>
                 <a href="{{ route('bookings.mine') }}" class="text-slate-400 hover:text-white font-medium">My Bookings</a>
-                <a href="{{ route('profile.edit') }}" class="text-slate-400 hover:text-white font-medium">Profile</a>
+                {{-- A guest/walk-in account never chose a password (password_set_at
+                     is null) - Profile's only real content for them is a dead-end
+                     "there's nothing to change here" message, so don't advertise it. --}}
+                @if ($user->password_set_at)
+                    <a href="{{ route('profile.edit') }}" class="text-slate-400 hover:text-white font-medium">Profile</a>
+                @endif
 
                 <span class="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-slate-300">
                     {{ $user->name }} &middot; {{ $user->role->label() }}
@@ -43,7 +48,9 @@
                     <a href="{{ url('/') }}" class="block px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5">Home</a>
                     <a href="{{ route('bookings.index') }}" class="block px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5">Book a Court</a>
                     <a href="{{ route('bookings.mine') }}" class="block px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5">My Bookings</a>
-                    <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5">Profile</a>
+                    @if ($user->password_set_at)
+                        <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5">Profile</a>
+                    @endif
                     <div class="border-t border-white/10 my-2"></div>
                     <div class="px-4 py-1 text-xs text-slate-500">{{ $user->name }} &middot; {{ $user->role->label() }}</div>
                     <form method="POST" action="{{ route('logout') }}" class="px-4 pt-1">

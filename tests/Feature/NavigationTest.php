@@ -26,7 +26,19 @@ class NavigationTest extends TestCase
             ->assertOk()
             ->assertSee('Book a Court')
             ->assertSee('My Bookings')
+            ->assertSee('Profile')
             ->assertDontSee('Settings');
+    }
+
+    public function test_guest_booker_does_not_see_a_profile_link(): void
+    {
+        // A guest/walk-in account never chose a password - Profile has
+        // nothing real for them to do, so don't advertise it in the nav.
+        $guest = User::factory()->customer()->guestBooker()->create();
+
+        $this->actingAs($guest)->get('/')
+            ->assertOk()
+            ->assertDontSee('Profile');
     }
 
     public function test_staff_sees_staff_navigation(): void
