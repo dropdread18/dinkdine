@@ -128,4 +128,37 @@ class CustomerManagementTest extends TestCase
         $this->assertGuest();
         $response->assertSessionHasErrors('email');
     }
+
+    public function test_admin_can_convert_a_customer_to_staff(): void
+    {
+        $customer = User::factory()->customer()->create(['is_active' => false]);
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->patch("/admin/customers/{$customer->id}/convert-to-staff");
+
+        $response->assertRedirect("/admin/staff/{$customer->id}/edit");
+        $customer->refresh();
+        $this->assertTrue($customer->role === \App\Enums\UserRole::Staff);
+        $this->assertTrue($customer->is_active);
+    }
+
+    public function test_converting_a_customer_to_staff_preserves_their_booking_history(): void
+    {
+        $customer = User::factory()->customer()->create();
+        Booking::factory()->create(['user_id' => $customer->id]);
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->patch("/admin/customers/{$customer->id}/convert-to-staff");
+
+        $this->assertSame(1, Booking::where('user_id', $customer->id)->count());
+    }
+
+    public function test_converting_a_staff_account_through_the_customer_route_is_not_found(): void
+    {
+        $staff = User::factory()->staff()->create();
+
+        $this->actingAs(User::factory()->admin()->create())
+            ->patch("/admin/customers/{$staff->id}/convert-to-staff")
+            ->assertNotFound();
+    }
 }

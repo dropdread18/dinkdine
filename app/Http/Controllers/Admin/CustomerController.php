@@ -88,4 +88,24 @@ class CustomerController extends Controller
 
         return back()->with('status', $customer->is_active ? 'Customer account enabled.' : 'Customer account disabled.');
     }
+
+    /**
+     * Promotes an existing customer account to staff, in place - rather
+     * than requiring a brand-new account, which the unique email
+     * constraint on `users` would reject if this person already has a
+     * customer account (e.g. from testing a booking with their own
+     * email before being hired). Their booking history stays attached
+     * to the same account; the password is left untouched since only
+     * they know it - the admin needs to set a new one via Staff > Edit
+     * right after this.
+     */
+    public function convertToStaff(User $customer): RedirectResponse
+    {
+        abort_unless($customer->role === UserRole::Customer, 404);
+
+        $customer->update(['role' => UserRole::Staff, 'is_active' => true]);
+
+        return redirect()->route('admin.staff.edit', $customer)
+            ->with('status', "{$customer->name} is now a staff account. Set a new password for them below.");
+    }
 }

@@ -3,15 +3,22 @@
 @section('content')
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
         <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">{{ $customer->name }}</h1>
-        <form method="POST" action="{{ route('admin.customers.toggle-active', $customer) }}">
-            @csrf
-            @method('PATCH')
-            @if ($customer->is_active)
-                <x-button type="submit" variant="danger">Disable Account</x-button>
-            @else
-                <x-button type="submit" variant="secondary">Enable Account</x-button>
-            @endif
-        </form>
+        <div class="flex gap-2">
+            <form method="POST" action="{{ route('admin.customers.convert-to-staff', $customer) }}">
+                @csrf
+                @method('PATCH')
+                <x-button type="submit" variant="secondary">Convert to Staff</x-button>
+            </form>
+            <form method="POST" action="{{ route('admin.customers.toggle-active', $customer) }}">
+                @csrf
+                @method('PATCH')
+                @if ($customer->is_active)
+                    <x-button type="submit" variant="danger">Disable Account</x-button>
+                @else
+                    <x-button type="submit" variant="secondary">Enable Account</x-button>
+                @endif
+            </form>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
