@@ -9,6 +9,7 @@
         ['label' => 'Check-in', 'route' => 'manage.checkin.index', 'adminOnly' => false],
         ['label' => 'Payments', 'route' => 'manage.payments.index', 'adminOnly' => false],
         ['label' => 'Maintenance', 'route' => 'admin.maintenance.index', 'adminOnly' => true],
+        ['label' => 'Open Play', 'route' => 'admin.open-play.index', 'adminOnly' => true],
         ['label' => 'Customers', 'route' => 'admin.customers.index', 'adminOnly' => true],
         ['label' => 'Reports', 'route' => 'manage.reports.index', 'adminOnly' => true],
         ['label' => 'Staff', 'route' => 'admin.staff.index', 'adminOnly' => true],

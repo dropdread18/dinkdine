@@ -9,6 +9,7 @@ use App\Models\BusinessHour;
 use App\Models\ClosurePeriod;
 use App\Models\Court;
 use App\Models\CourtMaintenance;
+use App\Models\OpenPlaySession;
 use App\Models\Setting;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -68,7 +69,12 @@ class AvailabilityService
             ->where('ends_at', '>=', $day->startOfDay())
             ->get();
 
-        $courtAvailabilities = $courts->map(function (Court $court) use ($slotTimes, $day, $bookingsByCourt, $maintenanceByCourt, $closurePeriods) {
+        $openPlayByCourt = OpenPlaySession::query()
+            ->whereDate('session_date', $day)
+            ->get()
+            ->groupBy('court_id');
+
+        $courtAvailabilities = $courts->map(function (Court $court) use ($slotTimes, $day, $bookingsByCourt, $maintenanceByCourt, $closurePeriods, $openPlayByCourt) {
             $slots = array_map(
                 fn (array $range) => $this->resolveSlot(
                     $court,
@@ -78,6 +84,7 @@ class AvailabilityService
                     $bookingsByCourt->get($court->id, new Collection),
                     $maintenanceByCourt->get($court->id, new Collection),
                     $closurePeriods,
+                    $openPlayByCourt->get($court->id, new Collection),
                 ),
                 $slotTimes,
             );
@@ -100,6 +107,7 @@ class AvailabilityService
         Collection $courtBookings,
         Collection $courtMaintenance,
         Collection $closurePeriods,
+        Collection $courtOpenPlay,
     ): AvailabilitySlot {
         if (! $court->isBookable()) {
             return new AvailabilitySlot($startTime, $endTime, SlotStatus::Closed);
@@ -111,6 +119,16 @@ class AvailabilityService
 
         if ($this->anyPeriodCoversSlot($courtMaintenance, $day, $startTime, $endTime)) {
             return new AvailabilitySlot($startTime, $endTime, SlotStatus::Closed);
+        }
+
+        // Open Play blocks the slot for regular booking but shows its own
+        // distinct status on the grid rather than a plain Closed - no
+        // signup or payment happens on this site (organizers run that
+        // off-platform), this just marks the court as taken.
+        foreach ($courtOpenPlay as $session) {
+            if ($this->timeRangesOverlap($startTime, $endTime, $session->start_time, $session->end_time)) {
+                return new AvailabilitySlot($startTime, $endTime, SlotStatus::OpenPlay);
+            }
         }
 
         foreach ($courtBookings as $booking) {

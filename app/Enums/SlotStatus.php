@@ -8,6 +8,7 @@ enum SlotStatus: string
     case Booked = 'booked';
     case InProgress = 'in_progress';
     case Closed = 'closed';
+    case OpenPlay = 'open_play';
 
     public function label(): string
     {
@@ -16,6 +17,7 @@ enum SlotStatus: string
             self::Booked => 'Booked',
             self::InProgress => 'In Progress',
             self::Closed => 'Closed',
+            self::OpenPlay => 'Open Play',
         };
     }
 }

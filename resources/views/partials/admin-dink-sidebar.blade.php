@@ -12,6 +12,7 @@
         ['label' => 'Check-in', 'route' => 'manage.checkin.index', 'pattern' => 'manage.checkin.*', 'adminOnly' => false],
         ['label' => 'Payments', 'route' => 'manage.payments.index', 'pattern' => 'manage.payments.*', 'adminOnly' => false],
         ['label' => 'Maintenance', 'route' => 'admin.maintenance.index', 'pattern' => 'admin.maintenance.*', 'adminOnly' => true],
+        ['label' => 'Open Play', 'route' => 'admin.open-play.index', 'pattern' => 'admin.open-play.*', 'adminOnly' => true],
         ['label' => 'Customers', 'route' => 'admin.customers.index', 'pattern' => 'admin.customers.*', 'adminOnly' => true],
         ['label' => 'Reports', 'route' => 'manage.reports.index', 'pattern' => 'manage.reports.*', 'adminOnly' => true],
         ['label' => 'Staff', 'route' => 'admin.staff.index', 'pattern' => 'admin.staff.*', 'adminOnly' => true],

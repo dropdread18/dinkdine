@@ -369,8 +369,9 @@ class AvailabilityServiceTest extends TestCase
 
         // Fixed number of queries: today's business hour, yesterday's
         // business hour (for midnight spillover), courts, bookings,
-        // maintenance, closures — must not scale with court/booking count.
-        $this->assertLessThanOrEqual(7, $queryCount);
+        // maintenance, closures, open play sessions — must not scale with
+        // court/booking count.
+        $this->assertLessThanOrEqual(8, $queryCount);
     }
 
     /**
