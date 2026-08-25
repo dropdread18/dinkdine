@@ -29,8 +29,8 @@
                 font-family: var(--db-font);
                 -webkit-font-smoothing: antialiased;
             }
-            .db-body a { color: var(--db-link); }
-            .db-body a:hover { color: var(--db-ink); }
+            .db-body main a { color: var(--db-link); }
+            .db-body main a:hover { color: var(--db-ink); }
         </style>
     </head>
     <body class="db-body">

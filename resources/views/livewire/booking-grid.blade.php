@@ -232,6 +232,30 @@
             @endforeach
         </div>
 
+        {{-- Session pricing indicator - the day/evening rate split PricingService
+             already prices by (before/from 5:00 PM), surfaced up front so
+             customers know the rate before picking a slot. Shows a single
+             price when every court shares the same rate, a range otherwise. --}}
+        @if (! empty($availability['courts']))
+            @php
+                $dayRates = collect($availability['courts'])->pluck('court.hourly_rate')->map(fn ($r) => (float) $r)->unique()->sort()->values();
+                $eveningRates = collect($availability['courts'])->pluck('court.evening_hourly_rate')->map(fn ($r) => (float) $r)->unique()->sort()->values();
+                $rateLabel = fn ($rates) => $rates->count() <= 1
+                    ? '₱'.number_format($rates->first() ?? 0, 0)
+                    : '₱'.number_format($rates->first(), 0).'–₱'.number_format($rates->last(), 0);
+            @endphp
+            <div class="flex flex-wrap gap-3 mb-4">
+                <div class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold" style="background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E;">
+                    <span class="inline-block w-2 h-2 rounded-full" style="background: #F59E0B;"></span>
+                    Morning Session <span class="font-bold">{{ $rateLabel($dayRates) }}/hr</span>
+                </div>
+                <div class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold" style="background: #EEF2FF; border: 1px solid #C7D2FE; color: #3730A3;">
+                    <span class="inline-block w-2 h-2 rounded-full" style="background: #6366F1;"></span>
+                    Evening Session (from 5:00 PM) <span class="font-bold">{{ $rateLabel($eveningRates) }}/hr</span>
+                </div>
+            </div>
+        @endif
+
         @if ($availability['is_facility_closed'])
             <div class="rounded-2xl p-8 text-center text-sm" style="background: var(--db-surface); border: 1px solid var(--db-border); color: var(--db-ink-faint);">The facility is closed on this date. Try another date.</div>
         @elseif (empty($availability['courts']))
