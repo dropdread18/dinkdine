@@ -1,5 +1,5 @@
 <nav class="bg-slate-900 sticky top-0 z-10">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between flex-wrap gap-3">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
         <a href="{{ url('/') }}" class="flex items-center gap-2 shrink-0">
             @if ($brandLogoUrl)
                 <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-6 w-auto max-w-[140px] object-contain">
@@ -9,7 +9,8 @@
             @endif
         </a>
 
-        <div class="flex items-center gap-1 sm:gap-4 text-sm flex-wrap">
+        {{-- Desktop: links inline. Hidden below sm, where the hamburger below takes over. --}}
+        <div class="hidden sm:flex items-center gap-4 text-sm flex-wrap">
             @auth
                 @php $user = auth()->user(); @endphp
 
@@ -19,7 +20,7 @@
                 <a href="{{ route('bookings.mine') }}" class="text-slate-400 hover:text-white font-medium">My Bookings</a>
                 <a href="{{ route('profile.edit') }}" class="text-slate-400 hover:text-white font-medium">Profile</a>
 
-                <span class="hidden sm:inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-slate-300">
+                <span class="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-slate-300">
                     {{ $user->name }} &middot; {{ $user->role->label() }}
                 </span>
 
@@ -32,5 +33,28 @@
                 <x-button tag="a" href="{{ route('register') }}" variant="primary" class="!py-2 !px-3.5 text-xs">Register</x-button>
             @endauth
         </div>
+
+        {{-- Mobile: collapses into a hamburger, same <details> pattern used by the admin/staff mobile header - no JS needed. --}}
+        <details class="sm:hidden relative">
+            <summary class="list-none cursor-pointer text-sm font-semibold text-white px-3 py-1.5 rounded-lg border border-white/20">Menu</summary>
+            <div class="absolute right-0 mt-2 w-56 bg-slate-900 rounded-lg shadow-lg py-2 z-20 border border-white/10">
+                @auth
+                    @php $user = auth()->user(); @endphp
+                    <a href="{{ url('/') }}" class="block px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5">Home</a>
+                    <a href="{{ route('bookings.index') }}" class="block px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5">Book a Court</a>
+                    <a href="{{ route('bookings.mine') }}" class="block px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5">My Bookings</a>
+                    <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5">Profile</a>
+                    <div class="border-t border-white/10 my-2"></div>
+                    <div class="px-4 py-1 text-xs text-slate-500">{{ $user->name }} &middot; {{ $user->role->label() }}</div>
+                    <form method="POST" action="{{ route('logout') }}" class="px-4 pt-1">
+                        @csrf
+                        <button type="submit" class="text-sm text-slate-400 hover:text-white py-1">Logout</button>
+                    </form>
+                @else
+                    <a href="{{ route('login') }}" class="block px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5">Log in</a>
+                    <a href="{{ route('register') }}" class="block px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5">Register</a>
+                @endauth
+            </div>
+        </details>
     </div>
 </nav>

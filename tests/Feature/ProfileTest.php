@@ -101,4 +101,25 @@ class ProfileTest extends TestCase
         $response->assertSessionHasErrors('current_password');
         $this->assertTrue(Hash::check('password', $customer->fresh()->password));
     }
+
+    public function test_change_password_form_is_hidden_for_a_guest_booker_account(): void
+    {
+        $guest = User::factory()->customer()->guestBooker()->create();
+
+        $response = $this->actingAs($guest)->get('/profile');
+
+        $response->assertOk();
+        $response->assertDontSee('Current Password');
+        $response->assertSee('Email me a reset link');
+    }
+
+    public function test_change_password_form_shows_for_a_normal_customer(): void
+    {
+        $customer = User::factory()->customer()->create();
+
+        $response = $this->actingAs($customer)->get('/profile');
+
+        $response->assertOk();
+        $response->assertSee('Current Password');
+    }
 }

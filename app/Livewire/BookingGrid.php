@@ -201,16 +201,13 @@ class BookingGrid extends Component
     {
         $this->error = null;
 
+        // Owner request: the reference number is now required outright
+        // (previously "at least one of reference/screenshot"). The
+        // screenshot upload stays optional, alongside the reference.
         $this->validate([
-            'paymentReference' => ['nullable', 'string', 'max:255'],
+            'paymentReference' => ['required', 'string', 'max:255'],
             'paymentProof' => ['nullable', 'image', 'max:8192'],
         ]);
-
-        if (! $this->paymentReference && ! $this->paymentProof) {
-            $this->addError('paymentReference', 'Enter your payment reference number or upload a screenshot of your receipt.');
-
-            return;
-        }
 
         // Private disk, deliberately - a payment screenshot is the
         // customer's own financial record. The 'public' disk is served with

@@ -35,6 +35,7 @@ class NewPasswordController extends Controller
             function ($user) use ($request) {
                 $user->forceFill([
                     'password' => $request->input('password'),
+                    'password_set_at' => now(),
                     'remember_token' => Str::random(60),
                 ])->save();
 

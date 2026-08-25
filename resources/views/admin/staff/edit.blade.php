@@ -26,6 +26,19 @@
                        class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
 
+            <div class="pt-2 border-t border-slate-100">
+                <label for="password" class="block text-sm font-medium text-slate-700">New Password (optional)</label>
+                <p class="text-xs text-slate-500 mb-1">Leave blank to keep the current password. Communicate the new one to {{ $staff->name }} yourself.</p>
+                <input id="password" name="password" type="password"
+                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label for="password_confirmation" class="block text-sm font-medium text-slate-700">Confirm New Password</label>
+                <input id="password_confirmation" name="password_confirmation" type="password"
+                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+
             <x-button type="submit" class="w-full">Save Changes</x-button>
 
             <a href="{{ route('admin.staff.index') }}" class="block text-center text-sm text-slate-600 hover:text-slate-900 underline underline-offset-2">Cancel</a>

@@ -37,36 +37,45 @@
     <section class="max-w-sm">
         <h2 class="text-sm font-medium text-slate-500 uppercase mb-3">Change Password</h2>
 
-        <x-card>
-            <form method="POST" action="{{ route('profile.update-password') }}" class="space-y-4">
-                @csrf
-                @method('PUT')
+        @if ($user->password_set_at)
+            <x-card>
+                <form method="POST" action="{{ route('profile.update-password') }}" class="space-y-4">
+                    @csrf
+                    @method('PUT')
 
-                <div>
-                    <label for="current_password" class="block text-sm font-medium text-slate-700">Current Password</label>
-                    <input id="current_password" name="current_password" type="password" required
-                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
-                </div>
+                    <div>
+                        <label for="current_password" class="block text-sm font-medium text-slate-700">Current Password</label>
+                        <input id="current_password" name="current_password" type="password" required
+                               class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
 
-                <div>
-                    <label for="password" class="block text-sm font-medium text-slate-700">New Password</label>
-                    <input id="password" name="password" type="password" required
-                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
-                </div>
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-slate-700">New Password</label>
+                        <input id="password" name="password" type="password" required
+                               class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
 
-                <div>
-                    <label for="password_confirmation" class="block text-sm font-medium text-slate-700">Confirm New Password</label>
-                    <input id="password_confirmation" name="password_confirmation" type="password" required
-                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
-                </div>
+                    <div>
+                        <label for="password_confirmation" class="block text-sm font-medium text-slate-700">Confirm New Password</label>
+                        <input id="password_confirmation" name="password_confirmation" type="password" required
+                               class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
 
-                <x-button type="submit">Update Password</x-button>
-
-                <p class="text-sm text-slate-500 pt-2 border-t border-slate-100">
-                    Don't know your current password (e.g. you booked as a guest)?
-                    <a href="{{ route('password.request') }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Email me a reset link instead</a>.
+                    <x-button type="submit">Update Password</x-button>
+                </form>
+            </x-card>
+        @else
+            {{-- This account was created without the person ever choosing a
+                 password (guest checkout or a staff-created walk-in) - there's
+                 no "current password" to confirm, so there's nothing to change
+                 yet. They set a real one for the first time via the reset link. --}}
+            <x-card class="text-sm text-slate-600 space-y-2">
+                <p>This account doesn't have a password set yet — it was created automatically when you booked, so there's nothing to change here.</p>
+                <p>
+                    Want to set one so you can log in directly next time?
+                    <a href="{{ route('password.request') }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Email me a reset link</a>.
                 </p>
-            </form>
-        </x-card>
+            </x-card>
+        @endif
     </section>
 @endsection

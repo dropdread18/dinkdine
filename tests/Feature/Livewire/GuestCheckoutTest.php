@@ -155,8 +155,11 @@ class GuestCheckoutTest extends TestCase
         $this->assertSame(BookingStatus::Pending, Booking::first()->status);
     }
 
-    public function test_a_screenshot_alone_is_enough_to_confirm_payment_without_a_reference_number(): void
+    public function test_a_screenshot_alone_is_no_longer_enough_without_a_reference_number(): void
     {
+        // Reversed by owner request: the reference number is now required
+        // outright, not "at least one of reference/screenshot" - a
+        // screenshot on its own is no longer sufficient to confirm.
         Storage::fake('local');
         $court = Court::factory()->create();
 
@@ -169,11 +172,31 @@ class GuestCheckoutTest extends TestCase
             ->call('confirmBookings')
             ->set('paymentProof', UploadedFile::fake()->image('receipt.jpg'))
             ->call('submitPaymentReference')
+            ->assertHasErrors('paymentReference');
+
+        $this->assertSame(BookingStatus::Pending, Booking::first()->status);
+    }
+
+    public function test_a_reference_number_with_a_screenshot_confirms_payment(): void
+    {
+        Storage::fake('local');
+        $court = Court::factory()->create();
+
+        Livewire::test(BookingGrid::class, ['date' => $this->date])
+            ->call('toggleSlot', $court->id, $court->name, '09:00:00', '10:00:00')
+            ->call('startReview')
+            ->set('guestName', 'Juan Dela Cruz')
+            ->set('guestEmail', 'juan@example.com')
+            ->set('guestPhone', '09171234567')
+            ->call('confirmBookings')
+            ->set('paymentReference', 'GCASH-REF-77')
+            ->set('paymentProof', UploadedFile::fake()->image('receipt.jpg'))
+            ->call('submitPaymentReference')
             ->assertRedirect(route('bookings.confirmation'));
 
         $booking = Booking::first();
         $this->assertSame(BookingStatus::Confirmed, $booking->status);
-        $this->assertNull($booking->payment->reference_number);
+        $this->assertSame('GCASH-REF-77', $booking->payment->reference_number);
         $this->assertNotNull($booking->payment->payment_proof_path);
         Storage::disk('local')->assertExists($booking->payment->payment_proof_path);
     }

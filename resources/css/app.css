@@ -10,6 +10,18 @@
     --color-accent: #B8E63E;
 }
 
+/* Prevents iOS/mobile browsers auto-zooming the page when a form field is
+   focused - that only happens when the focused field's font-size is under
+   16px, which every input in this app is by default (Tailwind's text-sm
+   and the standalone Dink Dine pages' own .db-input are both 14px).
+   !important + mobile-only, so desktop keeps its smaller, more compact
+   input text and only the viewport where this actually matters changes. */
+@media (max-width: 640px) {
+    input, select, textarea {
+        font-size: 16px !important;
+    }
+}
+
 /* Alpine's own boilerplate: hides x-cloak elements until Alpine has
    initialized, so an x-show="false" overlay (e.g. the QR lightbox) can't
    flash visible for a frame before Alpine's JS runs. */

@@ -235,7 +235,7 @@ class BookingSelfServiceTest extends TestCase
         $this->assertSame(BookingStatus::Pending, $booking->fresh()->status);
     }
 
-    public function test_resuming_payment_requires_a_reference_number_or_a_screenshot(): void
+    public function test_resuming_payment_requires_a_reference_number(): void
     {
         $customer = User::factory()->customer()->create();
         $booking = Booking::factory()->pending()->create([

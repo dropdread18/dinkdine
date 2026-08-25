@@ -36,10 +36,14 @@ class StaffController extends Controller
 
     public function store(CreateStaffRequest $request): RedirectResponse
     {
-        User::create([
+        $staff = User::create([
             ...$request->safe()->except('role'),
             'role' => UserRole::from($request->validated('role') ?? UserRole::Staff->value),
         ]);
+        // Unlike a guest/walk-in's unknowable random password, this one is
+        // chosen by the admin and communicated out-of-band - the new
+        // account genuinely knows it.
+        $staff->forceFill(['password_set_at' => now()])->save();
 
         return redirect()->route('admin.staff.index')->with('status', 'Account created.');
     }
@@ -55,7 +59,16 @@ class StaffController extends Controller
     {
         abort_unless(in_array($staff->role, self::MANAGED_ROLES, true), 404);
 
-        $staff->update($request->validated());
+        // password is nullable/optional on this form - a blank field must
+        // leave the existing password untouched, not overwrite it with
+        // null, so it's excluded from the blind mass-update below and only
+        // applied when the admin actually typed a new one.
+        $staff->update($request->safe()->except('password'));
+
+        if ($request->filled('password')) {
+            $staff->update(['password' => $request->validated('password')]);
+            $staff->forceFill(['password_set_at' => now()])->save();
+        }
 
         return redirect()->route('admin.staff.index')->with('status', 'Account updated.');
     }

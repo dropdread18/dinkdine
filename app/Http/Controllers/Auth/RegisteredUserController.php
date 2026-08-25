@@ -29,6 +29,7 @@ class RegisteredUserController extends Controller
             'password' => $request->validated('password'),
             'role' => UserRole::Customer,
         ]);
+        $user->forceFill(['password_set_at' => now()])->save();
 
         event(new Registered($user));
 

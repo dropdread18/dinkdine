@@ -31,9 +31,20 @@ class UserFactory extends Factory
             'phone' => fake()->phoneNumber(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'password_set_at' => now(),
             'remember_token' => Str::random(10),
             'role' => UserRole::Customer,
         ];
+    }
+
+    /**
+     * A guest-checkout or staff-created walk-in account - an unknowable
+     * random password the person never actually chose, matching what
+     * BookingGrid::resolveCustomer() and WalkInBookingController produce.
+     */
+    public function guestBooker(): static
+    {
+        return $this->state(fn (array $attributes) => ['password_set_at' => null]);
     }
 
     /**

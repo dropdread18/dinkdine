@@ -93,7 +93,7 @@
                         </div>
 
                         @if ($paymentInstructions)
-                            <div x-show="payMode === 'manual'" class="rounded-xl p-3 text-sm whitespace-pre-line" style="background: #F8FAF5; border: 1px solid var(--db-border); color: var(--db-ink-soft);">{{ $paymentInstructions }}</div>
+                            <div x-show="payMode === 'manual'" class="rounded-xl p-4 text-base font-bold whitespace-pre-line leading-relaxed" style="background: #F8FAF5; border: 1px solid var(--db-border); color: var(--db-ink);">{{ $paymentInstructions }}</div>
                         @endif
 
                         <div x-show="qrLightbox" x-cloak @keydown.escape.window="qrLightbox = false"
@@ -110,25 +110,22 @@
                         </div>
                     </div>
                 @elseif ($paymentInstructions)
-                    <div class="rounded-xl p-3 text-sm whitespace-pre-line" style="background: #F8FAF5; border: 1px solid var(--db-border); color: var(--db-ink-soft);">{{ $paymentInstructions }}</div>
+                    <div class="rounded-xl p-4 text-base font-bold whitespace-pre-line leading-relaxed" style="background: #F8FAF5; border: 1px solid var(--db-border); color: var(--db-ink);">{{ $paymentInstructions }}</div>
                 @endif
 
                 <div class="flex flex-col gap-1.5">
-                    <label for="payment-reference" class="text-[13px] font-bold" style="color: var(--db-ink);">Payment Reference Number</label>
-                    <input id="payment-reference" type="text" wire:model.live="paymentReference"
+                    <label for="payment-reference" class="text-[13px] font-bold" style="color: var(--db-ink);">Payment Reference Number <span style="color: #B91C1C;">*</span></label>
+                    <input id="payment-reference" type="text" wire:model.live="paymentReference" required
                            placeholder="e.g. GCASH-REF-88231"
                            class="h-12 rounded-lg px-3.5 text-[15px] font-semibold"
                            style="border: 1px solid var(--db-border); color: var(--db-ink);">
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <div class="h-px flex-1" style="background: var(--db-border);"></div>
-                    <span class="text-xs font-bold" style="color: var(--db-ink-faint);">OR</span>
-                    <div class="h-px flex-1" style="background: var(--db-border);"></div>
+                    @error('paymentReference')
+                        <div class="text-xs font-semibold" style="color: #B91C1C;">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="flex flex-col gap-1.5">
-                    <label for="payment-proof" class="text-[13px] font-bold" style="color: var(--db-ink);">Upload a Screenshot of Your Receipt</label>
+                    <label for="payment-proof" class="text-[13px] font-bold" style="color: var(--db-ink);">Upload a Screenshot of Your Receipt (optional)</label>
                     <input id="payment-proof" type="file" wire:model="paymentProof" accept="image/*"
                            class="text-sm rounded-lg px-3.5 py-2.5"
                            style="border: 1px solid var(--db-border); color: var(--db-ink);">
@@ -141,10 +138,10 @@
                     @enderror
                 </div>
 
-                <p class="text-xs -mt-2" style="color: var(--db-ink-faint);">Bring this reference number (or your receipt) with you — staff will confirm it against payment when you arrive.</p>
+                <p class="text-xs -mt-2" style="color: var(--db-ink-faint);">Bring this reference number with you — staff will confirm it against payment when you arrive.</p>
             </div>
 
-            @php $canSubmitPayment = trim((string) $paymentReference) !== '' || $paymentProof; @endphp
+            @php $canSubmitPayment = trim((string) $paymentReference) !== ''; @endphp
             <button type="button" wire:click="submitPaymentReference" wire:loading.attr="disabled"
                     class="h-[52px] rounded-lg text-[16px] font-bold text-center"
                     style="background: {{ $canSubmitPayment ? 'var(--db-accent)' : 'var(--db-border)' }}; color: {{ $canSubmitPayment ? 'var(--db-accent-ink)' : 'var(--db-ink-faintest)' }};">

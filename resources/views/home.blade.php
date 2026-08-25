@@ -7,38 +7,6 @@
         $facilityPhone = \App\Models\Setting::get('facility_phone');
         $dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         $hoursByDay = $businessHours->keyBy('day_of_week');
-
-        // Collapse today's per-slot Available statuses into readable time
-        // ranges per court (e.g. "10:00 AM-5:00 PM"), rather than showing
-        // every individual slot - a visitor wants "when can I play today",
-        // not a full grid before they've even decided to book.
-        $availabilityByCourtId = collect($todayAvailability['courts'] ?? [])->keyBy(fn ($ca) => $ca->court->id);
-        $availableRangesFor = function (int $courtId) use ($availabilityByCourtId) {
-            $courtAvailability = $availabilityByCourtId->get($courtId);
-            if (! $courtAvailability) {
-                return [];
-            }
-
-            $ranges = [];
-            $rangeStart = null;
-            $rangeEnd = null;
-
-            foreach ($courtAvailability->slots as $slot) {
-                if ($slot->status === \App\Enums\SlotStatus::Available) {
-                    $rangeStart ??= $slot->startTime;
-                    $rangeEnd = $slot->endTime;
-                } elseif ($rangeStart !== null) {
-                    $ranges[] = [$rangeStart, $rangeEnd];
-                    $rangeStart = null;
-                }
-            }
-
-            if ($rangeStart !== null) {
-                $ranges[] = [$rangeStart, $rangeEnd];
-            }
-
-            return $ranges;
-        };
     @endphp
 
     <div class="rounded-3xl overflow-hidden bg-slate-900 mb-10">
@@ -79,52 +47,13 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
         <div class="lg:col-span-2">
-            <h2 class="text-sm font-bold uppercase tracking-wide text-slate-500 mb-4">Our Courts</h2>
-            @if ($courts->isEmpty())
-                <x-card class="text-sm text-slate-500">Court information is coming soon — check back shortly.</x-card>
-            @else
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    @foreach ($courts as $court)
-                        @php $ranges = $availableRangesFor($court->id); @endphp
-                        <x-card class="!p-5">
-                            <div class="flex items-start justify-between gap-3">
-                                <div>
-                                    <div class="font-semibold text-slate-900">{{ $court->name }}</div>
-                                    @if ($court->court_type)
-                                        <div class="text-xs text-slate-500 mt-0.5">{{ $court->court_type }}</div>
-                                    @endif
-                                </div>
-                                <div class="text-sm font-bold text-slate-900 whitespace-nowrap">
-                                    ₱{{ number_format($court->hourly_rate, 0) }}–₱{{ number_format($court->evening_hourly_rate, 0) }}<span class="font-normal text-slate-500">/hr</span>
-                                </div>
-                            </div>
-                            @if ($court->description)
-                                <p class="text-sm text-slate-600 mt-2 leading-relaxed">{{ $court->description }}</p>
-                            @endif
-                            @if ($court->location)
-                                <p class="text-xs text-slate-400 mt-2">{{ $court->location }}</p>
-                            @endif
-
-                            <div class="mt-3 pt-3 border-t border-slate-100">
-                                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Available Today</div>
-                                @if ($todayAvailability['is_facility_closed'] ?? false)
-                                    <span class="text-xs text-slate-400">Closed today</span>
-                                @elseif (empty($ranges))
-                                    <span class="text-xs text-slate-400">Fully booked today</span>
-                                @else
-                                    <div class="flex flex-wrap gap-1.5">
-                                        @foreach ($ranges as [$start, $end])
-                                            <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-50 text-green-700">
-                                                {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $start)->format('g:i A') }}–{{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $end)->format('g:i A') }}
-                                            </span>
-                                        @endforeach
-                                    </div>
-                                @endif
-                            </div>
-                        </x-card>
-                    @endforeach
-                </div>
-            @endif
+            <h2 class="text-sm font-bold uppercase tracking-wide text-slate-500 mb-4">Find Us</h2>
+            <x-card class="!p-0 overflow-hidden">
+                <iframe
+                    src="https://www.google.com/maps?q=Dink+%26+Dine+Pickleball+Courts,7.0874851,125.5864049&z=17&output=embed"
+                    class="w-full h-[360px] border-0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+                    title="Map showing {{ $facilityName }}'s location"></iframe>
+            </x-card>
         </div>
 
         <div>

@@ -87,4 +87,20 @@ class PasswordResetTest extends TestCase
         $response->assertRedirect('/login');
         $this->assertTrue(Hash::check('a-brand-new-password', $customer->fresh()->password));
     }
+
+    public function test_completing_a_password_reset_marks_the_account_as_having_a_real_password(): void
+    {
+        $guest = User::factory()->customer()->guestBooker()->create();
+        $this->assertNull($guest->password_set_at);
+        $token = Password::createToken($guest);
+
+        $this->post('/reset-password', [
+            'token' => $token,
+            'email' => $guest->email,
+            'password' => 'a-brand-new-password',
+            'password_confirmation' => 'a-brand-new-password',
+        ]);
+
+        $this->assertNotNull($guest->fresh()->password_set_at);
+    }
 }
