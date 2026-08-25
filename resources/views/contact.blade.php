@@ -7,6 +7,7 @@
         $facilityPhone = \App\Models\Setting::get('facility_phone');
         $facilityEmail = \App\Models\Setting::get('facility_email');
         $facilityFacebook = \App\Models\Setting::get('facility_facebook');
+        $openPlayLink = \App\Models\Setting::get('open_play_link');
     @endphp
 
     <div class="rounded-3xl overflow-hidden bg-slate-900 mb-10">
@@ -66,7 +67,14 @@
                     </div>
                 @endif
 
-                @unless ($facilityAddress || $facilityPhone || $facilityEmail || $facilityFacebook)
+                @if ($openPlayLink)
+                    <div>
+                        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Open Play</div>
+                        <a href="{{ $openPlayLink }}" target="_blank" rel="noopener" class="text-sm text-blue-600 hover:text-blue-700 underline underline-offset-2 mt-1 inline-block">See Open Play Sessions</a>
+                    </div>
+                @endif
+
+                @unless ($facilityAddress || $facilityPhone || $facilityEmail || $facilityFacebook || $openPlayLink)
                     <p class="text-sm text-slate-500">Contact details haven't been added yet.</p>
                 @endunless
             </x-card>

@@ -294,12 +294,6 @@
                                             <span class="text-[10px] font-semibold opacity-80">{{ $meta['icon'] }} In Progress</span>
                                             <span x-text="timeLabel"></span>
                                         </div>
-                                    @elseif ($slot->status === $slotStatus::OpenPlay && $openPlayLink)
-                                        <a href="{{ $openPlayLink }}" target="_blank" rel="noopener"
-                                           class="w-full h-14 rounded-lg text-[13px] font-bold flex items-center justify-center transition-opacity hover:opacity-80"
-                                           style="background: {{ $meta['bg'] }}; border: 1px solid {{ $meta['border'] }}; color: {{ $meta['text'] }};">
-                                            {{ $meta['icon'] }} {{ $slot->status->label() }}
-                                        </a>
                                     @else
                                         <div class="w-full h-14 rounded-lg text-[13px] font-bold flex items-center justify-center"
                                              style="background: {{ $meta['bg'] }}; border: 1px solid {{ $meta['border'] }}; color: {{ $meta['text'] }};">
@@ -396,17 +390,6 @@
                                     {{ $meta['icon'] }} <span x-text="timeLabel"></span>
                                 </span>
                             </div>
-                        @elseif ($slot->status === $slotStatus::OpenPlay && $openPlayLink)
-                            <a href="{{ $openPlayLink }}" target="_blank" rel="noopener"
-                               class="flex justify-between items-center px-4 py-3.5 rounded-xl"
-                               style="border: 1px solid {{ $meta['border'] }}; background: var(--db-surface);">
-                                <span class="text-[15px] font-bold" style="color: var(--db-ink);">
-                                    {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->startTime)->format('g:i A') }} – {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->endTime)->format('g:i A') }}
-                                </span>
-                                <span class="text-[13px] font-bold px-3 py-1.5 rounded-full" style="color: {{ $meta['text'] }}; background: {{ $meta['bg'] }};">
-                                    {{ $meta['icon'] }} {{ $slot->status->label() }}
-                                </span>
-                            </a>
                         @else
                             <div class="flex justify-between items-center px-4 py-3.5 rounded-xl"
                                  style="border: 1px solid {{ $meta['border'] }}; background: var(--db-surface);">
