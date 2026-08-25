@@ -57,6 +57,13 @@
                 </div>
 
                 <div>
+                    <label for="facility_facebook" class="block text-sm font-medium text-slate-700">Facebook Page (optional)</label>
+                    <input id="facility_facebook" name="facility_facebook" type="url" placeholder="https://www.facebook.com/..."
+                           value="{{ old('facility_facebook', $settings['facility_facebook']) }}"
+                           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+
+                <div>
                     <label for="currency" class="block text-sm font-medium text-slate-700">Currency Code</label>
                     <input id="currency" name="currency" type="text" maxlength="3" required
                            value="{{ old('currency', $settings['currency']) }}"

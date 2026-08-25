@@ -24,6 +24,7 @@
                 @if ($user->password_set_at)
                     <a href="{{ route('profile.edit') }}" class="text-slate-400 hover:text-white font-medium">Profile</a>
                 @endif
+                <a href="{{ route('contact') }}" class="text-slate-400 hover:text-white font-medium">Contact</a>
 
                 <span class="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-slate-300">
                     {{ $user->name }} &middot; {{ $user->role->label() }}
@@ -34,6 +35,7 @@
                     <button type="submit" class="text-slate-400 hover:text-white font-medium">Logout</button>
                 </form>
             @else
+                <a href="{{ route('contact') }}" class="text-slate-400 hover:text-white font-medium">Contact</a>
                 <a href="{{ route('login') }}" class="text-slate-400 hover:text-white font-medium">Log in</a>
                 <x-button tag="a" href="{{ route('register') }}" variant="primary" class="!py-2 !px-3.5 text-xs">Register</x-button>
             @endauth
@@ -51,6 +53,7 @@
                     @if ($user->password_set_at)
                         <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5">Profile</a>
                     @endif
+                    <a href="{{ route('contact') }}" class="block px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5">Contact</a>
                     <div class="border-t border-white/10 my-2"></div>
                     <div class="px-4 py-1 text-xs text-slate-500">{{ $user->name }} &middot; {{ $user->role->label() }}</div>
                     <form method="POST" action="{{ route('logout') }}" class="px-4 pt-1">
@@ -58,6 +61,7 @@
                         <button type="submit" class="text-sm text-slate-400 hover:text-white py-1">Logout</button>
                     </form>
                 @else
+                    <a href="{{ route('contact') }}" class="block px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5">Contact</a>
                     <a href="{{ route('login') }}" class="block px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5">Log in</a>
                     <a href="{{ route('register') }}" class="block px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5">Register</a>
                 @endauth

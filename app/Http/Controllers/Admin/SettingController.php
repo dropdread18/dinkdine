@@ -25,6 +25,7 @@ class SettingController extends Controller
         'facility_address',
         'facility_phone',
         'facility_email',
+        'facility_facebook',
         'currency',
         'default_booking_duration_minutes',
         'max_booking_duration_minutes',

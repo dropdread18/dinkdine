@@ -21,6 +21,7 @@ class SettingRequest extends FormRequest
             'facility_address' => ['nullable', 'string', 'max:255'],
             'facility_phone' => ['nullable', 'string', 'max:255'],
             'facility_email' => ['nullable', 'email', 'max:255'],
+            'facility_facebook' => ['nullable', 'url', 'max:255'],
             'currency' => ['required', 'string', 'size:3'],
             'default_booking_duration_minutes' => ['required', 'integer', 'min:15'],
             'max_booking_duration_minutes' => ['required', 'integer', 'min:15', 'gte:default_booking_duration_minutes'],
