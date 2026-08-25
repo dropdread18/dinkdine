@@ -18,6 +18,7 @@ class SettingSeeder extends Seeder
             'facility_phone' => '',
             'facility_email' => '',
             'facility_facebook' => '',
+            'open_play_link' => '',
             'currency' => 'PHP',
             'timezone' => 'Asia/Manila',
             'default_booking_duration_minutes' => '60',

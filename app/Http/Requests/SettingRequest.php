@@ -32,6 +32,7 @@ class SettingRequest extends FormRequest
             'default_court_hourly_rate' => ['required', 'numeric', 'min:0'],
             'payment_hold_minutes' => ['required', 'integer', 'min:1', 'max:120'],
             'payment_instructions' => ['nullable', 'string', 'max:2000'],
+            'open_play_link' => ['nullable', 'url', 'max:255'],
             'payment_qr_code' => ['nullable', 'image', 'max:8192'],
             'remove_payment_qr_code' => ['nullable', 'boolean'],
             'facility_logo' => ['nullable', 'image', 'max:8192'],

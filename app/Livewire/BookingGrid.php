@@ -308,6 +308,7 @@ class BookingGrid extends Component
             'paymentQrCode' => Setting::get('payment_qr_code'),
             'pendingBookings' => $pendingBookings,
             'paymentHoldMinutes' => (int) (Setting::get('payment_hold_minutes') ?? 10),
+            'openPlayLink' => Setting::get('open_play_link'),
         ]);
     }
 }

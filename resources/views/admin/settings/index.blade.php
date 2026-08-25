@@ -158,6 +158,14 @@
                 </div>
             </div>
 
+            <div class="pt-1">
+                <label for="open_play_link" class="block text-sm font-medium text-slate-700">Open Play Announcements Link (optional)</label>
+                <p class="text-xs text-slate-500 mb-1">Shown on an Open Play slot on the booking grid, linking out to where sessions are announced/signed up (e.g. Reclub).</p>
+                <input id="open_play_link" name="open_play_link" type="url" placeholder="https://reclub.co/clubs/@..."
+                       value="{{ old('open_play_link', $settings['open_play_link']) }}"
+                       class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+
             <x-button type="submit">Save Settings</x-button>
         </form>
         </x-card>

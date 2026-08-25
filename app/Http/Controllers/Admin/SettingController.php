@@ -36,6 +36,7 @@ class SettingController extends Controller
         'default_court_hourly_rate',
         'payment_hold_minutes',
         'payment_instructions',
+        'open_play_link',
     ];
 
     public function index(): View
