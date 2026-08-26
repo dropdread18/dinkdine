@@ -6,8 +6,21 @@
         $nextDate = \Illuminate\Support\Carbon::parse($date)->addDay()->toDateString();
     @endphp
 
-    <div class="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 items-start">
-        <div>
+    <div class="grid grid-cols-1 md:grid-cols-[360px_1fr] gap-6 items-start">
+        <x-card class="order-1 md:sticky md:top-6">
+            <h2 class="text-lg font-semibold text-slate-900 mb-4">Schedule Open Play</h2>
+
+            <form method="POST" action="{{ route('admin.open-play.store') }}" class="space-y-4">
+                @csrf
+                @include('admin.open-play._form')
+
+                <x-button type="submit" class="w-full">Schedule Open Play</x-button>
+
+                <a href="{{ route('admin.open-play.index') }}" class="block text-center text-sm text-slate-600 hover:text-slate-900 underline underline-offset-2">Cancel</a>
+            </form>
+        </x-card>
+
+        <div class="order-2">
             <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
                 <div>
                     <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">Schedule</h1>
@@ -35,18 +48,5 @@
 
             @include('partials.availability-grid', ['readOnly' => true])
         </div>
-
-        <x-card class="lg:sticky lg:top-6">
-            <h2 class="text-lg font-semibold text-slate-900 mb-4">Schedule Open Play</h2>
-
-            <form method="POST" action="{{ route('admin.open-play.store') }}" class="space-y-4">
-                @csrf
-                @include('admin.open-play._form')
-
-                <x-button type="submit" class="w-full">Schedule Open Play</x-button>
-
-                <a href="{{ route('admin.open-play.index') }}" class="block text-center text-sm text-slate-600 hover:text-slate-900 underline underline-offset-2">Cancel</a>
-            </form>
-        </x-card>
     </div>
 @endsection
