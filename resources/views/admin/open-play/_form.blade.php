@@ -1,4 +1,7 @@
-@php $session = $session ?? null; @endphp
+@php
+    $session = $session ?? null;
+    $date = $date ?? null;
+@endphp
 
 @if ($session)
     <div>
@@ -32,7 +35,7 @@
 <div>
     <label for="session_date" class="block text-sm font-medium text-slate-700">Date</label>
     <input id="session_date" name="session_date" type="date" required
-           value="{{ old('session_date', $session?->session_date?->format('Y-m-d')) }}"
+           value="{{ old('session_date', $session?->session_date?->format('Y-m-d') ?? $date) }}"
            class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
 </div>
 

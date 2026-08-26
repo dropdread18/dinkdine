@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\OpenPlaySessionRequest;
 use App\Models\Court;
 use App\Models\OpenPlaySession;
+use App\Models\Setting;
+use App\Services\AvailabilityService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class OpenPlaySessionController extends Controller
@@ -22,9 +25,24 @@ class OpenPlaySessionController extends Controller
         ]);
     }
 
-    public function create(): View
+    /**
+     * The create form ships with the same read-only availability grid the
+     * Organizer's Schedule page shows, so whoever is booking Open Play can
+     * check what's free without leaving the page - no more flipping
+     * between two tabs to compare the schedule against the form.
+     */
+    public function create(Request $request, AvailabilityService $availability): View
     {
-        return view('admin.open-play.create', ['courts' => $this->courtOptions()]);
+        $date = $request->query('date', now()->toDateString());
+        $maxAdvanceDays = (int) (Setting::get('max_advance_booking_days') ?? 30);
+
+        return view('admin.open-play.create', [
+            'courts' => $this->courtOptions(),
+            'date' => $date,
+            'availability' => $availability->forDate($date),
+            'minDate' => now()->toDateString(),
+            'maxDate' => now()->addDays($maxAdvanceDays)->toDateString(),
+        ]);
     }
 
     public function store(OpenPlaySessionRequest $request): RedirectResponse
