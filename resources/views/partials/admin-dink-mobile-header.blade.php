@@ -7,7 +7,7 @@
     // partial for why.
     $navItems = $isOrganizer
         ? [
-            ['label' => 'Bookings', 'route' => 'manage.bookings.index'],
+            ['label' => 'Schedule', 'route' => 'manage.schedule.index'],
             ['label' => 'Open Play', 'route' => 'admin.open-play.index'],
         ]
         : array_filter([
@@ -28,7 +28,7 @@
     // item itself resolves.
     $homeRoute = match (true) {
         $isAdminUser => 'admin.dashboard',
-        $isOrganizer => 'manage.bookings.index',
+        $isOrganizer => 'manage.schedule.index',
         default => 'staff.dashboard',
     };
 @endphp

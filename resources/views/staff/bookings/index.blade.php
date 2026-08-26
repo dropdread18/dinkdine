@@ -2,11 +2,9 @@
 
 @section('content')
     <x-page-header title="Bookings">
-        @unless (auth()->user()->isOrganizer())
-            <x-slot:actions>
-                <x-button tag="a" href="{{ route('manage.walkin.index') }}">New Walk-in Booking</x-button>
-            </x-slot:actions>
-        @endunless
+        <x-slot:actions>
+            <x-button tag="a" href="{{ route('manage.walkin.index') }}">New Walk-in Booking</x-button>
+        </x-slot:actions>
     </x-page-header>
 
     <form method="GET" action="{{ route('manage.bookings.index') }}" class="flex flex-wrap gap-2 mb-6 text-sm bg-white border border-slate-200 rounded-xl shadow-sm p-3">
@@ -79,7 +77,7 @@
                             <td class="py-3 pr-4 text-slate-600">{{ $booking->source->label() }}</td>
                             <td class="py-3 pr-4 space-x-3 whitespace-nowrap">
                                 <a href="{{ route('bookings.show', $booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">View</a>
-                                @if ($booking->status !== \App\Enums\BookingStatus::Cancelled && ! auth()->user()->isOrganizer())
+                                @if ($booking->status !== \App\Enums\BookingStatus::Cancelled)
                                     <a href="{{ route('manage.bookings.reschedule', $booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Reschedule</a>
                                     <form method="POST" action="{{ route('manage.bookings.cancel', $booking) }}" class="inline">
                                         @csrf

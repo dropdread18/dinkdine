@@ -17,6 +17,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Staff\BookingController as StaffBookingController;
 use App\Http\Controllers\Staff\CheckInController;
+use App\Http\Controllers\Staff\ScheduleController;
 use App\Http\Controllers\Staff\WalkInBookingController;
 use Illuminate\Support\Facades\Route;
 
@@ -59,12 +60,16 @@ Route::middleware('auth')->post('/logout', [AuthenticatedSessionController::clas
 
 Route::middleware(['auth', 'role:admin'])->get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
-// An Open Play organizer is not facility staff - they only need to manage
-// Open Play sessions, never Courts/Maintenance/Customers/Staff, so this
-// resource is deliberately its own group rather than living inside the
-// admin-only block below.
+// An Open Play organizer is not facility staff - they only need to see
+// the read-only schedule and manage Open Play sessions, never
+// Courts/Maintenance/Customers/Staff, so these are deliberately their
+// own group rather than living inside the admin-only block below.
 Route::middleware(['auth', 'role:admin,organizer'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('open-play', OpenPlaySessionController::class)->except(['show'])->parameters(['open-play' => 'session']);
+});
+
+Route::middleware(['auth', 'role:admin,organizer'])->prefix('manage')->name('manage.')->group(function () {
+    Route::get('schedule', [ScheduleController::class, 'index'])->name('schedule.index');
 });
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -111,18 +116,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('manage')->name('manage.')->gr
 // today's bookings the moment they log in, not just admin.
 Route::middleware(['auth', 'role:admin,staff'])->get('/staff/dashboard', [DashboardController::class, 'index'])->name('staff.dashboard');
 
-// An organizer only ever needs to SEE the booking schedule - not cancel,
-// reschedule, take walk-ins, run check-in, or touch payments - so this one
-// route is deliberately split out into its own, wider-role group instead
-// of joining the staff-only block below.
-Route::middleware(['auth', 'role:admin,staff,organizer'])->prefix('manage')->name('manage.')->group(function () {
-    Route::get('bookings', [StaffBookingController::class, 'index'])->name('bookings.index');
-});
-
 Route::middleware(['auth', 'role:admin,staff'])->prefix('manage')->name('manage.')->group(function () {
     Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
     Route::patch('payments/{payment}/mark-paid', [PaymentController::class, 'markPaid'])->name('payments.mark-paid');
 
+    Route::get('bookings', [StaffBookingController::class, 'index'])->name('bookings.index');
     Route::patch('bookings/{booking}/cancel', [StaffBookingController::class, 'cancel'])->name('bookings.cancel');
     Route::get('bookings/{booking}/reschedule', [StaffBookingController::class, 'reschedule'])->name('bookings.reschedule');
     Route::get('bookings/{booking}/reschedule/{court}', [StaffBookingController::class, 'rescheduleForm'])->name('bookings.reschedule-form');

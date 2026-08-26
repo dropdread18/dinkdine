@@ -1,6 +1,11 @@
 {{-- Expects: $date, $availability, $bookableFrom, $slotRouteName (route that takes court/date/start_time/end_time,
-     plus any keys in $extraRouteParams, e.g. ['booking' => $booking] for the reschedule flow) --}}
-@php $extraRouteParams = $extraRouteParams ?? []; @endphp
+     plus any keys in $extraRouteParams, e.g. ['booking' => $booking] for the reschedule flow).
+     Pass $readOnly => true (and omit $slotRouteName/$bookableFrom) for a pure view - no slot is ever
+     clickable, regardless of status - used by the Organizer schedule view. --}}
+@php
+    $extraRouteParams = $extraRouteParams ?? [];
+    $readOnly = $readOnly ?? false;
+@endphp
 
 <div class="flex flex-wrap gap-4 text-xs text-slate-600 mb-4">
     <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500 align-middle mr-1.5"></span>Available</span>
@@ -36,7 +41,7 @@
                             @php
                                 $slot = $courtAvailability->slots[$i];
                                 $slotStart = \Illuminate\Support\Carbon::parse($date.' '.$slot->startTime);
-                                $bookable = $slot->status === \App\Enums\SlotStatus::Available && ($slotStart->lte(\Illuminate\Support\Carbon::now()) || $slotStart->gte($bookableFrom));
+                                $bookable = ! $readOnly && $slot->status === \App\Enums\SlotStatus::Available && ($slotStart->lte(\Illuminate\Support\Carbon::now()) || $slotStart->gte($bookableFrom));
                                 $classes = match ($slot->status) {
                                     \App\Enums\SlotStatus::Available => 'bg-green-50 text-green-700',
                                     \App\Enums\SlotStatus::Booked => 'bg-red-50 text-red-700',

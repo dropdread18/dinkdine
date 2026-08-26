@@ -12,7 +12,7 @@
     // top-level item any more.
     $navItems = $isOrganizer
         ? [
-            ['label' => 'Bookings', 'route' => 'manage.bookings.index', 'pattern' => 'manage.bookings.*'],
+            ['label' => 'Schedule', 'route' => 'manage.schedule.index', 'pattern' => 'manage.schedule.*'],
             ['label' => 'Open Play', 'route' => 'admin.open-play.index', 'pattern' => 'admin.open-play.*'],
         ]
         : array_filter([

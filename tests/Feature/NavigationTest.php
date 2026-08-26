@@ -55,9 +55,9 @@ class NavigationTest extends TestCase
     {
         $organizer = User::factory()->organizer()->create();
 
-        $this->actingAs($organizer)->get('/manage/bookings')
+        $this->actingAs($organizer)->get('/manage/schedule')
             ->assertOk()
-            ->assertSee('Bookings')
+            ->assertSee('Schedule')
             ->assertSee('Open Play')
             ->assertDontSee('Payments')
             ->assertDontSee('Reports')

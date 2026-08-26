@@ -34,8 +34,8 @@ class AuthenticatedSessionController extends Controller
             $user->isStaff() => route('staff.dashboard'),
             // No dashboard for an organizer - it's built around revenue/
             // pending-payments figures they shouldn't see. Straight to the
-            // one thing they actually need: the booking schedule.
-            $user->isOrganizer() => route('manage.bookings.index'),
+            // read-only court schedule instead.
+            $user->isOrganizer() => route('manage.schedule.index'),
             default => '/',
         };
 
