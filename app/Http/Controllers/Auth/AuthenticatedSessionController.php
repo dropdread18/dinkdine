@@ -32,6 +32,10 @@ class AuthenticatedSessionController extends Controller
         $default = match (true) {
             $user->isAdmin() => route('admin.dashboard'),
             $user->isStaff() => route('staff.dashboard'),
+            // No dashboard for an organizer - it's built around revenue/
+            // pending-payments figures they shouldn't see. Straight to the
+            // one thing they actually need: the booking schedule.
+            $user->isOrganizer() => route('manage.bookings.index'),
             default => '/',
         };
 

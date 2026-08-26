@@ -29,9 +29,18 @@ class OpenPlaySessionController extends Controller
 
     public function store(OpenPlaySessionRequest $request): RedirectResponse
     {
-        OpenPlaySession::create([...$request->validated(), 'created_by' => $request->user()->id]);
+        $courtIds = $request->validated('court_ids');
+        $shared = collect($request->validated())->except('court_ids')->all();
 
-        return redirect()->route('admin.open-play.index')->with('status', 'Open Play session scheduled.');
+        foreach ($courtIds as $courtId) {
+            OpenPlaySession::create([...$shared, 'court_id' => $courtId, 'created_by' => $request->user()->id]);
+        }
+
+        $status = count($courtIds) === 1
+            ? 'Open Play session scheduled.'
+            : count($courtIds).' Open Play sessions scheduled.';
+
+        return redirect()->route('admin.open-play.index')->with('status', $status);
     }
 
     public function edit(OpenPlaySession $session): View

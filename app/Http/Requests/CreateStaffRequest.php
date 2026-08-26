@@ -28,7 +28,7 @@ class CreateStaffRequest extends FormRequest
             // Nullable, defaulting to Staff in the controller - keeps this
             // request backward compatible with any caller that doesn't
             // send a role at all.
-            'role' => ['nullable', Rule::in([UserRole::Staff->value, UserRole::Admin->value])],
+            'role' => ['nullable', Rule::in([UserRole::Staff->value, UserRole::Admin->value, UserRole::Organizer->value])],
         ];
     }
 }

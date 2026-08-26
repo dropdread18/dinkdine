@@ -51,6 +51,22 @@ class NavigationTest extends TestCase
             ->assertDontSee('Book a Court');
     }
 
+    public function test_organizer_sees_only_bookings_and_open_play(): void
+    {
+        $organizer = User::factory()->organizer()->create();
+
+        $this->actingAs($organizer)->get('/manage/bookings')
+            ->assertOk()
+            ->assertSee('Bookings')
+            ->assertSee('Open Play')
+            ->assertDontSee('Payments')
+            ->assertDontSee('Reports')
+            ->assertDontSee('Settings')
+            ->assertDontSee('Walk-in Booking')
+            ->assertDontSee('Check-in')
+            ->assertDontSee('Customers');
+    }
+
     public function test_admin_sees_admin_navigation(): void
     {
         // Settings/Maintenance/Staff are deliberately not on the dashboard's

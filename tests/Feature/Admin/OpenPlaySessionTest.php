@@ -47,7 +47,7 @@ class OpenPlaySessionTest extends TestCase
         $court = Court::factory()->create();
 
         $response = $this->actingAs($admin)->post('/admin/open-play', [
-            'court_id' => $court->id,
+            'court_ids' => [$court->id],
             'session_date' => now()->addDays(3)->toDateString(),
             'start_time' => '18:00:00',
             'end_time' => '20:00:00',
@@ -62,13 +62,33 @@ class OpenPlaySessionTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_schedule_open_play_across_multiple_courts_at_once(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $indoor = Court::factory()->create(['name' => 'Indoor Court']);
+        $outdoor = Court::factory()->create(['name' => 'Outdoor Court']);
+
+        $response = $this->actingAs($admin)->post('/admin/open-play', [
+            'court_ids' => [$indoor->id, $outdoor->id],
+            'session_date' => now()->addDays(3)->toDateString(),
+            'start_time' => '18:00:00',
+            'end_time' => '20:00:00',
+            'notes' => 'Community night',
+        ]);
+
+        $response->assertRedirect('/admin/open-play');
+        $this->assertDatabaseCount('open_play_sessions', 2);
+        $this->assertDatabaseHas('open_play_sessions', ['court_id' => $indoor->id, 'notes' => 'Community night']);
+        $this->assertDatabaseHas('open_play_sessions', ['court_id' => $outdoor->id, 'notes' => 'Community night']);
+    }
+
     public function test_end_time_must_be_after_start_time(): void
     {
         $admin = User::factory()->admin()->create();
         $court = Court::factory()->create();
 
         $response = $this->actingAs($admin)->post('/admin/open-play', [
-            'court_id' => $court->id,
+            'court_ids' => [$court->id],
             'session_date' => now()->addDays(3)->toDateString(),
             'start_time' => '20:00:00',
             'end_time' => '18:00:00',
@@ -92,13 +112,13 @@ class OpenPlaySessionTest extends TestCase
         ]);
 
         $response = $this->actingAs($admin)->post('/admin/open-play', [
-            'court_id' => $court->id,
+            'court_ids' => [$court->id],
             'session_date' => $date,
             'start_time' => '09:30:00',
             'end_time' => '10:30:00',
         ]);
 
-        $response->assertSessionHasErrors('start_time');
+        $response->assertSessionHasErrors('court_ids');
         $this->assertDatabaseCount('open_play_sessions', 0);
     }
 
@@ -116,14 +136,40 @@ class OpenPlaySessionTest extends TestCase
         ]);
 
         $response = $this->actingAs($admin)->post('/admin/open-play', [
-            'court_id' => $court->id,
+            'court_ids' => [$court->id],
             'session_date' => $date,
             'start_time' => '19:00:00',
             'end_time' => '21:00:00',
         ]);
 
-        $response->assertSessionHasErrors('start_time');
+        $response->assertSessionHasErrors('court_ids');
         $this->assertDatabaseCount('open_play_sessions', 1);
+    }
+
+    public function test_scheduling_across_multiple_courts_rejects_the_whole_batch_if_one_conflicts(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $indoor = Court::factory()->create();
+        $outdoor = Court::factory()->create();
+        $date = now()->addDays(5)->toDateString();
+
+        Booking::factory()->create([
+            'court_id' => $outdoor->id,
+            'booking_date' => $date,
+            'start_time' => '18:00:00',
+            'end_time' => '19:00:00',
+            'status' => BookingStatus::Confirmed,
+        ]);
+
+        $response = $this->actingAs($admin)->post('/admin/open-play', [
+            'court_ids' => [$indoor->id, $outdoor->id],
+            'session_date' => $date,
+            'start_time' => '18:00:00',
+            'end_time' => '20:00:00',
+        ]);
+
+        $response->assertSessionHasErrors('court_ids');
+        $this->assertDatabaseCount('open_play_sessions', 0);
     }
 
     public function test_admin_can_update_an_open_play_session_without_conflicting_with_itself(): void

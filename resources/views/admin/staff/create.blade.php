@@ -13,8 +13,9 @@
                         class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="staff" @selected(old('role', 'staff') === 'staff')>Staff</option>
                     <option value="admin" @selected(old('role') === 'admin')>Admin</option>
+                    <option value="organizer" @selected(old('role') === 'organizer')>Organizer</option>
                 </select>
-                <p class="text-xs text-slate-500 mt-1">Admins have full access, including settings and account management. Choose this only for someone who should have that level of access.</p>
+                <p class="text-xs text-slate-500 mt-1">Admins have full access, including settings and account management. Organizer is a restricted account for an Open Play organizer - it can only see the booking schedule and manage Open Play sessions, nothing else (no payments, reports, or settings).</p>
             </div>
 
             <div>

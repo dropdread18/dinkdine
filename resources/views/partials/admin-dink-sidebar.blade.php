@@ -1,23 +1,33 @@
 @php
     $isAdminUser = auth()->user()->isAdmin();
+    $isOrganizer = auth()->user()->isOrganizer();
+    // An organizer only ever needs the booking schedule and Open Play -
+    // never Dashboard (revenue), Walk-in, Check-in, Payments, Maintenance,
+    // Customers, Reports, Staff, or Settings - so it gets its own short,
+    // fixed list instead of running through the admin/staff filter below.
     // Order and grouping per owner request: Courts now lives inside
     // Settings (see admin/settings/index.blade.php) and Court Schedule was
     // merged into Walk-in Booking (its grid already shows full-day
     // availability for every court, not just one) - neither has its own
     // top-level item any more.
-    $navItems = array_filter([
-        ['label' => 'Dashboard', 'route' => $isAdminUser ? 'admin.dashboard' : 'staff.dashboard', 'pattern' => $isAdminUser ? 'admin.dashboard' : 'staff.dashboard', 'adminOnly' => false],
-        ['label' => 'Bookings', 'route' => 'manage.bookings.index', 'pattern' => 'manage.bookings.*', 'adminOnly' => false],
-        ['label' => 'Walk-in Booking', 'route' => 'manage.walkin.index', 'pattern' => 'manage.walkin.*', 'adminOnly' => false],
-        ['label' => 'Check-in', 'route' => 'manage.checkin.index', 'pattern' => 'manage.checkin.*', 'adminOnly' => false],
-        ['label' => 'Payments', 'route' => 'manage.payments.index', 'pattern' => 'manage.payments.*', 'adminOnly' => false],
-        ['label' => 'Maintenance', 'route' => 'admin.maintenance.index', 'pattern' => 'admin.maintenance.*', 'adminOnly' => true],
-        ['label' => 'Open Play', 'route' => 'admin.open-play.index', 'pattern' => 'admin.open-play.*', 'adminOnly' => true],
-        ['label' => 'Customers', 'route' => 'admin.customers.index', 'pattern' => 'admin.customers.*', 'adminOnly' => true],
-        ['label' => 'Reports', 'route' => 'manage.reports.index', 'pattern' => 'manage.reports.*', 'adminOnly' => true],
-        ['label' => 'Staff', 'route' => 'admin.staff.index', 'pattern' => 'admin.staff.*', 'adminOnly' => true],
-        ['label' => 'Settings', 'route' => 'manage.settings.index', 'pattern' => 'manage.settings.*|admin.courts.*', 'adminOnly' => true],
-    ], fn (array $item) => $isAdminUser || ! $item['adminOnly']);
+    $navItems = $isOrganizer
+        ? [
+            ['label' => 'Bookings', 'route' => 'manage.bookings.index', 'pattern' => 'manage.bookings.*'],
+            ['label' => 'Open Play', 'route' => 'admin.open-play.index', 'pattern' => 'admin.open-play.*'],
+        ]
+        : array_filter([
+            ['label' => 'Dashboard', 'route' => $isAdminUser ? 'admin.dashboard' : 'staff.dashboard', 'pattern' => $isAdminUser ? 'admin.dashboard' : 'staff.dashboard', 'adminOnly' => false],
+            ['label' => 'Bookings', 'route' => 'manage.bookings.index', 'pattern' => 'manage.bookings.*', 'adminOnly' => false],
+            ['label' => 'Walk-in Booking', 'route' => 'manage.walkin.index', 'pattern' => 'manage.walkin.*', 'adminOnly' => false],
+            ['label' => 'Check-in', 'route' => 'manage.checkin.index', 'pattern' => 'manage.checkin.*', 'adminOnly' => false],
+            ['label' => 'Payments', 'route' => 'manage.payments.index', 'pattern' => 'manage.payments.*', 'adminOnly' => false],
+            ['label' => 'Maintenance', 'route' => 'admin.maintenance.index', 'pattern' => 'admin.maintenance.*', 'adminOnly' => true],
+            ['label' => 'Open Play', 'route' => 'admin.open-play.index', 'pattern' => 'admin.open-play.*', 'adminOnly' => true],
+            ['label' => 'Customers', 'route' => 'admin.customers.index', 'pattern' => 'admin.customers.*', 'adminOnly' => true],
+            ['label' => 'Reports', 'route' => 'manage.reports.index', 'pattern' => 'manage.reports.*', 'adminOnly' => true],
+            ['label' => 'Staff', 'route' => 'admin.staff.index', 'pattern' => 'admin.staff.*', 'adminOnly' => true],
+            ['label' => 'Settings', 'route' => 'manage.settings.index', 'pattern' => 'manage.settings.*|admin.courts.*', 'adminOnly' => true],
+        ], fn (array $item) => $isAdminUser || ! $item['adminOnly']);
 @endphp
 <aside class="hidden lg:flex lg:flex-col lg:shrink-0 lg:justify-between bg-slate-900" style="width: 240px; padding: 24px 0;">
     <div>

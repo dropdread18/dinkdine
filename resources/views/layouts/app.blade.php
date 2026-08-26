@@ -8,7 +8,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="min-h-screen bg-mint text-slate-900">
-        @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isStaff()))
+        @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isStaff() || auth()->user()->isOrganizer()))
             @include('partials.admin-dink-mobile-header')
 
             <div class="lg:flex lg:min-h-screen">

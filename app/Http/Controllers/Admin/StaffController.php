@@ -13,14 +13,15 @@ use Illuminate\View\View;
 class StaffController extends Controller
 {
     /**
-     * @var list<UserRole> Both roles managed on this one screen - an admin
-     *                     account is just a staff account with more
-     *                     access, and reusing this existing, already
-     *                     admin-only-gated page is a smaller, safer change
-     *                     than building a second parallel account-creation
-     *                     flow from scratch.
+     * @var list<UserRole> All three non-customer roles managed on this one
+     *                     screen - an admin account is just a staff
+     *                     account with more access, and Organizer is a
+     *                     restricted one; reusing this existing,
+     *                     already admin-only-gated page is a smaller,
+     *                     safer change than building parallel
+     *                     account-creation flows from scratch.
      */
-    private const MANAGED_ROLES = [UserRole::Staff, UserRole::Admin];
+    private const MANAGED_ROLES = [UserRole::Staff, UserRole::Admin, UserRole::Organizer];
 
     public function index(): View
     {

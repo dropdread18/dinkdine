@@ -1,24 +1,40 @@
 @php
     $isAdminUser = auth()->user()->isAdmin();
+    $isOrganizer = auth()->user()->isOrganizer();
     // Same order/grouping as partials/admin-dink-sidebar.blade.php - Courts
     // now lives inside Settings, Court Schedule merged into Walk-in Booking.
-    $navItems = array_filter([
-        ['label' => 'Dashboard', 'route' => $isAdminUser ? 'admin.dashboard' : 'staff.dashboard', 'adminOnly' => false],
-        ['label' => 'Bookings', 'route' => 'manage.bookings.index', 'adminOnly' => false],
-        ['label' => 'Walk-in Booking', 'route' => 'manage.walkin.index', 'adminOnly' => false],
-        ['label' => 'Check-in', 'route' => 'manage.checkin.index', 'adminOnly' => false],
-        ['label' => 'Payments', 'route' => 'manage.payments.index', 'adminOnly' => false],
-        ['label' => 'Maintenance', 'route' => 'admin.maintenance.index', 'adminOnly' => true],
-        ['label' => 'Open Play', 'route' => 'admin.open-play.index', 'adminOnly' => true],
-        ['label' => 'Customers', 'route' => 'admin.customers.index', 'adminOnly' => true],
-        ['label' => 'Reports', 'route' => 'manage.reports.index', 'adminOnly' => true],
-        ['label' => 'Staff', 'route' => 'admin.staff.index', 'adminOnly' => true],
-        ['label' => 'Settings', 'route' => 'manage.settings.index', 'adminOnly' => true],
-    ], fn (array $item) => $isAdminUser || ! $item['adminOnly']);
+    // An organizer gets its own short, fixed list - see the sidebar
+    // partial for why.
+    $navItems = $isOrganizer
+        ? [
+            ['label' => 'Bookings', 'route' => 'manage.bookings.index'],
+            ['label' => 'Open Play', 'route' => 'admin.open-play.index'],
+        ]
+        : array_filter([
+            ['label' => 'Dashboard', 'route' => $isAdminUser ? 'admin.dashboard' : 'staff.dashboard', 'adminOnly' => false],
+            ['label' => 'Bookings', 'route' => 'manage.bookings.index', 'adminOnly' => false],
+            ['label' => 'Walk-in Booking', 'route' => 'manage.walkin.index', 'adminOnly' => false],
+            ['label' => 'Check-in', 'route' => 'manage.checkin.index', 'adminOnly' => false],
+            ['label' => 'Payments', 'route' => 'manage.payments.index', 'adminOnly' => false],
+            ['label' => 'Maintenance', 'route' => 'admin.maintenance.index', 'adminOnly' => true],
+            ['label' => 'Open Play', 'route' => 'admin.open-play.index', 'adminOnly' => true],
+            ['label' => 'Customers', 'route' => 'admin.customers.index', 'adminOnly' => true],
+            ['label' => 'Reports', 'route' => 'manage.reports.index', 'adminOnly' => true],
+            ['label' => 'Staff', 'route' => 'admin.staff.index', 'adminOnly' => true],
+            ['label' => 'Settings', 'route' => 'manage.settings.index', 'adminOnly' => true],
+        ], fn (array $item) => $isAdminUser || ! $item['adminOnly']);
+    // Was unconditionally admin.dashboard, which 403s for anyone who isn't
+    // admin (staff included) - route it the same way the Dashboard nav
+    // item itself resolves.
+    $homeRoute = match (true) {
+        $isAdminUser => 'admin.dashboard',
+        $isOrganizer => 'manage.bookings.index',
+        default => 'staff.dashboard',
+    };
 @endphp
 <header class="lg:hidden bg-slate-900">
     <div class="px-5 h-16 flex items-center justify-between">
-        <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2">
+        <a href="{{ route($homeRoute) }}" class="flex items-center gap-2">
             @if ($brandLogoUrl)
                 <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-6 w-auto max-w-[140px] object-contain">
             @else
