@@ -12,11 +12,14 @@ use App\Models\Court;
 use App\Models\Payment;
 use App\Models\Setting;
 use App\Models\User;
+use App\Enums\UserRole;
 use App\Notifications\BookingCancelled;
 use App\Notifications\BookingConfirmed;
 use App\Notifications\BookingRescheduled;
+use App\Notifications\NewBookingAlert;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * The only place a booking should ever be created from. Re-validates
@@ -130,7 +133,10 @@ class BookingService
                 // OUTERMOST transaction, whichever call started it, and
                 // fires immediately if there's no transaction in progress
                 // at all.
-                DB::afterCommit(fn () => $booking->user->notify(new BookingConfirmed($booking)));
+                DB::afterCommit(function () use ($booking) {
+                    $booking->user->notify(new BookingConfirmed($booking));
+                    $this->notifyStaffOfNewBooking($booking);
+                });
             }
 
             return $booking;
@@ -251,11 +257,33 @@ class BookingService
             }
 
             foreach ($confirmed as $booking) {
-                DB::afterCommit(fn () => $booking->user->notify(new BookingConfirmed($booking)));
+                DB::afterCommit(function () use ($booking) {
+                    $booking->user->notify(new BookingConfirmed($booking));
+                    $this->notifyStaffOfNewBooking($booking);
+                });
             }
 
             return $confirmed;
         });
+    }
+
+    /**
+     * Lets admin/staff know a customer just completed an online booking,
+     * without them having to check the dashboard. Deliberately skipped for
+     * walk-in bookings - the staff member reading this would be the same
+     * one who just created it in person, so there's nothing to tell them.
+     */
+    private function notifyStaffOfNewBooking(Booking $booking): void
+    {
+        if ($booking->source !== BookingSource::Online) {
+            return;
+        }
+
+        $recipients = User::whereIn('role', [UserRole::Admin, UserRole::Staff])->get();
+
+        if ($recipients->isNotEmpty()) {
+            Notification::send($recipients, new NewBookingAlert($booking));
+        }
     }
 
     /**
