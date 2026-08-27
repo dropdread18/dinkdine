@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * unavailable for regular booking and labels it distinctly on the grid
  * (SlotStatus::OpenPlay) instead of a plain "Closed".
  */
-#[Fillable(['court_id', 'created_by', 'session_date', 'start_time', 'end_time', 'notes'])]
+#[Fillable(['court_id', 'created_by', 'session_date', 'start_time', 'end_time', 'notes', 'registration_link'])]
 class OpenPlaySession extends Model
 {
     /** @use HasFactory<OpenPlaySessionFactory> */

@@ -127,7 +127,15 @@ class AvailabilityService
         // off-platform), this just marks the court as taken.
         foreach ($courtOpenPlay as $session) {
             if ($this->timeRangesOverlap($startTime, $endTime, $session->start_time, $session->end_time)) {
-                return new AvailabilitySlot($startTime, $endTime, SlotStatus::OpenPlay);
+                return new AvailabilitySlot(
+                    $startTime,
+                    $endTime,
+                    SlotStatus::OpenPlay,
+                    openPlaySessionId: $session->id,
+                    openPlayLink: $session->registration_link,
+                    openPlayStartTime: $session->start_time,
+                    openPlayEndTime: $session->end_time,
+                );
             }
         }
 

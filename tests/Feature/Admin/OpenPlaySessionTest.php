@@ -82,6 +82,43 @@ class OpenPlaySessionTest extends TestCase
         $this->assertDatabaseHas('open_play_sessions', ['court_id' => $outdoor->id, 'notes' => 'Community night']);
     }
 
+    public function test_admin_can_set_a_registration_link_when_scheduling_open_play(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $court = Court::factory()->create();
+
+        $response = $this->actingAs($admin)->post('/admin/open-play', [
+            'court_ids' => [$court->id],
+            'session_date' => now()->addDays(3)->toDateString(),
+            'start_time' => '18:00:00',
+            'end_time' => '20:00:00',
+            'registration_link' => 'https://reclub.co/clubs/@example',
+        ]);
+
+        $response->assertRedirect('/admin/open-play');
+        $this->assertDatabaseHas('open_play_sessions', [
+            'court_id' => $court->id,
+            'registration_link' => 'https://reclub.co/clubs/@example',
+        ]);
+    }
+
+    public function test_registration_link_must_be_a_valid_url(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $court = Court::factory()->create();
+
+        $response = $this->actingAs($admin)->post('/admin/open-play', [
+            'court_ids' => [$court->id],
+            'session_date' => now()->addDays(3)->toDateString(),
+            'start_time' => '18:00:00',
+            'end_time' => '20:00:00',
+            'registration_link' => 'not a url',
+        ]);
+
+        $response->assertSessionHasErrors('registration_link');
+        $this->assertDatabaseCount('open_play_sessions', 0);
+    }
+
     public function test_end_time_must_be_after_start_time(): void
     {
         $admin = User::factory()->admin()->create();
@@ -222,6 +259,66 @@ class OpenPlaySessionTest extends TestCase
         $slot = collect($courtAvailability->slots)->first(fn ($s) => $s->startTime === '10:00:00');
 
         $this->assertSame('open_play', $slot->status->value);
+    }
+
+    public function test_open_play_slot_carries_its_session_id_and_registration_link(): void
+    {
+        $court = Court::factory()->create();
+        $date = now()->addDays(4)->toDateString();
+
+        BusinessHour::updateOrCreate(
+            ['day_of_week' => Carbon::parse($date)->dayOfWeek],
+            ['opens_at' => '06:00:00', 'closes_at' => '22:00:00', 'is_closed' => false],
+        );
+
+        $session = OpenPlaySession::factory()->create([
+            'court_id' => $court->id,
+            'session_date' => $date,
+            'start_time' => '09:00:00',
+            'end_time' => '12:00:00',
+            'registration_link' => 'https://reclub.co/clubs/@example',
+        ]);
+
+        $day = (new AvailabilityService)->forDate($date);
+        $courtAvailability = collect($day['courts'])->first(fn ($ca) => $ca->court->is($court));
+        $slot = collect($courtAvailability->slots)->first(fn ($s) => $s->startTime === '10:00:00');
+
+        $this->assertSame($session->id, $slot->openPlaySessionId);
+        $this->assertSame('https://reclub.co/clubs/@example', $slot->openPlayLink);
+    }
+
+    public function test_two_open_play_sessions_the_same_day_carry_different_session_ids(): void
+    {
+        $court = Court::factory()->create();
+        $date = now()->addDays(4)->toDateString();
+
+        BusinessHour::updateOrCreate(
+            ['day_of_week' => Carbon::parse($date)->dayOfWeek],
+            ['opens_at' => '06:00:00', 'closes_at' => '23:59:59', 'is_closed' => false],
+        );
+
+        $afternoon = OpenPlaySession::factory()->create([
+            'court_id' => $court->id,
+            'session_date' => $date,
+            'start_time' => '15:00:00',
+            'end_time' => '19:00:00',
+        ]);
+
+        $evening = OpenPlaySession::factory()->create([
+            'court_id' => $court->id,
+            'session_date' => $date,
+            'start_time' => '19:00:00',
+            'end_time' => '22:00:00',
+        ]);
+
+        $day = (new AvailabilityService)->forDate($date);
+        $courtAvailability = collect($day['courts'])->first(fn ($ca) => $ca->court->is($court));
+        $afternoonSlot = collect($courtAvailability->slots)->first(fn ($s) => $s->startTime === '16:00:00');
+        $eveningSlot = collect($courtAvailability->slots)->first(fn ($s) => $s->startTime === '20:00:00');
+
+        $this->assertSame($afternoon->id, $afternoonSlot->openPlaySessionId);
+        $this->assertSame($evening->id, $eveningSlot->openPlaySessionId);
+        $this->assertNotSame($afternoonSlot->openPlaySessionId, $eveningSlot->openPlaySessionId);
     }
 
     public function test_a_regular_booking_attempt_over_an_open_play_slot_is_rejected(): void

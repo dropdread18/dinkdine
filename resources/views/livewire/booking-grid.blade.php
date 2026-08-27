@@ -1,4 +1,4 @@
-<div style="font-family: var(--db-font, inherit);">
+<div style="font-family: var(--db-font, inherit);" x-data="{ openPlayModal: null }">
     @if ($error)
         <div class="mb-4 text-sm rounded-xl px-4 py-3" style="background: #FEF2F2; border: 1px solid #FECACA; color: #B91C1C;">{{ $error }}</div>
     @endif
@@ -219,6 +219,16 @@
                 'closed' => ['bg' => '#F1F5F9', 'border' => '#E2E8F0', 'text' => '#64748B', 'dot' => '#94A3B8', 'icon' => '—', 'label' => 'Closed'],
                 'open_play' => ['bg' => '#ECFEFF', 'border' => '#A5F3FC', 'text' => '#0E7490', 'dot' => '#06B6D4', 'icon' => '◆', 'label' => 'Open Play'],
             ];
+            // Two color variants for Open Play, alternated by session id -
+            // when two different sessions land on the same day (e.g. a
+            // 3-7pm session and a separate 7pm-midnight one), adjacent
+            // slots would otherwise look like one continuous block with no
+            // visual seam between them.
+            $openPlayVariants = [
+                $statusMeta['open_play'],
+                ['bg' => '#FDF4FF', 'border' => '#F5D0FE', 'text' => '#A21CAF', 'dot' => '#D946EF', 'icon' => '◆', 'label' => 'Open Play'],
+            ];
+            $openPlayMeta = fn (?int $sessionId) => $openPlayVariants[abs($sessionId ?? 0) % 2];
             $effectiveMobileCourt = $mobileCourt ?? ($availability['courts'][0]->court->id ?? null);
         @endphp
 
@@ -295,7 +305,7 @@
                                     $slotStart = \Illuminate\Support\Carbon::parse($date.' '.$slot->startTime);
                                     $bookable = $slot->status === $slotStatus::Available && ($slotStart->lte(\Illuminate\Support\Carbon::now()) || $slotStart->gte($bookableFrom));
                                     $statusKey = $isSelected ? 'selected' : $slot->status->value;
-                                    $meta = $statusMeta[$statusKey] ?? $statusMeta['closed'];
+                                    $meta = $slot->status === $slotStatus::OpenPlay ? $openPlayMeta($slot->openPlaySessionId) : ($statusMeta[$statusKey] ?? $statusMeta['closed']);
                                 @endphp
                                 <div>
                                     @if ($bookable || $isSelected)
@@ -304,6 +314,13 @@
                                                 class="w-full h-14 rounded-lg text-[13px] font-bold cursor-pointer transition-opacity hover:opacity-80"
                                                 style="background: {{ $meta['bg'] }}; border: 1px solid {{ $meta['border'] }}; color: {{ $meta['text'] }};">
                                             {{ $meta['icon'] }} {{ $isSelected ? 'Selected' : $slot->status->label() }}
+                                        </button>
+                                    @elseif ($slot->status === $slotStatus::OpenPlay)
+                                        <button type="button"
+                                                @click="openPlayModal = { court: '{{ addslashes($court->name) }}', time: '{{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->openPlayStartTime)->format('g:i A')) }} – {{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->openPlayEndTime)->format('g:i A')) }}', link: {{ $slot->openPlayLink ? "'".addslashes($slot->openPlayLink)."'" : 'null' }} }"
+                                                class="w-full h-14 rounded-lg text-[13px] font-bold flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80"
+                                                style="background: {{ $meta['bg'] }}; border: 1px solid {{ $meta['border'] }}; color: {{ $meta['text'] }};">
+                                            {{ $meta['icon'] }} {{ $slot->status->label() }}
                                         </button>
                                     @elseif ($slot->holdExpiresAt)
                                         <div class="w-full h-14 rounded-lg text-[13px] font-bold flex flex-col items-center justify-center tabular-nums"
@@ -384,7 +401,7 @@
                             $slotStart = \Illuminate\Support\Carbon::parse($date.' '.$slot->startTime);
                             $bookable = $slot->status === $slotStatus::Available && ($slotStart->lte(\Illuminate\Support\Carbon::now()) || $slotStart->gte($bookableFrom));
                             $statusKey = $isSelected ? 'selected' : $slot->status->value;
-                            $meta = $statusMeta[$statusKey] ?? $statusMeta['closed'];
+                            $meta = $slot->status === $slotStatus::OpenPlay ? $openPlayMeta($slot->openPlaySessionId) : ($statusMeta[$statusKey] ?? $statusMeta['closed']);
                         @endphp
                         @if ($bookable || $isSelected)
                             <button type="button" wire:click="toggleSlot({{ $court->id }}, '{{ addslashes($court->name) }}', '{{ $slot->startTime }}', '{{ $slot->endTime }}')"
@@ -395,6 +412,18 @@
                                 </span>
                                 <span class="text-[13px] font-bold px-3 py-1.5 rounded-full" style="color: {{ $meta['text'] }}; background: {{ $meta['bg'] }};">
                                     {{ $meta['icon'] }} {{ $isSelected ? 'Selected' : $slot->status->label() }}
+                                </span>
+                            </button>
+                        @elseif ($slot->status === $slotStatus::OpenPlay)
+                            <button type="button"
+                                    @click="openPlayModal = { court: '{{ addslashes($court->name) }}', time: '{{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->openPlayStartTime)->format('g:i A')) }} – {{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->openPlayEndTime)->format('g:i A')) }}', link: {{ $slot->openPlayLink ? "'".addslashes($slot->openPlayLink)."'" : 'null' }} }"
+                                    class="flex justify-between items-center px-4 py-3.5 rounded-xl w-full cursor-pointer"
+                                    style="border: 1px solid {{ $meta['border'] }}; background: var(--db-surface);">
+                                <span class="text-[15px] font-bold" style="color: var(--db-ink);">
+                                    {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->startTime)->format('g:i A') }} – {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->endTime)->format('g:i A') }}
+                                </span>
+                                <span class="text-[13px] font-bold px-3 py-1.5 rounded-full" style="color: {{ $meta['text'] }}; background: {{ $meta['bg'] }};">
+                                    {{ $meta['icon'] }} {{ $slot->status->label() }}
                                 </span>
                             </button>
                         @elseif ($slot->holdExpiresAt)
@@ -438,6 +467,29 @@
                     <button type="button" wire:click="startReview" class="text-[16px] font-bold py-3.5 rounded-lg text-center" style="background: var(--db-accent); color: var(--db-accent-ink);">Continue Booking</button>
                 </div>
             @endif
+
+            {{-- Open Play detail modal - tapping any Open Play slot (desktop
+                 or mobile) opens this with that session's own time range and
+                 registration link, rather than instantly navigating away. --}}
+            <div x-show="openPlayModal" x-cloak @keydown.escape.window="openPlayModal = null"
+                 class="fixed inset-0 z-50 flex items-center justify-center p-6" style="background: rgba(15, 23, 42, 0.6);">
+                <div @click="openPlayModal = null" class="absolute inset-0"></div>
+                <div class="relative rounded-2xl p-6 max-w-sm w-full flex flex-col gap-2" style="background: var(--db-surface);">
+                    <div class="text-xs font-bold uppercase tracking-wide" style="color: #0E7490; letter-spacing: 0.06em;">Open Play</div>
+                    <div class="text-lg font-bold" style="color: var(--db-ink);" x-text="openPlayModal?.court"></div>
+                    <div class="text-sm mb-2" style="color: var(--db-ink-soft);" x-text="openPlayModal?.time"></div>
+                    <template x-if="openPlayModal?.link">
+                        <a :href="openPlayModal.link" target="_blank" rel="noopener"
+                           class="text-center font-bold text-[15px] py-3 rounded-lg" style="background: var(--db-accent); color: var(--db-accent-ink);">
+                            Register for this session
+                        </a>
+                    </template>
+                    <template x-if="!openPlayModal?.link">
+                        <p class="text-sm" style="color: var(--db-ink-faint);">Registration details aren't posted yet — check back soon or contact the facility.</p>
+                    </template>
+                    <button type="button" @click="openPlayModal = null" class="text-sm font-semibold mt-2" style="color: var(--db-ink-soft);">Close</button>
+                </div>
+            </div>
         @endif
     @endif
 </div>

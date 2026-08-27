@@ -60,3 +60,11 @@
     <input id="notes" name="notes" type="text" value="{{ old('notes', $session?->notes) }}"
            class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
 </div>
+
+<div>
+    <label for="registration_link" class="block text-sm font-medium text-slate-700">Registration Link (optional)</label>
+    <p class="text-xs text-slate-500 mb-1">Shown to customers when they tap this Open Play session on the booking grid.</p>
+    <input id="registration_link" name="registration_link" type="url" placeholder="https://reclub.co/..."
+           value="{{ old('registration_link', $session?->registration_link) }}"
+           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
+</div>

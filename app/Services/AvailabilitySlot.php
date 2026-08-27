@@ -18,5 +18,26 @@ final readonly class AvailabilitySlot
          * BookingGrid already passes its own holdExpiresAt to the view in.
          */
         public ?string $holdExpiresAt = null,
+        /**
+         * Set only when status is OpenPlay - the underlying OpenPlaySession's
+         * id, used purely for display: alternating two colors between
+         * adjacent-but-different sessions on the same day/court so
+         * customers can tell them apart, not as a real identity check.
+         */
+        public ?int $openPlaySessionId = null,
+        /**
+         * Set only when status is OpenPlay - where customers/staff go to
+         * actually sign up (organizers run signup off-platform). Null
+         * means no link has been added for this session yet.
+         */
+        public ?string $openPlayLink = null,
+        /**
+         * Set only when status is OpenPlay - the session's own full time
+         * range (not this one hourly slot's), so a click on any hour
+         * within e.g. a 3-7pm session shows "3:00 PM - 7:00 PM", not just
+         * the single hour that happened to be clicked.
+         */
+        public ?string $openPlayStartTime = null,
+        public ?string $openPlayEndTime = null,
     ) {}
 }
