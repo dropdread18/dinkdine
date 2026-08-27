@@ -10,9 +10,9 @@
         $openPlayLink = \App\Models\Setting::get('open_play_link');
     @endphp
 
-    <div class="rounded-3xl overflow-hidden bg-slate-900 mb-10">
+    <div class="rounded-3xl overflow-hidden bg-forest mb-10">
         <div class="px-6 py-14 sm:px-12 sm:py-20 max-w-2xl">
-            <span class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-accent">
+            <span class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-gold">
                 <span class="inline-block w-2 h-2 rounded-full bg-accent"></span>
                 {{ $facilityName }}
             </span>

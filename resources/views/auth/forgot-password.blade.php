@@ -8,17 +8,17 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <style>
             :root {
-                --db-nav: #0F172A;
-                --db-page-bg: #EEF1EA;
+                --db-nav: #1E6B3B;
+                --db-page-bg: #F7F3E7;
                 --db-surface: #FFFFFF;
                 --db-border: #E2E8F0;
                 --db-ink: #0F172A;
                 --db-ink-soft: #475569;
                 --db-ink-faint: #64748B;
                 --db-ink-faintest: #94A3B8;
-                --db-accent: #B8E63E;
-                --db-accent-ink: #0F172A;
-                --db-link: #3B82F6;
+                --db-accent: #A31E22;
+                --db-accent-ink: #FFFFFF;
+                --db-link: #2B7A46;
                 --db-font: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
             }
             body.db-body {
@@ -49,7 +49,7 @@
             <div class="hidden lg:flex lg:flex-1 lg:flex-col lg:justify-center gap-5 px-16" style="background: var(--db-nav);">
                 <div class="flex items-center gap-2.5">
                     @if ($brandLogoUrl)
-                        <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-8 w-auto max-w-[180px] object-contain">
+                        <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-20 w-auto max-w-[200px] object-contain">
                     @else
                         <span class="inline-block w-3 h-3 rounded-full" style="background: var(--db-accent);"></span>
                         <span class="text-[22px] font-extrabold text-white">{{ $brandName }}</span>
@@ -63,7 +63,7 @@
                 <div class="lg:hidden flex flex-col gap-2" style="background: var(--db-nav); padding: 40px 24px 32px;">
                     <div class="flex items-center gap-2">
                         @if ($brandLogoUrl)
-                            <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-7 w-auto max-w-[160px] object-contain">
+                            <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-12 w-auto max-w-[130px] object-contain">
                         @else
                             <span class="inline-block w-2.5 h-2.5 rounded-full" style="background: var(--db-accent);"></span>
                             <span class="text-lg font-extrabold text-white">{{ $brandName }}</span>

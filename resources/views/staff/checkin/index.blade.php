@@ -8,16 +8,16 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <style>
             :root {
-                --db-nav: #0F172A;
-                --db-page-bg: #EEF1EA;
+                --db-nav: #1E6B3B;
+                --db-page-bg: #F7F3E7;
                 --db-surface: #FFFFFF;
                 --db-border: #E2E8F0;
                 --db-ink: #0F172A;
                 --db-ink-soft: #475569;
                 --db-ink-faint: #64748B;
                 --db-ink-faintest: #94A3B8;
-                --db-accent: #B8E63E;
-                --db-accent-ink: #0F172A;
+                --db-accent: #A31E22;
+                --db-accent-ink: #FFFFFF;
                 --db-font: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
             }
             body.db-body {

@@ -26,7 +26,7 @@
         <div>
             <label for="payment_proof" class="block text-xs font-medium text-slate-700 mb-1">Upload a Screenshot of Your Receipt (optional)</label>
             <input id="payment_proof" name="payment_proof" type="file" accept="image/*"
-                   class="block w-full text-sm text-slate-500 cursor-pointer file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-accent file:px-3 file:py-2 file:text-sm file:font-bold file:text-slate-900">
+                   class="block w-full text-sm text-slate-500 cursor-pointer file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-accent file:px-3 file:py-2 file:text-sm file:font-bold file:text-white">
         </div>
 
         @error('reference_number')

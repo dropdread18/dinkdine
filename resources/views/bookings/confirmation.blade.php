@@ -8,15 +8,15 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <style>
             :root {
-                --db-nav: #0F172A;
-                --db-page-bg: #EEF1EA;
+                --db-nav: #1E6B3B;
+                --db-page-bg: #F7F3E7;
                 --db-surface: #FFFFFF;
                 --db-border: #E2E8F0;
                 --db-ink: #0F172A;
                 --db-ink-soft: #475569;
                 --db-ink-faint: #64748B;
-                --db-accent: #B8E63E;
-                --db-accent-ink: #0F172A;
+                --db-accent: #A31E22;
+                --db-accent-ink: #FFFFFF;
                 --db-font: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
             }
             body.db-body {
@@ -33,7 +33,7 @@
             <div class="mx-auto max-w-[1440px] px-5 sm:px-10 h-16 sm:h-[72px] flex items-center">
                 <a href="{{ url('/') }}" class="flex items-center gap-2">
                     @if ($brandLogoUrl)
-                        <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-7 sm:h-8 w-auto max-w-[160px] object-contain">
+                        <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-11 sm:h-14 w-auto max-w-[140px] object-contain">
                     @else
                         <span class="inline-block w-2.5 h-2.5 rounded-full" style="background: var(--db-accent);"></span>
                         <span class="text-lg sm:text-xl font-extrabold text-white tracking-tight" style="font-family: var(--db-font);">{{ $brandName }}</span>

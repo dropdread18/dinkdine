@@ -9,9 +9,9 @@
         $hoursByDay = $businessHours->keyBy('day_of_week');
     @endphp
 
-    <div class="rounded-3xl overflow-hidden bg-slate-900 mb-10">
+    <div class="rounded-3xl overflow-hidden bg-forest mb-10">
         <div class="px-6 py-14 sm:px-12 sm:py-20 max-w-2xl">
-            <span class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-accent">
+            <span class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-gold">
                 <span class="inline-block w-2 h-2 rounded-full bg-accent"></span>
                 {{ $facilityName }}
             </span>
@@ -93,17 +93,17 @@
         <h2 class="text-sm font-bold uppercase tracking-wide text-slate-500 mb-4">How It Works</h2>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <x-card class="!p-5">
-                <div class="text-xs font-bold text-slate-900 bg-accent inline-flex items-center justify-center w-7 h-7 rounded-full">1</div>
+                <div class="text-xs font-bold text-white bg-accent inline-flex items-center justify-center w-7 h-7 rounded-full">1</div>
                 <div class="font-semibold text-slate-900 mt-3">Pick a slot</div>
                 <p class="text-sm text-slate-600 mt-1 leading-relaxed">Browse real-time court availability by date and time — no account required to look.</p>
             </x-card>
             <x-card class="!p-5">
-                <div class="text-xs font-bold text-slate-900 bg-accent inline-flex items-center justify-center w-7 h-7 rounded-full">2</div>
+                <div class="text-xs font-bold text-white bg-accent inline-flex items-center justify-center w-7 h-7 rounded-full">2</div>
                 <div class="font-semibold text-slate-900 mt-3">Confirm &amp; pay</div>
                 <p class="text-sm text-slate-600 mt-1 leading-relaxed">Your slot is held while you pay via GCash or bank transfer, then it's yours.</p>
             </x-card>
             <x-card class="!p-5">
-                <div class="text-xs font-bold text-slate-900 bg-accent inline-flex items-center justify-center w-7 h-7 rounded-full">3</div>
+                <div class="text-xs font-bold text-white bg-accent inline-flex items-center justify-center w-7 h-7 rounded-full">3</div>
                 <div class="font-semibold text-slate-900 mt-3">Show up &amp; play</div>
                 <p class="text-sm text-slate-600 mt-1 leading-relaxed">Bring your reference number or receipt — our staff will check you in at the court.</p>
             </x-card>

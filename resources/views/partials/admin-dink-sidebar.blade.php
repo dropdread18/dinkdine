@@ -29,11 +29,11 @@
             ['label' => 'Settings', 'route' => 'manage.settings.index', 'pattern' => 'manage.settings.*|admin.courts.*', 'adminOnly' => true],
         ], fn (array $item) => $isAdminUser || ! $item['adminOnly']);
 @endphp
-<aside class="hidden lg:flex lg:flex-col lg:shrink-0 lg:justify-between bg-slate-900" style="width: 240px; padding: 24px 0;">
+<aside class="hidden lg:flex lg:flex-col lg:shrink-0 lg:justify-between bg-forest" style="width: 240px; padding: 24px 0;">
     <div>
         <div class="flex items-center gap-2 px-6 mb-6">
             @if ($brandLogoUrl)
-                <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-7 w-auto max-w-[160px] object-contain">
+                <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-16 w-auto max-w-[160px] object-contain">
             @else
                 <span class="inline-block w-2.5 h-2.5 rounded-full bg-accent"></span>
                 <span class="text-lg font-extrabold text-white">{{ $brandName }}</span>

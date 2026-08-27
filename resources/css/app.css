@@ -6,8 +6,14 @@
 @theme {
     --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
-    --color-mint: #EEF1EA;
-    --color-accent: #B8E63E;
+    --color-mint: #F7F3E7;
+    --color-accent: #A31E22;
+    --color-forest: #1E6B3B;
+    /* The red accent doesn't have enough contrast against the forest-green
+       hero panels to use as text there (only as a small dot, a button, or
+       on light backgrounds) - this warm gold, echoing the logo's ball
+       color, is for that one case: text sitting directly on --color-forest. */
+    --color-gold: #F2D675;
 }
 
 /* Prevents iOS/mobile browsers auto-zooming the page when a form field is
@@ -30,13 +36,12 @@
 }
 
 /*
- * Design system ("Dink Dine" brand pass): dark navy (slate-900, an exact
- * hex match to Tailwind's built-in slate scale) chrome, a lime accent
- * for primary actions, a mint page background, on a slate neutral base
- * - soft rounded cards, gentle shadows. Tailwind v4's built-in slate
- * scale already matches this palette's neutrals exactly (verified
- * hex-for-hex against the brand's own tokens), so only the accent
- * (teal -> lime/blue) and page background (slate-50 -> mint) actually
- * needed new tokens; everything else already lined up.
+ * Design system ("Dink Dine" brand pass, v2): matches the facility's
+ * real logo (dark forest green ring, crimson-red wordmark, cream ball) -
+ * forest-green chrome (--color-forest) replaces the original navy, a
+ * crimson-red accent (--color-accent) replaces the original lime, and
+ * the page background (--color-mint) shifted from cool mint to a warm
+ * cream echoing the logo's ball color. Slate neutrals for ordinary body
+ * text/borders are untouched - only the brand-identity tokens moved.
  */
 

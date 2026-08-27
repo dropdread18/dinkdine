@@ -1,8 +1,8 @@
-<nav class="bg-slate-900 sticky top-0 z-10">
+<nav class="bg-forest sticky top-0 z-10">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
         <a href="{{ url('/') }}" class="flex items-center gap-2 shrink-0">
             @if ($brandLogoUrl)
-                <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-6 w-auto max-w-[140px] object-contain">
+                <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-11 w-auto max-w-[110px] object-contain">
             @else
                 <span class="inline-block w-2.5 h-2.5 rounded-full bg-accent"></span>
                 <span class="font-extrabold text-white">{{ $brandName }}</span>
@@ -44,7 +44,7 @@
         {{-- Mobile: collapses into a hamburger, same <details> pattern used by the admin/staff mobile header - no JS needed. --}}
         <details class="sm:hidden relative">
             <summary class="list-none cursor-pointer text-sm font-semibold text-white px-3 py-1.5 rounded-lg border border-white/20">Menu</summary>
-            <div class="absolute right-0 mt-2 w-56 bg-slate-900 rounded-lg shadow-lg py-2 z-20 border border-white/10">
+            <div class="absolute right-0 mt-2 w-56 bg-forest rounded-lg shadow-lg py-2 z-20 border border-white/10">
                 @auth
                     @php $user = auth()->user(); @endphp
                     <a href="{{ url('/') }}" class="block px-4 py-2 text-sm text-white hover:opacity-80">Home</a>
