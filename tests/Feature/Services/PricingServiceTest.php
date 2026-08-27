@@ -76,4 +76,44 @@ class PricingServiceTest extends TestCase
 
         $this->assertEquals(125.00 + 175.00, $price);
     }
+
+    public function test_a_slot_before_6am_uses_the_evening_rate(): void
+    {
+        $court = Court::factory()->create(['hourly_rate' => 250, 'evening_hourly_rate' => 300]);
+
+        $price = (new PricingService)->calculate($court, '00:00:00', '05:00:00');
+
+        $this->assertEquals(1500.00, $price);
+    }
+
+    public function test_a_slot_starting_exactly_at_6am_uses_the_day_rate(): void
+    {
+        $court = Court::factory()->create(['hourly_rate' => 250, 'evening_hourly_rate' => 300]);
+
+        $price = (new PricingService)->calculate($court, '06:00:00', '07:00:00');
+
+        $this->assertEquals(250.00, $price);
+    }
+
+    public function test_a_slot_straddling_6am_is_split_proportionally_across_both_rates(): void
+    {
+        $court = Court::factory()->create(['hourly_rate' => 250, 'evening_hourly_rate' => 300]);
+
+        // 5:30 AM-6:30 AM: 30 minutes of evening rate + 30 minutes of day rate.
+        $price = (new PricingService)->calculate($court, '05:30:00', '06:30:00');
+
+        $this->assertEquals(150.00 + 125.00, $price);
+    }
+
+    public function test_a_slot_spanning_midnight_to_past_5am_uses_the_evening_rate_throughout(): void
+    {
+        $court = Court::factory()->create(['hourly_rate' => 250, 'evening_hourly_rate' => 300]);
+
+        // Mirrors the reported bug: 12 AM-5 PM was entirely priced at the
+        // day rate because there was no 6 AM boundary at all - only the
+        // 6 AM-5 PM slice should ever get the day rate.
+        $price = (new PricingService)->calculate($court, '00:00:00', '17:00:00');
+
+        $this->assertEquals((6 * 300) + (11 * 250), $price);
+    }
 }
