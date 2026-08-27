@@ -116,4 +116,28 @@ class PricingServiceTest extends TestCase
 
         $this->assertEquals((6 * 300) + (11 * 250), $price);
     }
+
+    public function test_the_last_slot_of_the_day_is_charged_the_full_evening_rate(): void
+    {
+        $court = Court::factory()->create(['hourly_rate' => 250, 'evening_hourly_rate' => 300]);
+
+        // '23:59:59' is AvailabilityService's own marker for "runs to
+        // midnight" (a real hour would collide with tomorrow's 00:00:00 in
+        // same-day time comparisons) - a customer booking 11 PM-midnight
+        // should still see a round 300, not 299.92 for the missing second.
+        $price = (new PricingService)->calculate($court, '23:00:00', '23:59:59');
+
+        $this->assertEquals(300.00, $price);
+    }
+
+    public function test_a_multi_slot_booking_ending_at_the_day_boundary_is_charged_in_full(): void
+    {
+        $court = Court::factory()->create(['hourly_rate' => 250, 'evening_hourly_rate' => 300]);
+
+        // Two merged slots: 10 PM-11 PM and 11 PM-midnight, i.e. 2 full
+        // hours - not 1h59m59s.
+        $price = (new PricingService)->calculate($court, '22:00:00', '23:59:59');
+
+        $this->assertEquals(600.00, $price);
+    }
 }

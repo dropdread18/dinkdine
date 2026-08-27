@@ -274,11 +274,11 @@
             <div class="flex flex-wrap gap-3 mb-4">
                 <div class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold" style="background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E;">
                     <span class="inline-block w-2 h-2 rounded-full" style="background: #F59E0B;"></span>
-                    Morning Session <span class="font-bold">{{ $rateLabel($dayRates) }}/hr</span>
+                    Morning Session (6:00 AM–5:00 PM) <span class="font-bold">{{ $rateLabel($dayRates) }}/hr</span>
                 </div>
                 <div class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold" style="background: #EEF2FF; border: 1px solid #C7D2FE; color: #3730A3;">
                     <span class="inline-block w-2 h-2 rounded-full" style="background: #6366F1;"></span>
-                    Evening Session (from 5:00 PM) <span class="font-bold">{{ $rateLabel($eveningRates) }}/hr</span>
+                    Evening Session (5:00 PM–6:00 AM) <span class="font-bold">{{ $rateLabel($eveningRates) }}/hr</span>
                 </div>
             </div>
         @endif

@@ -21,6 +21,15 @@ class PricingService
 
     public function calculate(Court $court, string $startTime, string $endTime): float
     {
+        // '23:59:59' is AvailabilityService's internal marker for "this
+        // slot runs to midnight" (it can't use '00:00:00' there without
+        // breaking same-day conflict checks - see its generateTimeSlots()).
+        // For pricing, treat it as the true midnight boundary it represents
+        // rather than charging for one second short of a full hour - a
+        // customer booking the last slot of the day shouldn't see an odd
+        // "299.92" instead of a round rate.
+        $endsAtMidnight = in_array('23:59:59', [$startTime, $endTime], true);
+
         $start = CarbonImmutable::createFromFormat('H:i:s', $startTime);
         $end = CarbonImmutable::createFromFormat('H:i:s', $endTime);
 
@@ -30,6 +39,10 @@ class PricingService
         // already, see BookingServiceTest).
         if ($end->lt($start)) {
             [$start, $end] = [$end, $start];
+        }
+
+        if ($endsAtMidnight) {
+            $end = $end->addSecond();
         }
 
         $dayStart = CarbonImmutable::createFromFormat('H:i:s', self::DAY_STARTS_AT);
