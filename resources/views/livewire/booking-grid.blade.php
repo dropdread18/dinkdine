@@ -335,9 +335,10 @@
                                     @elseif ($slot->status === $slotStatus::OpenPlay)
                                         <button type="button"
                                                 @click="openPlayModal = { court: '{{ addslashes($court->name) }}', time: '{{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->openPlayStartTime)->format('g:i A')) }} – {{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->openPlayEndTime)->format('g:i A')) }}', link: {{ $slot->openPlayLink ? "'".addslashes($slot->openPlayLink)."'" : 'null' }} }"
-                                                class="w-full h-14 rounded-lg text-[13px] font-bold flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80"
+                                                class="w-full h-14 rounded-lg flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-opacity hover:opacity-80"
                                                 style="background: {{ $meta['bg'] }}; border: 1px solid {{ $meta['border'] }}; color: {{ $meta['text'] }};">
-                                            {{ $meta['icon'] }} {{ $slot->status->label() }}
+                                            <span class="text-[13px] font-bold">{{ $meta['icon'] }} {{ $slot->status->label() }}</span>
+                                            <span class="text-[10px] font-semibold opacity-75">Click to register</span>
                                         </button>
                                     @elseif ($slot->holdExpiresAt)
                                         <div class="w-full h-14 rounded-lg text-[13px] font-bold flex flex-col items-center justify-center tabular-nums"
@@ -439,8 +440,11 @@
                                 <span class="text-[15px] font-bold" style="color: var(--db-ink);">
                                     {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->startTime)->format('g:i A') }} – {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->endTime)->format('g:i A') }}
                                 </span>
-                                <span class="text-[13px] font-bold px-3 py-1.5 rounded-full" style="color: {{ $meta['text'] }}; background: {{ $meta['bg'] }};">
-                                    {{ $meta['icon'] }} {{ $slot->status->label() }}
+                                <span class="flex flex-col items-end gap-0.5">
+                                    <span class="text-[13px] font-bold px-3 py-1.5 rounded-full" style="color: {{ $meta['text'] }}; background: {{ $meta['bg'] }};">
+                                        {{ $meta['icon'] }} {{ $slot->status->label() }}
+                                    </span>
+                                    <span class="text-[10px] font-semibold" style="color: var(--db-ink-faint);">Click to register</span>
                                 </span>
                             </button>
                         @elseif ($slot->holdExpiresAt)
