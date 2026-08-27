@@ -8,7 +8,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <style>
             :root {
-                --db-nav: #1E6B3B;
+                --db-nav: #163732;
                 --db-page-bg: #F7F3E7;
                 --db-surface: #FFFFFF;
                 --db-border: #E2E8F0;

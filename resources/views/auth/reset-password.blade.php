@@ -8,7 +8,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <style>
             :root {
-                --db-nav: #1E6B3B;
+                --db-nav: #163732;
                 --db-page-bg: #F7F3E7;
                 --db-surface: #FFFFFF;
                 --db-border: #E2E8F0;
@@ -56,7 +56,7 @@
                     @endif
                 </div>
                 <div class="text-[44px] font-extrabold text-white leading-[1.1] max-w-[440px]">Book your next match in seconds.</div>
-                <div class="text-base max-w-[400px]" style="color: var(--db-ink-faintest);">Real-time court availability, easy holds, and instant confirmations — all in one place.</div>
+                <div class="text-base max-w-[400px]" style="color: rgba(255,255,255,0.85);">Real-time court availability, easy holds, and instant confirmations — all in one place.</div>
             </div>
 
             <div class="lg:w-[480px] flex flex-col" style="background: var(--db-page-bg);">

@@ -2,7 +2,7 @@
     <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
         <a href="{{ url('/') }}" class="flex items-center gap-2 shrink-0">
             @if ($brandLogoUrl)
-                <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-11 w-auto max-w-[110px] object-contain">
+                <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" class="h-14 w-auto max-w-[140px] object-contain">
             @else
                 <span class="inline-block w-2.5 h-2.5 rounded-full bg-accent"></span>
                 <span class="font-extrabold text-white">{{ $brandName }}</span>

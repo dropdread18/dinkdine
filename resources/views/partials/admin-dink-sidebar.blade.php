@@ -42,18 +42,18 @@
         @foreach ($navItems as $item)
             @php $isActive = request()->routeIs($item['pattern']); @endphp
             <a href="{{ route($item['route']) }}"
-               class="block px-6 py-3 text-sm {{ $isActive ? 'font-bold text-white bg-accent/10 border-l-[3px] border-accent' : 'font-medium text-slate-400 border-l-[3px] border-transparent hover:text-white' }}">
+               class="block px-6 py-3 text-sm {{ $isActive ? 'font-bold text-white bg-accent/10 border-l-[3px] border-accent' : 'font-medium text-white/70 border-l-[3px] border-transparent hover:text-white' }}">
                 {{ $item['label'] }}
             </a>
         @endforeach
     </div>
 
     <div class="px-6 pt-4 border-t border-white/10">
-        <div class="text-xs font-medium text-slate-400 mb-3">{{ auth()->user()->name }} &middot; {{ auth()->user()->role->label() }}</div>
-        <a href="{{ route('profile.edit') }}" class="block text-sm font-medium text-slate-400 hover:text-white mb-2">My Account</a>
+        <div class="text-xs font-medium text-white/60 mb-3">{{ auth()->user()->name }} &middot; {{ auth()->user()->role->label() }}</div>
+        <a href="{{ route('profile.edit') }}" class="block text-sm font-medium text-white/70 hover:text-white mb-2">My Account</a>
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-            <button type="submit" class="text-sm font-medium text-slate-400 hover:text-white">Logout</button>
+            <button type="submit" class="text-sm font-medium text-white/70 hover:text-white">Logout</button>
         </form>
     </div>
 </aside>
