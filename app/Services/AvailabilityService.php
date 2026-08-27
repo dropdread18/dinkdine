@@ -131,7 +131,7 @@ class AvailabilityService
                     $startTime,
                     $endTime,
                     SlotStatus::OpenPlay,
-                    openPlaySessionId: $session->id,
+                    openPlayGroupKey: $session->batch_id ?? (string) $session->id,
                     openPlayLink: $session->registration_link,
                     openPlayStartTime: $session->start_time,
                     openPlayEndTime: $session->end_time,

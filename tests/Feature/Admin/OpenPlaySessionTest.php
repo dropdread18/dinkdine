@@ -261,7 +261,7 @@ class OpenPlaySessionTest extends TestCase
         $this->assertSame('open_play', $slot->status->value);
     }
 
-    public function test_open_play_slot_carries_its_session_id_and_registration_link(): void
+    public function test_open_play_slot_carries_its_group_key_and_registration_link(): void
     {
         $court = Court::factory()->create();
         $date = now()->addDays(4)->toDateString();
@@ -283,11 +283,12 @@ class OpenPlaySessionTest extends TestCase
         $courtAvailability = collect($day['courts'])->first(fn ($ca) => $ca->court->is($court));
         $slot = collect($courtAvailability->slots)->first(fn ($s) => $s->startTime === '10:00:00');
 
-        $this->assertSame($session->id, $slot->openPlaySessionId);
+        // Factory-created sessions have no batch_id - falls back to the row's own id.
+        $this->assertSame((string) $session->id, $slot->openPlayGroupKey);
         $this->assertSame('https://reclub.co/clubs/@example', $slot->openPlayLink);
     }
 
-    public function test_two_open_play_sessions_the_same_day_carry_different_session_ids(): void
+    public function test_two_open_play_events_the_same_day_carry_different_group_keys(): void
     {
         $court = Court::factory()->create();
         $date = now()->addDays(4)->toDateString();
@@ -302,6 +303,7 @@ class OpenPlaySessionTest extends TestCase
             'session_date' => $date,
             'start_time' => '15:00:00',
             'end_time' => '19:00:00',
+            'batch_id' => 'batch-afternoon',
         ]);
 
         $evening = OpenPlaySession::factory()->create([
@@ -309,6 +311,7 @@ class OpenPlaySessionTest extends TestCase
             'session_date' => $date,
             'start_time' => '19:00:00',
             'end_time' => '22:00:00',
+            'batch_id' => 'batch-evening',
         ]);
 
         $day = (new AvailabilityService)->forDate($date);
@@ -316,9 +319,45 @@ class OpenPlaySessionTest extends TestCase
         $afternoonSlot = collect($courtAvailability->slots)->first(fn ($s) => $s->startTime === '16:00:00');
         $eveningSlot = collect($courtAvailability->slots)->first(fn ($s) => $s->startTime === '20:00:00');
 
-        $this->assertSame($afternoon->id, $afternoonSlot->openPlaySessionId);
-        $this->assertSame($evening->id, $eveningSlot->openPlaySessionId);
-        $this->assertNotSame($afternoonSlot->openPlaySessionId, $eveningSlot->openPlaySessionId);
+        $this->assertSame('batch-afternoon', $afternoonSlot->openPlayGroupKey);
+        $this->assertSame('batch-evening', $eveningSlot->openPlayGroupKey);
+        $this->assertNotSame($afternoonSlot->openPlayGroupKey, $eveningSlot->openPlayGroupKey);
+    }
+
+    public function test_one_event_booked_across_multiple_courts_shares_the_same_group_key(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $indoor = Court::factory()->create(['name' => 'Indoor Court']);
+        $outdoor = Court::factory()->create(['name' => 'Outdoor Court']);
+        $date = now()->addDays(4)->toDateString();
+
+        BusinessHour::updateOrCreate(
+            ['day_of_week' => Carbon::parse($date)->dayOfWeek],
+            ['opens_at' => '06:00:00', 'closes_at' => '22:00:00', 'is_closed' => false],
+        );
+
+        $this->actingAs($admin)->post('/admin/open-play', [
+            'court_ids' => [$indoor->id, $outdoor->id],
+            'session_date' => $date,
+            'start_time' => '15:00:00',
+            'end_time' => '19:00:00',
+        ]);
+
+        $indoorSession = OpenPlaySession::where('court_id', $indoor->id)->firstOrFail();
+        $outdoorSession = OpenPlaySession::where('court_id', $outdoor->id)->firstOrFail();
+
+        // Same submission, two different rows (one per court) - must share
+        // a batch_id, or the grid would color them as two separate events.
+        $this->assertNotNull($indoorSession->batch_id);
+        $this->assertSame($indoorSession->batch_id, $outdoorSession->batch_id);
+
+        $day = (new AvailabilityService)->forDate($date);
+        $indoorSlot = collect($day['courts'])->first(fn ($ca) => $ca->court->is($indoor));
+        $outdoorSlot = collect($day['courts'])->first(fn ($ca) => $ca->court->is($outdoor));
+        $indoorSlotAtHour = collect($indoorSlot->slots)->first(fn ($s) => $s->startTime === '16:00:00');
+        $outdoorSlotAtHour = collect($outdoorSlot->slots)->first(fn ($s) => $s->startTime === '16:00:00');
+
+        $this->assertSame($indoorSlotAtHour->openPlayGroupKey, $outdoorSlotAtHour->openPlayGroupKey);
     }
 
     public function test_a_regular_booking_attempt_over_an_open_play_slot_is_rejected(): void

@@ -219,16 +219,33 @@
                 'closed' => ['bg' => '#F1F5F9', 'border' => '#E2E8F0', 'text' => '#64748B', 'dot' => '#94A3B8', 'icon' => '—', 'label' => 'Closed'],
                 'open_play' => ['bg' => '#ECFEFF', 'border' => '#A5F3FC', 'text' => '#0E7490', 'dot' => '#06B6D4', 'icon' => '◆', 'label' => 'Open Play'],
             ];
-            // Two color variants for Open Play, alternated by session id -
-            // when two different sessions land on the same day (e.g. a
-            // 3-7pm session and a separate 7pm-midnight one), adjacent
-            // slots would otherwise look like one continuous block with no
-            // visual seam between them.
+            // Two color variants for Open Play, alternated by the session's
+            // batch (see openPlayGroupKey on AvailabilitySlot) - when two
+            // different Open Play EVENTS land on the same day (e.g. a 3-7pm
+            // event and a separate 7pm-midnight one, each possibly booked
+            // across multiple courts), adjacent slots would otherwise look
+            // like one continuous block with no visual seam between them.
+            // Keyed by batch, not by each row's own id, so the same event
+            // running on Court 1 and Court 2 stays one color, not two.
             $openPlayVariants = [
                 $statusMeta['open_play'],
                 ['bg' => '#FDF4FF', 'border' => '#F5D0FE', 'text' => '#A21CAF', 'dot' => '#D946EF', 'icon' => '◆', 'label' => 'Open Play'],
             ];
-            $openPlayMeta = fn (?int $sessionId) => $openPlayVariants[abs($sessionId ?? 0) % 2];
+            // Assign colors in the order each batch first appears (not by
+            // hashing the key) - with only two colors, a hash has a real
+            // 50/50 chance of two different events landing on the SAME
+            // color by pure coincidence, which defeats the entire point.
+            // First-appearance order guarantees adjacent different batches
+            // always alternate.
+            $openPlayBatchOrder = [];
+            foreach ($availability['courts'] as $courtAvailability) {
+                foreach ($courtAvailability->slots as $slot) {
+                    if ($slot->status === $slotStatus::OpenPlay && $slot->openPlayGroupKey !== null && ! array_key_exists($slot->openPlayGroupKey, $openPlayBatchOrder)) {
+                        $openPlayBatchOrder[$slot->openPlayGroupKey] = count($openPlayBatchOrder) % 2;
+                    }
+                }
+            }
+            $openPlayMeta = fn (?string $groupKey) => $openPlayVariants[$openPlayBatchOrder[$groupKey] ?? 0];
             $effectiveMobileCourt = $mobileCourt ?? ($availability['courts'][0]->court->id ?? null);
         @endphp
 
@@ -305,7 +322,7 @@
                                     $slotStart = \Illuminate\Support\Carbon::parse($date.' '.$slot->startTime);
                                     $bookable = $slot->status === $slotStatus::Available && ($slotStart->lte(\Illuminate\Support\Carbon::now()) || $slotStart->gte($bookableFrom));
                                     $statusKey = $isSelected ? 'selected' : $slot->status->value;
-                                    $meta = $slot->status === $slotStatus::OpenPlay ? $openPlayMeta($slot->openPlaySessionId) : ($statusMeta[$statusKey] ?? $statusMeta['closed']);
+                                    $meta = $slot->status === $slotStatus::OpenPlay ? $openPlayMeta($slot->openPlayGroupKey) : ($statusMeta[$statusKey] ?? $statusMeta['closed']);
                                 @endphp
                                 <div>
                                     @if ($bookable || $isSelected)
@@ -401,7 +418,7 @@
                             $slotStart = \Illuminate\Support\Carbon::parse($date.' '.$slot->startTime);
                             $bookable = $slot->status === $slotStatus::Available && ($slotStart->lte(\Illuminate\Support\Carbon::now()) || $slotStart->gte($bookableFrom));
                             $statusKey = $isSelected ? 'selected' : $slot->status->value;
-                            $meta = $slot->status === $slotStatus::OpenPlay ? $openPlayMeta($slot->openPlaySessionId) : ($statusMeta[$statusKey] ?? $statusMeta['closed']);
+                            $meta = $slot->status === $slotStatus::OpenPlay ? $openPlayMeta($slot->openPlayGroupKey) : ($statusMeta[$statusKey] ?? $statusMeta['closed']);
                         @endphp
                         @if ($bookable || $isSelected)
                             <button type="button" wire:click="toggleSlot({{ $court->id }}, '{{ addslashes($court->name) }}', '{{ $slot->startTime }}', '{{ $slot->endTime }}')"

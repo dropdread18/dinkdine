@@ -6,11 +6,23 @@
 @php
     $extraRouteParams = $extraRouteParams ?? [];
     $readOnly = $readOnly ?? false;
-    // Two color variants for Open Play, alternated by session id - see
+    // Two color variants for Open Play, alternated by batch - see
     // livewire/booking-grid.blade.php for why (distinguishing two
-    // different Open Play sessions that land back-to-back on one day).
+    // different Open Play EVENTS that land back-to-back on one day, while
+    // keeping one event that spans multiple courts a single color).
+    // Assigned in order of first appearance, not by hashing the key - a
+    // hash has a real 50/50 chance of two different events landing on the
+    // SAME color by coincidence, which defeats the point.
     $openPlayVariants = ['bg-cyan-50 text-cyan-700', 'bg-fuchsia-50 text-fuchsia-700'];
-    $openPlayClasses = fn (?int $sessionId) => $openPlayVariants[abs($sessionId ?? 0) % 2];
+    $openPlayBatchOrder = [];
+    foreach ($availability['courts'] ?? [] as $courtAvailability) {
+        foreach ($courtAvailability->slots as $slot) {
+            if ($slot->status === \App\Enums\SlotStatus::OpenPlay && $slot->openPlayGroupKey !== null && ! array_key_exists($slot->openPlayGroupKey, $openPlayBatchOrder)) {
+                $openPlayBatchOrder[$slot->openPlayGroupKey] = count($openPlayBatchOrder) % 2;
+            }
+        }
+    }
+    $openPlayClasses = fn (?string $groupKey) => $openPlayVariants[$openPlayBatchOrder[$groupKey] ?? 0];
 @endphp
 
 <div x-data="{ openPlayModal: null }">
@@ -51,7 +63,7 @@
                                     $slotStart = \Illuminate\Support\Carbon::parse($date.' '.$slot->startTime);
                                     $bookable = ! $readOnly && $slot->status === \App\Enums\SlotStatus::Available && ($slotStart->lte(\Illuminate\Support\Carbon::now()) || $slotStart->gte($bookableFrom));
                                     $isOpenPlay = $slot->status === \App\Enums\SlotStatus::OpenPlay;
-                                    $classes = $isOpenPlay ? $openPlayClasses($slot->openPlaySessionId) : match ($slot->status) {
+                                    $classes = $isOpenPlay ? $openPlayClasses($slot->openPlayGroupKey) : match ($slot->status) {
                                         \App\Enums\SlotStatus::Available => 'bg-green-50 text-green-700',
                                         \App\Enums\SlotStatus::Booked => 'bg-red-50 text-red-700',
                                         \App\Enums\SlotStatus::InProgress => 'bg-violet-50 text-violet-700',
