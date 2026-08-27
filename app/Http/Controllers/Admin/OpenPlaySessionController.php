@@ -10,7 +10,6 @@ use App\Models\Setting;
 use App\Services\AvailabilityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class OpenPlaySessionController extends Controller
@@ -50,16 +49,9 @@ class OpenPlaySessionController extends Controller
     {
         $courtIds = $request->validated('court_ids');
         $shared = collect($request->validated())->except('court_ids')->all();
-        // Every court selected in this one submission shares a batch_id -
-        // this is what lets the grid tell "the same Open Play event on two
-        // courts" apart from "two different Open Play events that happen
-        // to share a day," which two independently-incrementing row ids
-        // can't distinguish (consecutive ids from one batch always land on
-        // different odd/even parity).
-        $batchId = (string) Str::uuid();
 
         foreach ($courtIds as $courtId) {
-            OpenPlaySession::create([...$shared, 'court_id' => $courtId, 'created_by' => $request->user()->id, 'batch_id' => $batchId]);
+            OpenPlaySession::create([...$shared, 'court_id' => $courtId, 'created_by' => $request->user()->id]);
         }
 
         $status = count($courtIds) === 1

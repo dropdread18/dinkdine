@@ -131,7 +131,13 @@ class AvailabilityService
                     $startTime,
                     $endTime,
                     SlotStatus::OpenPlay,
-                    openPlayGroupKey: $session->batch_id ?? (string) $session->id,
+                    // Grouped by date+time window, not batch_id - the same
+                    // event on two courts should read as one color whether
+                    // it was scheduled in one multi-court submission or as
+                    // two separate single-court ones (batch_id only ever
+                    // captures the former, and is null for any session
+                    // that predates the column entirely).
+                    openPlayGroupKey: $day->toDateString().'|'.$session->start_time.'|'.$session->end_time,
                     openPlayLink: $session->registration_link,
                     openPlayStartTime: $session->start_time,
                     openPlayEndTime: $session->end_time,

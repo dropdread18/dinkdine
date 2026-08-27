@@ -283,8 +283,7 @@ class OpenPlaySessionTest extends TestCase
         $courtAvailability = collect($day['courts'])->first(fn ($ca) => $ca->court->is($court));
         $slot = collect($courtAvailability->slots)->first(fn ($s) => $s->startTime === '10:00:00');
 
-        // Factory-created sessions have no batch_id - falls back to the row's own id.
-        $this->assertSame((string) $session->id, $slot->openPlayGroupKey);
+        $this->assertSame($date.'|09:00:00|12:00:00', $slot->openPlayGroupKey);
         $this->assertSame('https://reclub.co/clubs/@example', $slot->openPlayLink);
     }
 
@@ -298,20 +297,18 @@ class OpenPlaySessionTest extends TestCase
             ['opens_at' => '06:00:00', 'closes_at' => '23:59:59', 'is_closed' => false],
         );
 
-        $afternoon = OpenPlaySession::factory()->create([
+        OpenPlaySession::factory()->create([
             'court_id' => $court->id,
             'session_date' => $date,
             'start_time' => '15:00:00',
             'end_time' => '19:00:00',
-            'batch_id' => 'batch-afternoon',
         ]);
 
-        $evening = OpenPlaySession::factory()->create([
+        OpenPlaySession::factory()->create([
             'court_id' => $court->id,
             'session_date' => $date,
             'start_time' => '19:00:00',
             'end_time' => '22:00:00',
-            'batch_id' => 'batch-evening',
         ]);
 
         $day = (new AvailabilityService)->forDate($date);
@@ -319,8 +316,6 @@ class OpenPlaySessionTest extends TestCase
         $afternoonSlot = collect($courtAvailability->slots)->first(fn ($s) => $s->startTime === '16:00:00');
         $eveningSlot = collect($courtAvailability->slots)->first(fn ($s) => $s->startTime === '20:00:00');
 
-        $this->assertSame('batch-afternoon', $afternoonSlot->openPlayGroupKey);
-        $this->assertSame('batch-evening', $eveningSlot->openPlayGroupKey);
         $this->assertNotSame($afternoonSlot->openPlayGroupKey, $eveningSlot->openPlayGroupKey);
     }
 
@@ -343,13 +338,45 @@ class OpenPlaySessionTest extends TestCase
             'end_time' => '19:00:00',
         ]);
 
-        $indoorSession = OpenPlaySession::where('court_id', $indoor->id)->firstOrFail();
-        $outdoorSession = OpenPlaySession::where('court_id', $outdoor->id)->firstOrFail();
+        $day = (new AvailabilityService)->forDate($date);
+        $indoorSlot = collect($day['courts'])->first(fn ($ca) => $ca->court->is($indoor));
+        $outdoorSlot = collect($day['courts'])->first(fn ($ca) => $ca->court->is($outdoor));
+        $indoorSlotAtHour = collect($indoorSlot->slots)->first(fn ($s) => $s->startTime === '16:00:00');
+        $outdoorSlotAtHour = collect($outdoorSlot->slots)->first(fn ($s) => $s->startTime === '16:00:00');
 
-        // Same submission, two different rows (one per court) - must share
-        // a batch_id, or the grid would color them as two separate events.
-        $this->assertNotNull($indoorSession->batch_id);
-        $this->assertSame($indoorSession->batch_id, $outdoorSession->batch_id);
+        $this->assertSame($indoorSlotAtHour->openPlayGroupKey, $outdoorSlotAtHour->openPlayGroupKey);
+    }
+
+    public function test_the_same_event_scheduled_as_two_separate_single_court_submissions_still_shares_a_group_key(): void
+    {
+        // This is the real bug the owner reported: two courts for what is
+        // clearly the same event, scheduled as two independent
+        // single-court submissions (as every session before batch-aware
+        // grouping existed necessarily was) - not one multi-court one.
+        // Grouping by date+time window (not by how the rows were created)
+        // must still color them the same regardless.
+        $admin = User::factory()->admin()->create();
+        $indoor = Court::factory()->create();
+        $outdoor = Court::factory()->create();
+        $date = now()->addDays(4)->toDateString();
+
+        BusinessHour::updateOrCreate(
+            ['day_of_week' => Carbon::parse($date)->dayOfWeek],
+            ['opens_at' => '06:00:00', 'closes_at' => '22:00:00', 'is_closed' => false],
+        );
+
+        $this->actingAs($admin)->post('/admin/open-play', [
+            'court_ids' => [$indoor->id],
+            'session_date' => $date,
+            'start_time' => '15:00:00',
+            'end_time' => '19:00:00',
+        ]);
+        $this->actingAs($admin)->post('/admin/open-play', [
+            'court_ids' => [$outdoor->id],
+            'session_date' => $date,
+            'start_time' => '15:00:00',
+            'end_time' => '19:00:00',
+        ]);
 
         $day = (new AvailabilityService)->forDate($date);
         $indoorSlot = collect($day['courts'])->first(fn ($ca) => $ca->court->is($indoor));

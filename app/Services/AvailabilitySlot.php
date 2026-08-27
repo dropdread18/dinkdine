@@ -19,15 +19,15 @@ final readonly class AvailabilitySlot
          */
         public ?string $holdExpiresAt = null,
         /**
-         * Set only when status is OpenPlay - the session's batch_id (falling
-         * back to its own id for any session predating that column), used
-         * purely for display: alternating two colors between
-         * adjacent-but-different Open Play EVENTS on the same day so
-         * customers can tell them apart. Deliberately the batch, not the
-         * row id - one event booked across multiple courts creates one row
-         * per court, and consecutive row ids always land on opposite
-         * odd/even parity, which would make one single event look like two
-         * different ones.
+         * Set only when status is OpenPlay - a key built from the session's
+         * date + time window (not its row id), used purely for display:
+         * alternating two colors between adjacent-but-different Open Play
+         * EVENTS on the same day so customers can tell them apart. Keyed by
+         * date+time rather than the row id (or any "batch" grouping tied to
+         * how the session was created) so the same event running on
+         * multiple courts always reads as one color regardless of whether
+         * it was scheduled in one multi-court submission or several
+         * separate single-court ones.
          */
         public ?string $openPlayGroupKey = null,
         /**
