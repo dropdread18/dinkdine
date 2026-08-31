@@ -148,7 +148,7 @@ class CourtMaintenanceTest extends TestCase
         $this->assertDatabaseMissing('court_maintenance', ['id' => $maintenance->id]);
     }
 
-    public function test_scheduled_maintenance_closes_slots_on_the_availability_grid(): void
+    public function test_scheduled_maintenance_marks_slots_as_maintenance_on_the_availability_grid(): void
     {
         $court = Court::factory()->create();
         $date = now()->addDays(4)->toDateString();
@@ -168,6 +168,6 @@ class CourtMaintenanceTest extends TestCase
         $courtAvailability = collect($day['courts'])->first(fn ($ca) => $ca->court->is($court));
         $slot = collect($courtAvailability->slots)->first(fn ($s) => $s->startTime === '10:00:00');
 
-        $this->assertSame('closed', $slot->status->value);
+        $this->assertSame('maintenance', $slot->status->value);
     }
 }

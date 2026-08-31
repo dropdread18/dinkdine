@@ -217,6 +217,7 @@
                 'booked' => ['bg' => '#FEF2F2', 'border' => '#FECACA', 'text' => '#B91C1C', 'dot' => '#EF4444', 'icon' => '●', 'label' => 'Booked'],
                 'in_progress' => ['bg' => '#F5F3FF', 'border' => '#DDD6FE', 'text' => '#6D28D9', 'dot' => '#8B5CF6', 'icon' => '◔', 'label' => 'In Progress'],
                 'closed' => ['bg' => '#F1F5F9', 'border' => '#E2E8F0', 'text' => '#64748B', 'dot' => '#94A3B8', 'icon' => '—', 'label' => 'Closed'],
+                'maintenance' => ['bg' => '#FFF7ED', 'border' => '#FDBA74', 'text' => '#C2410C', 'dot' => '#F97316', 'icon' => '⚠', 'label' => 'Maintenance'],
                 'open_play' => ['bg' => '#ECFEFF', 'border' => '#A5F3FC', 'text' => '#0E7490', 'dot' => '#06B6D4', 'icon' => '◆', 'label' => 'Open Play'],
             ];
             // Two color variants for Open Play, alternated by the session's

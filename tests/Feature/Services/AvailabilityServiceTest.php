@@ -171,7 +171,7 @@ class AvailabilityServiceTest extends TestCase
         $slots = $this->slotsFor($court);
 
         $this->assertSame(SlotStatus::Available, $slots['08:00:00']->status);
-        $this->assertSame(SlotStatus::Closed, $slots['09:00:00']->status);
+        $this->assertSame(SlotStatus::Maintenance, $slots['09:00:00']->status);
         $this->assertSame(SlotStatus::Available, $slots['10:00:00']->status);
     }
 
@@ -194,9 +194,20 @@ class AvailabilityServiceTest extends TestCase
         }
     }
 
-    public function test_inactive_court_is_entirely_closed_regardless_of_bookings(): void
+    public function test_a_court_under_maintenance_shows_maintenance_not_closed(): void
     {
         $court = Court::factory()->create(['status' => CourtStatus::Maintenance]);
+
+        $slots = $this->slotsFor($court);
+
+        foreach ($slots as $slot) {
+            $this->assertSame(SlotStatus::Maintenance, $slot->status);
+        }
+    }
+
+    public function test_an_inactive_court_is_entirely_closed_regardless_of_bookings(): void
+    {
+        $court = Court::factory()->create(['status' => CourtStatus::Inactive]);
 
         $slots = $this->slotsFor($court);
 

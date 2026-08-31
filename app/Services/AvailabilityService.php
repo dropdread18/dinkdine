@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\BookingStatus;
+use App\Enums\CourtStatus;
 use App\Enums\SlotStatus;
 use App\Models\Booking;
 use App\Models\BusinessHour;
@@ -110,7 +111,10 @@ class AvailabilityService
         Collection $courtOpenPlay,
     ): AvailabilitySlot {
         if (! $court->isBookable()) {
-            return new AvailabilitySlot($startTime, $endTime, SlotStatus::Closed);
+            // A court explicitly set to Maintenance should read as
+            // Maintenance on the grid, not a plain Closed - Inactive/Closed
+            // courts still show the generic Closed status.
+            return new AvailabilitySlot($startTime, $endTime, $court->status === CourtStatus::Maintenance ? SlotStatus::Maintenance : SlotStatus::Closed);
         }
 
         if ($this->anyPeriodCoversSlot($closurePeriods, $day, $startTime, $endTime)) {
@@ -118,7 +122,7 @@ class AvailabilityService
         }
 
         if ($this->anyPeriodCoversSlot($courtMaintenance, $day, $startTime, $endTime)) {
-            return new AvailabilitySlot($startTime, $endTime, SlotStatus::Closed);
+            return new AvailabilitySlot($startTime, $endTime, SlotStatus::Maintenance);
         }
 
         // Open Play blocks the slot for regular booking but shows its own
