@@ -7,6 +7,7 @@ use App\Http\Requests\BusinessHoursRequest;
 use App\Http\Requests\SettingRequest;
 use App\Models\BusinessHour;
 use App\Models\Court;
+use App\Models\PaymentMethod;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
@@ -44,7 +45,6 @@ class SettingController extends Controller
         $settings = collect(self::KEYS)->mapWithKeys(
             fn (string $key) => [$key => Setting::get($key)]
         );
-        $settings['payment_qr_code'] = Setting::get('payment_qr_code');
         $settings['facility_logo'] = Setting::get('facility_logo');
 
         return view('admin.settings.index', [
@@ -52,6 +52,7 @@ class SettingController extends Controller
             'businessHours' => BusinessHour::orderBy('day_of_week')->get(),
             'timezone' => Setting::get('timezone', config('app.timezone')),
             'courts' => Court::orderBy('sort_order')->orderBy('court_number')->get(),
+            'paymentMethods' => PaymentMethod::orderBy('sort_order')->orderBy('name')->get(),
         ]);
     }
 
@@ -64,21 +65,9 @@ class SettingController extends Controller
         // Not in self::KEYS - it's a stored-file path, not a plain text
         // value, so it can't go through the blind (string) cast loop above
         // (that would store the file's temp path instead of the public-disk
-        // path, and would wipe the existing QR on every save with no new
+        // path, and would wipe the existing logo on every save with no new
         // file chosen). Same store/replace pattern as CourtController's
         // image handling: delete the old file before writing the new path.
-        if ($request->boolean('remove_payment_qr_code')) {
-            if ($existing = Setting::get('payment_qr_code')) {
-                Storage::disk('public')->delete($existing);
-            }
-            Setting::set('payment_qr_code', '');
-        } elseif ($request->hasFile('payment_qr_code')) {
-            if ($existing = Setting::get('payment_qr_code')) {
-                Storage::disk('public')->delete($existing);
-            }
-            Setting::set('payment_qr_code', $request->file('payment_qr_code')->store('settings', 'public'));
-        }
-
         if ($request->boolean('remove_facility_logo')) {
             if ($existing = Setting::get('facility_logo')) {
                 Storage::disk('public')->delete($existing);

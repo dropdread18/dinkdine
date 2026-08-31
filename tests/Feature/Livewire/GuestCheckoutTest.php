@@ -9,6 +9,7 @@ use App\Livewire\BookingGrid;
 use App\Models\Booking;
 use App\Models\BusinessHour;
 use App\Models\Court;
+use App\Models\PaymentMethod;
 use App\Models\Setting;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -110,7 +111,7 @@ class GuestCheckoutTest extends TestCase
 
     public function test_payment_hold_screen_shows_the_qr_code_when_one_is_configured(): void
     {
-        Setting::set('payment_qr_code', 'settings/fake-qr.png');
+        PaymentMethod::factory()->create(['name' => 'GCash', 'qr_code_path' => 'payment-methods/fake-gcash-qr.png']);
         $court = Court::factory()->create();
 
         Livewire::test(BookingGrid::class, ['date' => $this->date])
@@ -121,7 +122,27 @@ class GuestCheckoutTest extends TestCase
             ->set('guestPhone', '09171234567')
             ->call('confirmBookings')
             ->assertSee('Scan QR Code')
-            ->assertSee('/storage/settings/fake-qr.png', false);
+            ->assertSee('GCash')
+            ->assertSee('/storage/payment-methods/fake-gcash-qr.png', false);
+    }
+
+    public function test_payment_hold_screen_lists_every_active_payment_method_but_not_inactive_ones(): void
+    {
+        PaymentMethod::factory()->create(['name' => 'GCash', 'qr_code_path' => 'payment-methods/gcash.png']);
+        PaymentMethod::factory()->create(['name' => 'Maya', 'qr_code_path' => 'payment-methods/maya.png']);
+        PaymentMethod::factory()->inactive()->create(['name' => 'GoTyme', 'qr_code_path' => 'payment-methods/gotyme.png']);
+        $court = Court::factory()->create();
+
+        Livewire::test(BookingGrid::class, ['date' => $this->date])
+            ->call('toggleSlot', $court->id, $court->name, '09:00:00', '10:00:00')
+            ->call('startReview')
+            ->set('guestName', 'Juan Dela Cruz')
+            ->set('guestEmail', 'juan@example.com')
+            ->set('guestPhone', '09171234567')
+            ->call('confirmBookings')
+            ->assertSee('GCash')
+            ->assertSee('Maya')
+            ->assertDontSee('GoTyme');
     }
 
     public function test_payment_hold_screen_has_no_scan_toggle_without_a_configured_qr_code(): void

@@ -133,29 +133,11 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-1">
-                <div>
-                    <label for="payment_instructions" class="block text-sm font-medium text-slate-700">Guest Payment Instructions</label>
-                    <p class="text-xs text-slate-500 mb-1">Shown after selecting slots - how to pay and where to enter the reference number.</p>
-                    <textarea id="payment_instructions" name="payment_instructions" rows="3"
-                              class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">{{ old('payment_instructions', $settings['payment_instructions']) }}</textarea>
-                </div>
-
-                <div>
-                    <label for="payment_qr_code" class="block text-sm font-medium text-slate-700">Payment QR Code (optional)</label>
-                    <p class="text-xs text-slate-500 mb-1">Shown on the payment screen so customers can scan to pay.</p>
-                    @if ($settings['payment_qr_code'])
-                        <div class="flex items-center gap-3 mt-1 mb-2">
-                            <img src="{{ \Illuminate\Support\Facades\Storage::url($settings['payment_qr_code']) }}" alt="Payment QR code" class="w-16 h-16 object-contain rounded-lg border border-slate-200 bg-white p-1">
-                            <label class="flex items-center gap-2 text-sm text-slate-600">
-                                <input type="checkbox" name="remove_payment_qr_code" value="1" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
-                                Remove QR code
-                            </label>
-                        </div>
-                    @endif
-                    <input id="payment_qr_code" name="payment_qr_code" type="file" accept="image/*"
-                           class="mt-1 block w-full text-sm text-slate-500 cursor-pointer file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-accent file:px-4 file:py-2.5 file:text-sm file:font-bold file:text-white file:shadow-sm file:transition-colors hover:file:bg-[#7E1519]">
-                </div>
+            <div class="pt-1">
+                <label for="payment_instructions" class="block text-sm font-medium text-slate-700">Guest Payment Instructions</label>
+                <p class="text-xs text-slate-500 mb-1">Shown after selecting slots - how to pay and where to enter the reference number. QR codes themselves are managed separately, in Payment Methods below.</p>
+                <textarea id="payment_instructions" name="payment_instructions" rows="3"
+                          class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">{{ old('payment_instructions', $settings['payment_instructions']) }}</textarea>
             </div>
 
             <div class="pt-1">
@@ -169,6 +151,47 @@
             <x-button type="submit">Save Settings</x-button>
         </form>
         </x-card>
+    </section>
+
+    <section class="mb-10">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm font-medium text-slate-500 uppercase">Payment Methods</h2>
+            <x-button tag="a" href="{{ route('admin.payment-methods.create') }}" variant="secondary" class="!py-1.5 !px-3 text-xs">New Payment Method</x-button>
+        </div>
+        <p class="text-sm text-slate-500 mb-3">QR codes customers can scan to pay - add one per bank or e-wallet (GCash, Maya, GoTyme, etc.). Payment still confirms the same way for all of them: the customer submits a reference number.</p>
+
+        @if ($paymentMethods->isEmpty())
+            <x-card class="text-center text-slate-500 text-sm py-8">No payment methods yet - customers won't see a QR code to scan until you add one.</x-card>
+        @else
+            <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm bg-white">
+                <table class="min-w-full text-sm">
+                    <thead>
+                        <tr class="bg-slate-50">
+                            <th class="text-left font-medium text-slate-500 py-3 pl-4 pr-4">QR Code</th>
+                            <th class="text-left font-medium text-slate-500 py-3 pr-4">Name</th>
+                            <th class="text-left font-medium text-slate-500 py-3 pr-4">Status</th>
+                            <th class="text-left font-medium text-slate-500 py-3 pr-4"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($paymentMethods as $method)
+                            <tr class="border-t border-slate-100 hover:bg-slate-50/60">
+                                <td class="py-3 pl-4 pr-4">
+                                    <img src="{{ \Illuminate\Support\Facades\Storage::url($method->qr_code_path) }}" alt="{{ $method->name }} QR code" class="w-12 h-12 object-contain rounded-lg border border-slate-200 bg-white p-1">
+                                </td>
+                                <td class="py-3 pr-4 text-slate-900 font-medium">{{ $method->name }}</td>
+                                <td class="py-3 pr-4">
+                                    <x-badge :color="$method->is_active ? 'green' : 'slate'">{{ $method->is_active ? 'Active' : 'Inactive' }}</x-badge>
+                                </td>
+                                <td class="py-3 pr-4 text-right">
+                                    <a href="{{ route('admin.payment-methods.edit', $method) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Edit</a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
     </section>
 
     <section class="mb-10">

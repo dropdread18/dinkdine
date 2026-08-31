@@ -7,6 +7,7 @@ use App\Enums\UserRole;
 use App\Exceptions\BookingUnavailableException;
 use App\Models\Booking;
 use App\Models\Court;
+use App\Models\PaymentMethod;
 use App\Models\Setting;
 use App\Models\User;
 use App\Services\AvailabilityService;
@@ -39,7 +40,9 @@ use Livewire\WithFileUploads;
  * 'payment_hold_minutes', default 10)
  * (BookingService::bookMany(..., requiresPaymentHold: true)) while the
  * customer pays via the facility's own arrangement (Setting
- * 'payment_instructions'/QR code) and reports back a reference number
+ * 'payment_instructions' plus whichever PaymentMethod QR codes the admin
+ * has configured - GCash, Maya, GoTyme, etc.) and reports back a reference
+ * number
  * and/or a screenshot of the receipt (submitPaymentReference() ->
  * BookingService::confirmWithReference()). If they don't, the hold
  * silently expires via the bookings:expire-payment-holds scheduled
@@ -305,7 +308,7 @@ class BookingGrid extends Component
             'totalPrice' => $slotPrices->sum(),
             'slotStatus' => SlotStatus::class,
             'paymentInstructions' => Setting::get('payment_instructions'),
-            'paymentQrCode' => Setting::get('payment_qr_code'),
+            'paymentMethods' => PaymentMethod::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(),
             'pendingBookings' => $pendingBookings,
             'paymentHoldMinutes' => (int) (Setting::get('payment_hold_minutes') ?? 10),
         ]);

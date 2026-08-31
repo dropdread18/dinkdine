@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\OpenPlaySessionController;
 use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StaffController;
@@ -75,6 +76,7 @@ Route::middleware(['auth', 'role:admin,organizer'])->prefix('manage')->name('man
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('courts', CourtController::class)->except(['show']);
     Route::resource('maintenance', CourtMaintenanceController::class)->except(['show']);
+    Route::resource('payment-methods', PaymentMethodController::class)->except(['show']);
 
     Route::get('customers', [CustomerController::class, 'index'])->name('customers.index');
     Route::get('customers/create', [CustomerController::class, 'create'])->name('customers.create');

@@ -6,8 +6,6 @@ use App\Models\BusinessHour;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class SettingsTest extends TestCase
@@ -80,76 +78,6 @@ class SettingsTest extends TestCase
         ]));
 
         $response->assertSessionHasErrors('max_booking_duration_minutes');
-    }
-
-    public function test_admin_can_upload_a_payment_qr_code(): void
-    {
-        Storage::fake('public');
-        $admin = User::factory()->admin()->create();
-
-        $this->actingAs($admin)->put('/manage/settings', $this->validSettingsPayload([
-            'payment_qr_code' => UploadedFile::fake()->image('qr.png'),
-        ]));
-
-        $path = Setting::get('payment_qr_code');
-        $this->assertNotEmpty($path);
-        Storage::disk('public')->assertExists($path);
-    }
-
-    public function test_uploading_a_new_qr_code_deletes_the_old_one(): void
-    {
-        Storage::fake('public');
-        $admin = User::factory()->admin()->create();
-
-        $this->actingAs($admin)->put('/manage/settings', $this->validSettingsPayload([
-            'payment_qr_code' => UploadedFile::fake()->image('first.png'),
-        ]));
-        $firstPath = Setting::get('payment_qr_code');
-
-        $this->actingAs($admin)->put('/manage/settings', $this->validSettingsPayload([
-            'payment_qr_code' => UploadedFile::fake()->image('second.png'),
-        ]));
-        $secondPath = Setting::get('payment_qr_code');
-
-        $this->assertNotSame($firstPath, $secondPath);
-        Storage::disk('public')->assertMissing($firstPath);
-        Storage::disk('public')->assertExists($secondPath);
-    }
-
-    public function test_admin_can_remove_an_uploaded_qr_code(): void
-    {
-        Storage::fake('public');
-        $admin = User::factory()->admin()->create();
-
-        $this->actingAs($admin)->put('/manage/settings', $this->validSettingsPayload([
-            'payment_qr_code' => UploadedFile::fake()->image('qr.png'),
-        ]));
-        $path = Setting::get('payment_qr_code');
-
-        $this->actingAs($admin)->put('/manage/settings', $this->validSettingsPayload([
-            'remove_payment_qr_code' => '1',
-        ]));
-
-        $this->assertSame('', Setting::get('payment_qr_code'));
-        Storage::disk('public')->assertMissing($path);
-    }
-
-    public function test_settings_without_a_qr_code_change_are_left_untouched(): void
-    {
-        Storage::fake('public');
-        $admin = User::factory()->admin()->create();
-
-        $this->actingAs($admin)->put('/manage/settings', $this->validSettingsPayload([
-            'payment_qr_code' => UploadedFile::fake()->image('qr.png'),
-        ]));
-        $path = Setting::get('payment_qr_code');
-
-        $this->actingAs($admin)->put('/manage/settings', $this->validSettingsPayload([
-            'facility_name' => 'Renamed Facility',
-        ]));
-
-        $this->assertSame($path, Setting::get('payment_qr_code'));
-        Storage::disk('public')->assertExists($path);
     }
 
     public function test_admin_can_change_the_payment_hold_window(): void
