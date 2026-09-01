@@ -16,6 +16,7 @@ use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\StoreMenuController;
 use App\Http\Controllers\Staff\BookingController as StaffBookingController;
 use App\Http\Controllers\Staff\CheckInController;
 use App\Http\Controllers\Staff\ScheduleController;
@@ -165,6 +166,11 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.update-password');
 });
+
+// Henri's own private, searchable store-menu reference - see
+// StoreMenuController for why this isn't under role:admin or linked from
+// any nav.
+Route::middleware('auth')->get('/store-menu', [StoreMenuController::class, 'index'])->name('store-menu.index');
 
 Route::middleware('auth')->get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
 Route::middleware('auth')->get('/bookings/{booking}/receipt', [BookingController::class, 'receipt'])->name('bookings.receipt');
