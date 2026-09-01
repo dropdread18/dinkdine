@@ -81,6 +81,22 @@ class StoreMenuController extends Controller
             throw new HttpException(404); // 404, not 403 - don't reveal this page exists to anyone else.
         }
 
-        return view('store-menu', ['menu' => $this->menu()]);
+        // Flattened here, not in the Blade @json() call - a multi-line
+        // collect()->flatMap()->map(...) expression with array literals
+        // full of commas confuses @json's directive (it naively explodes
+        // its argument on every top-level comma to look for a JSON_*
+        // options flag), which silently broke the default quote-escaping
+        // and let a literal " leak out of the x-data="..." attribute,
+        // spilling the rest of the Alpine expression onto the page as
+        // visible text. A single plain variable has no commas for @json
+        // to misparse.
+        $items = [];
+        foreach ($this->menu() as $group) {
+            foreach ($group['items'] as $item) {
+                $items[] = ['category' => $group['category'], ...$item];
+            }
+        }
+
+        return view('store-menu', ['items' => $items]);
     }
 }

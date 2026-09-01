@@ -6,6 +6,13 @@
         @include('partials.favicon')
         <title>{{ isset($title) ? $title.' - '.config('app.name') : config('app.name') }}</title>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        {{-- Livewire ships its own bundled Alpine.js and only auto-injects
+             it on pages that actually mount a <livewire:...> component -
+             that's only bookings/index.blade.php in this app. Every other
+             page using x-data (Open Play modals on staff schedule/walk-in/
+             reschedule, this admin layout's own pages) had no Alpine
+             runtime at all until these two directives were added here. --}}
+        @livewireStyles
     </head>
     <body class="min-h-screen bg-mint text-slate-900">
         @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isStaff() || auth()->user()->isOrganizer()))
@@ -29,5 +36,7 @@
                 @yield('content')
             </main>
         @endif
+
+        @livewireScripts
     </body>
 </html>

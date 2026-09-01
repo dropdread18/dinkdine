@@ -3,9 +3,9 @@
 @section('content')
     <x-page-header title="Store Menu" subtitle="Search by name to find a price - all figures in Philippine Pesos." />
 
-    <div x-data="{
-            search: '',
-            items: @json(collect($menu)->flatMap(fn ($group) => collect($group['items'])->map(fn ($item) => ['category' => $group['category'], ...$item]))),
+    <div x-data='{
+            search: "",
+            items: @json($items),
             get filtered() {
                 const q = this.search.trim().toLowerCase();
                 if (! q) return this.items;
@@ -18,7 +18,7 @@
                 }
                 return groups;
             },
-         }" class="max-w-lg">
+         }' class="max-w-lg">
         <div class="relative mb-6">
             <input type="search" x-model="search" placeholder="Search item, e.g. Gatorade"
                    class="block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500 py-2.5 px-4"
