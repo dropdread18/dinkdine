@@ -445,6 +445,47 @@ class BookingServiceTest extends TestCase
         $this->assertEquals(300.00, (float) $payment->amount);
     }
 
+    public function test_an_online_booking_captures_the_configured_convenience_fee(): void
+    {
+        Setting::set('convenience_fee', '15');
+        $court = Court::factory()->create(['hourly_rate' => 300]);
+
+        $booking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+
+        $this->assertEquals(15.00, (float) $booking->convenience_fee);
+        $payment = Payment::where('booking_id', $booking->id)->firstOrFail();
+        $this->assertEquals(315.00, (float) $payment->amount);
+    }
+
+    public function test_a_walk_in_booking_is_never_charged_the_convenience_fee(): void
+    {
+        Setting::set('convenience_fee', '15');
+        $court = Court::factory()->create(['hourly_rate' => 300]);
+
+        $booking = $this->service->book(
+            User::factory()->customer()->create(),
+            $court,
+            $this->date,
+            '09:00:00',
+            '10:00:00',
+            source: BookingSource::WalkIn,
+            enforceBookingWindow: false,
+        );
+
+        $this->assertEquals(0.00, (float) $booking->convenience_fee);
+        $payment = Payment::where('booking_id', $booking->id)->firstOrFail();
+        $this->assertEquals(300.00, (float) $payment->amount);
+    }
+
+    public function test_no_convenience_fee_is_charged_when_the_setting_is_unset(): void
+    {
+        $court = Court::factory()->create(['hourly_rate' => 300]);
+
+        $booking = $this->service->book(User::factory()->customer()->create(), $court, $this->date, '09:00:00', '10:00:00');
+
+        $this->assertEquals(0.00, (float) $booking->convenience_fee);
+    }
+
     public function test_rescheduling_updates_the_unpaid_payment_amount(): void
     {
         $courtA = Court::factory()->create(['hourly_rate' => 300]);
@@ -455,6 +496,20 @@ class BookingServiceTest extends TestCase
 
         $payment = Payment::where('booking_id', $booking->id)->firstOrFail();
         $this->assertEquals(500.00, (float) $payment->amount);
+    }
+
+    public function test_rescheduling_preserves_the_original_convenience_fee_and_includes_it_in_the_synced_payment(): void
+    {
+        Setting::set('convenience_fee', '10');
+        $courtA = Court::factory()->create(['hourly_rate' => 300]);
+        $courtB = Court::factory()->create(['hourly_rate' => 500]);
+        $booking = $this->service->book(User::factory()->customer()->create(), $courtA, $this->date, '09:00:00', '10:00:00');
+
+        $this->service->reschedule($booking, $courtB, $this->date, '11:00:00', '12:00:00');
+
+        $this->assertEquals(10.00, (float) $booking->fresh()->convenience_fee);
+        $payment = Payment::where('booking_id', $booking->id)->firstOrFail();
+        $this->assertEquals(510.00, (float) $payment->amount);
     }
 
     public function test_rescheduling_does_not_change_the_amount_of_an_already_paid_payment(): void

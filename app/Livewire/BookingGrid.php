@@ -297,6 +297,13 @@ class BookingGrid extends Component
             fn (array $s) => $pricingService->calculate(Court::find($s['court_id']), $s['start_time'], $s['end_time'])
         );
 
+        // Flat per-booking amount, not per hour - one selected slot becomes
+        // one Booking row (see BookingService::book()), so the fee simply
+        // multiplies by how many slots are selected, same as the amount
+        // that will actually be charged once confirmed.
+        $convenienceFeePerSlot = (float) (Setting::get('convenience_fee') ?? 0);
+        $convenienceFeeTotal = $convenienceFeePerSlot * count($this->selected);
+
         $pendingBookings = $this->awaitingPayment
             ? Booking::with('court')->whereIn('id', $this->pendingBookingIds)->get()
             : collect();
@@ -305,7 +312,9 @@ class BookingGrid extends Component
             'availability' => $availabilityService->forDate($this->date),
             'bookableFrom' => $bookableFrom,
             'slotPrices' => $slotPrices,
-            'totalPrice' => $slotPrices->sum(),
+            'convenienceFeePerSlot' => $convenienceFeePerSlot,
+            'convenienceFeeTotal' => $convenienceFeeTotal,
+            'totalPrice' => $slotPrices->sum() + $convenienceFeeTotal,
             'slotStatus' => SlotStatus::class,
             'paymentInstructions' => Setting::get('payment_instructions'),
             'paymentMethods' => PaymentMethod::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(),

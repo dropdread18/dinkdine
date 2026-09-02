@@ -141,6 +141,14 @@
             </div>
 
             <div class="pt-1">
+                <label for="convenience_fee" class="block text-sm font-medium text-slate-700">Convenience Fee (₱, optional)</label>
+                <p class="text-xs text-slate-500 mb-1">Added on top of the court price at checkout for online bookings only - walk-ins booked by staff are never charged this. Leave at 0 to charge nothing.</p>
+                <input id="convenience_fee" name="convenience_fee" type="number" min="0" step="0.01" placeholder="0.00"
+                       value="{{ old('convenience_fee', $settings['convenience_fee']) }}"
+                       class="mt-1 block w-full max-w-[160px] rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+
+            <div class="pt-1">
                 <label for="open_play_link" class="block text-sm font-medium text-slate-700">Open Play Announcements Link (optional)</label>
                 <p class="text-xs text-slate-500 mb-1">Shown on the Contact page, linking out to where Open Play sessions are announced/signed up (e.g. Reclub).</p>
                 <input id="open_play_link" name="open_play_link" type="url" placeholder="https://reclub.co/clubs/@..."

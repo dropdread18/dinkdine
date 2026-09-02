@@ -391,6 +391,12 @@
                             @endforeach
                         </div>
                         <div class="h-px" style="background: var(--db-border);"></div>
+                        @if ($convenienceFeeTotal > 0)
+                            <div class="flex justify-between items-center">
+                                <div class="text-[13px] font-semibold" style="color: var(--db-ink-soft);">Convenience Fee ({{ count($selected) }} × ₱{{ number_format($convenienceFeePerSlot, 2) }})</div>
+                                <div class="text-[13px] font-bold" style="color: var(--db-ink-soft);">₱{{ number_format($convenienceFeeTotal, 2) }}</div>
+                            </div>
+                        @endif
                         <div class="flex justify-between items-center">
                             <div class="text-[15px] font-semibold" style="color: var(--db-ink-soft);">Total</div>
                             <div class="text-2xl font-extrabold" style="color: var(--db-ink);">₱{{ number_format($totalPrice, 2) }}</div>
@@ -494,6 +500,9 @@
                         <div class="text-sm font-semibold" style="color: var(--db-ink-soft);">{{ count($selected) }} slot{{ count($selected) === 1 ? '' : 's' }} selected</div>
                         <div class="text-xl font-extrabold" style="color: var(--db-ink);">₱{{ number_format($totalPrice, 2) }}</div>
                     </div>
+                    @if ($convenienceFeeTotal > 0)
+                        <div class="text-xs font-semibold -mt-2" style="color: var(--db-ink-faint);">Includes ₱{{ number_format($convenienceFeeTotal, 2) }} convenience fee</div>
+                    @endif
                     <button type="button" wire:click="startReview" class="text-[16px] font-bold py-3.5 rounded-lg text-center" style="background: var(--db-accent); color: var(--db-accent-ink);">Continue Booking</button>
                 </div>
             @endif

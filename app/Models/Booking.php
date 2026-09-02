@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['user_id', 'court_id', 'booking_date', 'start_time', 'end_time', 'price', 'status', 'payment_status', 'source', 'notes'])]
+#[Fillable(['user_id', 'court_id', 'booking_date', 'start_time', 'end_time', 'price', 'convenience_fee', 'status', 'payment_status', 'source', 'notes'])]
 class Booking extends Model
 {
     /** @use HasFactory<BookingFactory> */
@@ -26,6 +26,7 @@ class Booking extends Model
         return [
             'booking_date' => 'date',
             'price' => 'decimal:2',
+            'convenience_fee' => 'decimal:2',
             'status' => BookingStatus::class,
             'payment_status' => PaymentStatus::class,
             'source' => BookingSource::class,

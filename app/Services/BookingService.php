@@ -107,6 +107,16 @@ class BookingService
                 'start_time' => $startTime,
                 'end_time' => $endTime,
                 'price' => $this->pricing->calculate($court, $startTime, $endTime),
+                // Only ever charged on a real Online booking - a walk-in or
+                // a staff/admin-created booking didn't go through the
+                // self-service platform this fee is meant to fund, same
+                // reasoning already used for NewBookingAlert's Online-only
+                // gate. Captured here at creation time (like price) so a
+                // later change to the Setting never retroactively changes
+                // what an existing booking is recorded as having charged.
+                'convenience_fee' => $source === BookingSource::Online
+                    ? (float) (Setting::get('convenience_fee') ?? 0)
+                    : 0,
                 'status' => $requiresPaymentHold ? BookingStatus::Pending : BookingStatus::Confirmed,
                 'payment_status' => PaymentStatus::Unpaid,
                 'source' => $source,
@@ -120,7 +130,7 @@ class BookingService
 
             Payment::create([
                 'booking_id' => $booking->id,
-                'amount' => $booking->price,
+                'amount' => $booking->price + $booking->convenience_fee,
                 'status' => PaymentStatus::Unpaid,
             ]);
 
@@ -351,7 +361,7 @@ class BookingService
             // misrepresent what was actually collected; a price difference
             // after payment needs a human to reconcile, not a silent update.
             if ($booking->payment && $booking->payment->status === PaymentStatus::Unpaid) {
-                $booking->payment->update(['amount' => $booking->price]);
+                $booking->payment->update(['amount' => $booking->price + $booking->convenience_fee]);
             }
 
             $fresh = $booking->fresh(['court', 'user']);

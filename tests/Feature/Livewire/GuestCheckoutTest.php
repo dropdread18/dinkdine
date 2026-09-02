@@ -48,6 +48,28 @@ class GuestCheckoutTest extends TestCase
         $this->get('/book?date='.$this->date)->assertOk();
     }
 
+    public function test_selecting_a_slot_shows_the_convenience_fee_as_its_own_line_and_in_the_total(): void
+    {
+        Setting::set('convenience_fee', '15');
+        $court = Court::factory()->create(['hourly_rate' => 300]);
+
+        Livewire::test(BookingGrid::class, ['date' => $this->date])
+            ->call('toggleSlot', $court->id, $court->name, '09:00:00', '10:00:00')
+            ->assertSee('Convenience Fee')
+            ->assertSee('₱15.00')
+            ->assertSee('₱315.00');
+    }
+
+    public function test_no_convenience_fee_line_shows_when_the_setting_is_unset(): void
+    {
+        $court = Court::factory()->create(['hourly_rate' => 300]);
+
+        Livewire::test(BookingGrid::class, ['date' => $this->date])
+            ->call('toggleSlot', $court->id, $court->name, '09:00:00', '10:00:00')
+            ->assertDontSee('Convenience Fee')
+            ->assertSee('₱300.00');
+    }
+
     public function test_staff_cannot_view_the_booking_page(): void
     {
         $this->actingAs(User::factory()->staff()->create())->get('/book')->assertForbidden();

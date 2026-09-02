@@ -38,6 +38,7 @@ class SettingController extends Controller
         'payment_hold_minutes',
         'payment_instructions',
         'open_play_link',
+        'convenience_fee',
     ];
 
     public function index(): View

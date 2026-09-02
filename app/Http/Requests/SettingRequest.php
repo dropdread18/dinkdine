@@ -33,6 +33,7 @@ class SettingRequest extends FormRequest
             'payment_hold_minutes' => ['required', 'integer', 'min:1', 'max:120'],
             'payment_instructions' => ['nullable', 'string', 'max:2000'],
             'open_play_link' => ['nullable', 'url', 'max:255'],
+            'convenience_fee' => ['nullable', 'numeric', 'min:0', 'max:1000'],
             'facility_logo' => ['nullable', 'image', 'max:8192'],
             'remove_facility_logo' => ['nullable', 'boolean'],
         ];
