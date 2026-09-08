@@ -206,4 +206,125 @@ class PaymentManagementTest extends TestCase
 
         $this->actingAs($customer)->get("/bookings/{$booking->id}")->assertDontSee('Mark Paid');
     }
+
+    public function test_payments_confirmed_together_are_grouped_and_show_a_combined_total(): void
+    {
+        $user = User::factory()->customer()->create(['name' => 'Juan Dela Cruz']);
+        $bookingA = Booking::factory()->create(['user_id' => $user->id]);
+        $bookingB = Booking::factory()->create(['user_id' => $user->id]);
+        Payment::factory()->create(['booking_id' => $bookingA->id, 'amount' => 265, 'reference_number' => 'GCASH-SHARED-1']);
+        Payment::factory()->create(['booking_id' => $bookingB->id, 'amount' => 265, 'reference_number' => 'GCASH-SHARED-1']);
+
+        $this->actingAs(User::factory()->admin()->create())
+            ->get('/manage/payments')
+            ->assertOk()
+            ->assertSee('2 bookings, same payment')
+            ->assertSee('₱530.00');
+    }
+
+    public function test_payments_with_different_reference_numbers_are_not_grouped(): void
+    {
+        $user = User::factory()->customer()->create();
+        $bookingA = Booking::factory()->create(['user_id' => $user->id]);
+        $bookingB = Booking::factory()->create(['user_id' => $user->id]);
+        Payment::factory()->create(['booking_id' => $bookingA->id, 'reference_number' => 'GCASH-AAA']);
+        Payment::factory()->create(['booking_id' => $bookingB->id, 'reference_number' => 'GCASH-BBB']);
+
+        $this->actingAs(User::factory()->admin()->create())
+            ->get('/manage/payments')
+            ->assertOk()
+            ->assertDontSee('bookings, same payment');
+    }
+
+    public function test_staff_can_bulk_mark_multiple_payments_paid_in_one_submission(): void
+    {
+        $bookingA = Booking::factory()->create();
+        $bookingB = Booking::factory()->create();
+        $paymentA = Payment::factory()->create(['booking_id' => $bookingA->id]);
+        $paymentB = Payment::factory()->create(['booking_id' => $bookingB->id]);
+
+        $response = $this->actingAs(User::factory()->staff()->create())
+            ->patch('/manage/payments/bulk-mark-paid', [
+                'payment_ids' => [$paymentA->id, $paymentB->id],
+                'method' => 'gcash',
+            ]);
+
+        $response->assertRedirect();
+        $this->assertSame(PaymentStatus::Paid, $paymentA->fresh()->status);
+        $this->assertSame(PaymentStatus::Paid, $paymentB->fresh()->status);
+    }
+
+    public function test_bulk_mark_paid_preserves_each_payments_own_reference_number(): void
+    {
+        $bookingA = Booking::factory()->create();
+        $bookingB = Booking::factory()->create();
+        $paymentA = Payment::factory()->create(['booking_id' => $bookingA->id, 'reference_number' => 'GCASH-SHARED-1']);
+        $paymentB = Payment::factory()->create(['booking_id' => $bookingB->id, 'reference_number' => 'GCASH-SHARED-1']);
+
+        $this->actingAs(User::factory()->admin()->create())->patch('/manage/payments/bulk-mark-paid', [
+            'payment_ids' => [$paymentA->id, $paymentB->id],
+            'method' => 'gcash',
+        ]);
+
+        $this->assertSame('GCASH-SHARED-1', $paymentA->fresh()->reference_number);
+        $this->assertSame('GCASH-SHARED-1', $paymentB->fresh()->reference_number);
+    }
+
+    public function test_bulk_mark_paid_skips_an_already_paid_payment_without_failing_the_rest(): void
+    {
+        $alreadyPaidBooking = Booking::factory()->create();
+        $alreadyPaid = Payment::factory()->paid()->create(['booking_id' => $alreadyPaidBooking->id]);
+        $unpaidBooking = Booking::factory()->create();
+        $unpaid = Payment::factory()->create(['booking_id' => $unpaidBooking->id]);
+
+        $response = $this->actingAs(User::factory()->admin()->create())->patch('/manage/payments/bulk-mark-paid', [
+            'payment_ids' => [$alreadyPaid->id, $unpaid->id],
+            'method' => 'cash',
+        ]);
+
+        $response->assertSessionHas('status');
+        $this->assertSame(PaymentStatus::Paid, $unpaid->fresh()->status);
+    }
+
+    public function test_only_henris_account_can_bulk_delete_payments(): void
+    {
+        $booking = Booking::factory()->create();
+        $payment = Payment::factory()->create(['booking_id' => $booking->id]);
+        $otherAdmin = User::factory()->admin()->create(['email' => 'someoneelse@gmail.com']);
+
+        $this->actingAs($otherAdmin)->delete('/manage/payments/bulk-delete', [
+            'payment_ids' => [$payment->id],
+        ])->assertNotFound();
+
+        $this->assertDatabaseHas('bookings', ['id' => $booking->id]);
+    }
+
+    public function test_staff_cannot_bulk_delete_payments(): void
+    {
+        $booking = Booking::factory()->create();
+        $payment = Payment::factory()->create(['booking_id' => $booking->id]);
+
+        $this->actingAs(User::factory()->staff()->create())->delete('/manage/payments/bulk-delete', [
+            'payment_ids' => [$payment->id],
+        ])->assertForbidden();
+    }
+
+    public function test_henri_can_permanently_delete_bookings_and_their_payments_in_bulk(): void
+    {
+        $bookingA = Booking::factory()->create();
+        $bookingB = Booking::factory()->create();
+        $paymentA = Payment::factory()->create(['booking_id' => $bookingA->id]);
+        $paymentB = Payment::factory()->create(['booking_id' => $bookingB->id]);
+        $henri = User::factory()->admin()->create(['email' => 'hjbalbiran@gmail.com']);
+
+        $response = $this->actingAs($henri)->delete('/manage/payments/bulk-delete', [
+            'payment_ids' => [$paymentA->id, $paymentB->id],
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseMissing('bookings', ['id' => $bookingA->id]);
+        $this->assertDatabaseMissing('bookings', ['id' => $bookingB->id]);
+        $this->assertDatabaseMissing('payments', ['id' => $paymentA->id]);
+        $this->assertDatabaseMissing('payments', ['id' => $paymentB->id]);
+    }
 }

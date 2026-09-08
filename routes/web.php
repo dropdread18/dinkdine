@@ -104,6 +104,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 Route::middleware(['auth', 'role:admin'])->prefix('manage')->name('manage.')->group(function () {
     Route::patch('payments/{payment}/mark-failed', [PaymentController::class, 'markFailed'])->name('payments.mark-failed');
     Route::patch('payments/{payment}/refund', [PaymentController::class, 'refund'])->name('payments.refund');
+    // Permanently deletes bookings/payments, not just "mark failed" - kept
+    // admin-gated at the route level, but PaymentController::bulkDelete()
+    // further restricts it to Henri's own account specifically (see that
+    // method) since another admin on this system shouldn't have it either.
+    Route::delete('payments/bulk-delete', [PaymentController::class, 'bulkDelete'])->name('payments.bulk-delete');
 
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('reports/export/bookings', [ReportController::class, 'exportBookings'])->name('reports.export-bookings');
@@ -122,6 +127,7 @@ Route::middleware(['auth', 'role:admin,staff'])->get('/staff/dashboard', [Dashbo
 Route::middleware(['auth', 'role:admin,staff'])->prefix('manage')->name('manage.')->group(function () {
     Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
     Route::patch('payments/{payment}/mark-paid', [PaymentController::class, 'markPaid'])->name('payments.mark-paid');
+    Route::patch('payments/bulk-mark-paid', [PaymentController::class, 'bulkMarkPaid'])->name('payments.bulk-mark-paid');
 
     Route::get('bookings', [StaffBookingController::class, 'index'])->name('bookings.index');
     Route::patch('bookings/{booking}/cancel', [StaffBookingController::class, 'cancel'])->name('bookings.cancel');
