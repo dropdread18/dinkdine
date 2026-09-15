@@ -136,8 +136,12 @@ Route::middleware(['auth', 'role:admin,staff'])->prefix('manage')->name('manage.
     Route::put('bookings/{booking}/reschedule/{court}', [StaffBookingController::class, 'rescheduleUpdate'])->name('bookings.reschedule-update');
 
     Route::get('walk-in', [WalkInBookingController::class, 'index'])->name('walkin.index');
-    Route::get('walk-in/{court}', [WalkInBookingController::class, 'create'])->name('walkin.create');
-    Route::post('walk-in/{court}', [WalkInBookingController::class, 'store'])->name('walkin.store');
+    // No {court} route param any more - a walk-in submission can span
+    // multiple courts and times in one go (see the checkbox grid on
+    // walkin.index), so which court(s) are involved now travels in the
+    // request body/query (a `slots[]` array) instead of the URL.
+    Route::get('walk-in/review', [WalkInBookingController::class, 'review'])->name('walkin.review');
+    Route::post('walk-in', [WalkInBookingController::class, 'store'])->name('walkin.store');
 
     Route::get('check-in', [CheckInController::class, 'index'])->name('checkin.index');
     Route::patch('check-in/bookings/{booking}/check-in', [CheckInController::class, 'checkIn'])->name('checkin.bookings.check-in');

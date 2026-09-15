@@ -4,31 +4,39 @@
     <h1 class="text-2xl font-semibold text-slate-900 tracking-tight mb-4">New Walk-in Booking</h1>
 
     <x-card class="max-w-md space-y-2 text-sm mb-6">
-        <div class="flex justify-between"><span class="text-slate-500">Court</span><span class="text-slate-900 font-medium">{{ $court->name }}</span></div>
-        <div class="flex justify-between"><span class="text-slate-500">Date</span><span class="text-slate-900 font-medium">{{ \Illuminate\Support\Carbon::parse($date)->format('F j, Y') }}</span></div>
-        <div class="flex justify-between">
-            <span class="text-slate-500">Time</span>
-            <span class="text-slate-900 font-medium">
-                {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $startTime)->format('g:i A') }} -
-                {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $endTime)->format('g:i A') }}
-            </span>
+        <p class="text-xs font-medium text-slate-500 uppercase mb-1">{{ count($slots) }} slot{{ count($slots) === 1 ? '' : 's' }} selected</p>
+        <div class="space-y-1.5">
+            @foreach ($slots as $key => $slot)
+                <div class="flex justify-between">
+                    <span class="text-slate-900">
+                        {{ $slot['court']->name }} · {{ \Illuminate\Support\Carbon::parse($slot['date'])->format('M j') }},
+                        {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot['start_time'])->format('g:i A') }} -
+                        {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot['end_time'])->format('g:i A') }}
+                    </span>
+                    <span class="text-slate-500">₱{{ number_format($slotPrices[$key], 2) }}</span>
+                </div>
+            @endforeach
+        </div>
+        <div class="flex justify-between border-t border-slate-100 pt-2 mt-2 font-semibold">
+            <span class="text-slate-700">Total</span>
+            <span class="text-slate-900">₱{{ number_format($totalPrice, 2) }}</span>
         </div>
     </x-card>
 
-    <form method="GET" action="{{ route('manage.walkin.create', $court) }}" class="max-w-md flex gap-2 mb-4">
-        <input type="hidden" name="date" value="{{ $date }}">
-        <input type="hidden" name="start_time" value="{{ $startTime }}">
-        <input type="hidden" name="end_time" value="{{ $endTime }}">
+    <form method="GET" action="{{ route('manage.walkin.review') }}" class="max-w-md flex gap-2 mb-4">
+        @foreach ($rawSlots as $rawSlot)
+            <input type="hidden" name="slots[]" value="{{ $rawSlot }}">
+        @endforeach
         <input type="text" name="q" value="{{ $q }}" placeholder="Search existing customer by name, email, or phone"
                class="flex-1 rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
         <x-button type="submit" variant="secondary">Search</x-button>
     </form>
 
-    <form method="POST" action="{{ route('manage.walkin.store', $court) }}" class="max-w-md space-y-4">
+    <form method="POST" action="{{ route('manage.walkin.store') }}" class="max-w-md space-y-4">
         @csrf
-        <input type="hidden" name="date" value="{{ $date }}">
-        <input type="hidden" name="start_time" value="{{ $startTime }}">
-        <input type="hidden" name="end_time" value="{{ $endTime }}">
+        @foreach ($rawSlots as $rawSlot)
+            <input type="hidden" name="slots[]" value="{{ $rawSlot }}">
+        @endforeach
 
         @if ($existingCustomers->isNotEmpty())
             <div>
@@ -73,10 +81,10 @@
             <textarea id="notes" name="notes" rows="2" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">{{ old('notes') }}</textarea>
         </div>
 
-        <x-button type="submit" class="w-full">Create Booking</x-button>
+        <x-button type="submit" class="w-full">Create Booking{{ count($slots) === 1 ? '' : 's' }}</x-button>
 
-        <a href="{{ route('manage.walkin.index', ['date' => $date]) }}" class="block text-center text-sm text-slate-600 hover:text-slate-900 underline underline-offset-2">
-            Choose a different time
+        <a href="{{ route('manage.walkin.index', ['date' => $slots[0]['date'] ?? now()->toDateString()]) }}" class="block text-center text-sm text-slate-600 hover:text-slate-900 underline underline-offset-2">
+            Choose different times
         </a>
     </form>
 @endsection

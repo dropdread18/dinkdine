@@ -18,9 +18,17 @@ class WalkInBookingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'date' => ['required', 'date_format:Y-m-d'],
-            'start_time' => ['required', 'date_format:H:i:s'],
-            'end_time' => ['required', 'date_format:H:i:s', 'after:start_time'],
+            // Deliberately no rule here for the actual date/start_time/
+            // end_time of each slot - they travel inside slots[]'s
+            // JSON-encoded entries (WalkInBookingController::decodeSlots()),
+            // not as top-level fields, since a walk-in submission can now
+            // carry any number of them. Also deliberately no min:1/required
+            // here - an empty selection is a normal business-rule rejection
+            // (BookingUnavailableException, same "booking" error key/message
+            // as an actual conflict), not a malformed-request validation
+            // error, so it's decodeSlots() that raises it, not this rule.
+            'slots' => ['nullable', 'array'],
+            'slots.*' => ['required', 'string'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'existing_user_id' => ['nullable', 'exists:users,id'],
             'new_customer_name' => ['required_without:existing_user_id', 'nullable', 'string', 'max:255'],
