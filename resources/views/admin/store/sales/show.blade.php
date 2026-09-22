@@ -8,10 +8,21 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="min-h-screen bg-mint text-slate-900 py-10 print:bg-white print:py-0">
+        @php
+            $statusColor = match ($sale->status) {
+                \App\Enums\StoreSaleStatus::Completed => 'green',
+                \App\Enums\StoreSaleStatus::Refunded => 'amber',
+                \App\Enums\StoreSaleStatus::Voided => 'slate',
+            };
+        @endphp
+
         <div class="max-w-lg mx-auto px-4 print:px-0 print:max-w-none">
-            <div class="flex justify-end gap-2 mb-4 print:hidden">
-                <x-button tag="a" href="{{ route('admin.store.pos.index') }}" variant="secondary">New Sale</x-button>
-                <x-button type="button" onclick="window.print()">Print Receipt</x-button>
+            <div class="flex justify-between gap-2 mb-4 print:hidden">
+                <x-button tag="a" href="{{ route('admin.store.sales.index') }}" variant="ghost">Back to Sales</x-button>
+                <div class="flex gap-2">
+                    <x-button tag="a" href="{{ route('admin.store.pos.index') }}" variant="secondary">New Sale</x-button>
+                    <x-button type="button" onclick="window.print()">Print Receipt</x-button>
+                </div>
             </div>
 
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 print:border-0 print:shadow-none print:rounded-none">
@@ -22,7 +33,7 @@
                             <p class="text-sm text-slate-500">{{ \App\Models\Setting::get('facility_address') }}</p>
                         @endif
                     </div>
-                    <x-badge color="green">{{ $sale->status->label() }}</x-badge>
+                    <x-badge :color="$statusColor">{{ $sale->status->label() }}</x-badge>
                 </div>
 
                 <h2 class="text-base font-semibold text-slate-900 mb-4">Store Receipt</h2>

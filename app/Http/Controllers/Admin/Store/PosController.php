@@ -7,7 +7,6 @@ use App\Exceptions\StoreSaleException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSaleCheckoutRequest;
 use App\Models\Product;
-use App\Models\StoreSale;
 use App\Services\StoreSaleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -77,14 +76,7 @@ class PosController extends Controller
             return back()->withErrors(['cart' => $e->getMessage()])->withInput();
         }
 
-        return redirect()->route('admin.store.pos.receipt', $sale)->with('status', "Sale {$sale->sale_number} completed.");
-    }
-
-    public function receipt(StoreSale $sale): View
-    {
-        return view('admin.store.pos.receipt', [
-            'sale' => $sale->load(['items', 'user']),
-        ]);
+        return redirect()->route('admin.store.sales.show', $sale)->with('status', "Sale {$sale->sale_number} completed.");
     }
 
     /**

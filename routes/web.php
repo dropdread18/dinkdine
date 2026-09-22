@@ -118,7 +118,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin/store')->name('admin.st
     Route::get('pos', [StorePosController::class, 'index'])->name('pos.index');
     Route::get('pos/review', [StorePosController::class, 'review'])->name('pos.review');
     Route::post('pos/checkout', [StorePosController::class, 'checkout'])->name('pos.checkout');
-    Route::get('pos/sales/{sale}', [StorePosController::class, 'receipt'])->name('pos.receipt');
 
     // Phase 2: full CRUD (create/edit/deactivate) - see StoreProductController/
     // StoreCategoryController. Neither ever exposes a destroy() route: a
@@ -149,7 +148,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin/store')->name('admin.st
     Route::post('inventory/{product}/adjust', [StoreInventoryController::class, 'adjust'])->name('inventory.adjust');
     Route::get('inventory/{product}/history', [StoreInventoryController::class, 'history'])->name('inventory.history');
 
+    // Phase 5: sales.show doubles as the post-checkout receipt
+    // (PosController::checkout() redirects straight here) and the Sale
+    // Details page a Sales History row links to.
     Route::get('sales', [StoreSaleController::class, 'index'])->name('sales.index');
+    Route::get('sales/{sale}', [StoreSaleController::class, 'show'])->name('sales.show');
+
     Route::get('reports', [StoreReportController::class, 'index'])->name('reports.index');
 });
 
