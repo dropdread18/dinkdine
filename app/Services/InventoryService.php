@@ -30,8 +30,15 @@ class InventoryService
         User $user,
         ?string $reason = null,
         ?string $notes = null,
+        // Set together by a caller that already knows what triggered this
+        // movement - e.g. StoreSaleService points a Sale movement back at
+        // its StoreSale (reference_type = StoreSale::class, reference_id =
+        // $sale->id). Not a real polymorphic relation, just the two plain
+        // columns the Store Phase 3 spec calls for.
+        ?string $referenceType = null,
+        ?int $referenceId = null,
     ): InventoryMovement {
-        return DB::transaction(function () use ($product, $type, $quantityChange, $user, $reason, $notes) {
+        return DB::transaction(function () use ($product, $type, $quantityChange, $user, $reason, $notes, $referenceType, $referenceId) {
             $locked = Product::query()->lockForUpdate()->findOrFail($product->id);
 
             $previous = $locked->stock_quantity;
@@ -52,6 +59,8 @@ class InventoryService
                 'previous_quantity' => $previous,
                 'new_quantity' => $new,
                 'reason' => $reason,
+                'reference_type' => $referenceType,
+                'reference_id' => $referenceId,
                 'user_id' => $user->id,
                 'notes' => $notes,
             ]);

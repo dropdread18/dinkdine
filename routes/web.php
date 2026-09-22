@@ -110,7 +110,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 // on a direct URL visit - there is no hidden-URL-only gating.
 Route::middleware(['auth', 'role:admin'])->prefix('admin/store')->name('admin.store.')->group(function () {
     Route::get('/', [StoreDashboardController::class, 'index'])->name('index');
+
+    // Phase 4: POS checkout writes through StoreSaleService, which is
+    // the only place a sale is ever created - see that class. Admin-only
+    // for now (section 23 of the handoff spec): staff doesn't get POS
+    // access just because they'll eventually be cashiers.
     Route::get('pos', [StorePosController::class, 'index'])->name('pos.index');
+    Route::get('pos/review', [StorePosController::class, 'review'])->name('pos.review');
+    Route::post('pos/checkout', [StorePosController::class, 'checkout'])->name('pos.checkout');
+    Route::get('pos/sales/{sale}', [StorePosController::class, 'receipt'])->name('pos.receipt');
 
     // Phase 2: full CRUD (create/edit/deactivate) - see StoreProductController/
     // StoreCategoryController. Neither ever exposes a destroy() route: a
