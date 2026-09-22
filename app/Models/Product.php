@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['category_id', 'name', 'sku', 'description', 'cost_price', 'selling_price', 'unit', 'stock_quantity', 'minimum_stock', 'is_active'])]
 class Product extends Model
@@ -34,6 +35,14 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(ProductCategory::class, 'category_id');
+    }
+
+    /**
+     * @return HasMany<InventoryMovement, $this>
+     */
+    public function movements(): HasMany
+    {
+        return $this->hasMany(InventoryMovement::class);
     }
 
     public function isOutOfStock(): bool

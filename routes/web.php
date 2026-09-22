@@ -131,7 +131,16 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin/store')->name('admin.st
     Route::put('categories/{category}', [StoreCategoryController::class, 'update'])->name('categories.update');
     Route::patch('categories/{category}/toggle-active', [StoreCategoryController::class, 'toggleActive'])->name('categories.toggle-active');
 
+    // Phase 3: Stock In / Adjust write through InventoryService, which is
+    // the only place stock_quantity ever changes - see that class. No
+    // destroy/edit on a movement itself, it's an append-only ledger.
     Route::get('inventory', [StoreInventoryController::class, 'index'])->name('inventory.index');
+    Route::get('inventory/{product}/stock-in', [StoreInventoryController::class, 'stockInForm'])->name('inventory.stock-in-form');
+    Route::post('inventory/{product}/stock-in', [StoreInventoryController::class, 'stockIn'])->name('inventory.stock-in');
+    Route::get('inventory/{product}/adjust', [StoreInventoryController::class, 'adjustForm'])->name('inventory.adjust-form');
+    Route::post('inventory/{product}/adjust', [StoreInventoryController::class, 'adjust'])->name('inventory.adjust');
+    Route::get('inventory/{product}/history', [StoreInventoryController::class, 'history'])->name('inventory.history');
+
     Route::get('sales', [StoreSaleController::class, 'index'])->name('sales.index');
     Route::get('reports', [StoreReportController::class, 'index'])->name('reports.index');
 });
