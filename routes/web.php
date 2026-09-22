@@ -10,6 +10,13 @@ use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StaffController;
+use App\Http\Controllers\Admin\Store\CategoryController as StoreCategoryController;
+use App\Http\Controllers\Admin\Store\InventoryController as StoreInventoryController;
+use App\Http\Controllers\Admin\Store\PosController as StorePosController;
+use App\Http\Controllers\Admin\Store\ProductController as StoreProductController;
+use App\Http\Controllers\Admin\Store\SaleController as StoreSaleController;
+use App\Http\Controllers\Admin\Store\StoreDashboardController;
+use App\Http\Controllers\Admin\Store\StoreReportController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
@@ -92,6 +99,23 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('staff/{staff}/edit', [StaffController::class, 'edit'])->name('staff.edit');
     Route::put('staff/{staff}', [StaffController::class, 'update'])->name('staff.update');
     Route::patch('staff/{staff}/toggle-active', [StaffController::class, 'toggleActive'])->name('staff.toggle-active');
+});
+
+// Store (POS/products/inventory/sales) - Phase 1 foundation only, per the
+// Claude Code Handoff Specification: admin-only for now (reuses the
+// existing role:admin middleware, same as Courts/Customers/Staff above -
+// no new role, no separate auth system), placeholder pages, no product/
+// inventory/sales tables yet. Staff/Organizer/Customer get a 403 here via
+// EnsureUserHasRole exactly like every other admin-only route, including
+// on a direct URL visit - there is no hidden-URL-only gating.
+Route::middleware(['auth', 'role:admin'])->prefix('admin/store')->name('admin.store.')->group(function () {
+    Route::get('/', [StoreDashboardController::class, 'index'])->name('index');
+    Route::get('pos', [StorePosController::class, 'index'])->name('pos.index');
+    Route::get('products', [StoreProductController::class, 'index'])->name('products.index');
+    Route::get('categories', [StoreCategoryController::class, 'index'])->name('categories.index');
+    Route::get('inventory', [StoreInventoryController::class, 'index'])->name('inventory.index');
+    Route::get('sales', [StoreSaleController::class, 'index'])->name('sales.index');
+    Route::get('reports', [StoreReportController::class, 'index'])->name('reports.index');
 });
 
 // Payments (viewing the list, marking paid, marking failed, refunding) is

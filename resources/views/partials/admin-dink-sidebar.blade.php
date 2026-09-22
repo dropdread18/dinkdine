@@ -27,6 +27,7 @@
             ['label' => 'Reports', 'route' => 'manage.reports.index', 'pattern' => 'manage.reports.*', 'adminOnly' => true],
             ['label' => 'Staff', 'route' => 'admin.staff.index', 'pattern' => 'admin.staff.*', 'adminOnly' => true],
             ['label' => 'Settings', 'route' => 'manage.settings.index', 'pattern' => 'manage.settings.*|admin.courts.*', 'adminOnly' => true],
+            ['label' => 'Store', 'route' => 'admin.store.index', 'pattern' => 'admin.store.*', 'adminOnly' => true],
         ], fn (array $item) => $isAdminUser || ! $item['adminOnly']);
 @endphp
 <aside class="hidden lg:flex lg:flex-col lg:shrink-0 lg:justify-between bg-forest" style="width: 240px; padding: 24px 0;">

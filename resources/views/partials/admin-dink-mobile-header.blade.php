@@ -22,6 +22,7 @@
             ['label' => 'Reports', 'route' => 'manage.reports.index', 'adminOnly' => true],
             ['label' => 'Staff', 'route' => 'admin.staff.index', 'adminOnly' => true],
             ['label' => 'Settings', 'route' => 'manage.settings.index', 'adminOnly' => true],
+            ['label' => 'Store', 'route' => 'admin.store.index', 'adminOnly' => true],
         ], fn (array $item) => $isAdminUser || ! $item['adminOnly']);
     // Was unconditionally admin.dashboard, which 403s for anyone who isn't
     // admin (staff included) - route it the same way the Dashboard nav
