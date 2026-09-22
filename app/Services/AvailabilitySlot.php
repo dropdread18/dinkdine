@@ -44,5 +44,16 @@ final readonly class AvailabilitySlot
          */
         public ?string $openPlayStartTime = null,
         public ?string $openPlayEndTime = null,
+        /**
+         * Set only when status is Booked or InProgress - the customer's
+         * name, for staff/admin views that want to show who booked a slot
+         * at a glance instead of a bare "Booked" label. Always populated
+         * regardless of viewer (cheap to set, it's already loaded data),
+         * so it's each Blade view's own choice whether to render it - the
+         * customer-facing reschedule grid deliberately never does, since
+         * showing one customer another customer's name would be a real
+         * privacy leak.
+         */
+        public ?string $bookedByName = null,
     ) {}
 }

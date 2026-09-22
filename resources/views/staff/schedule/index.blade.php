@@ -31,5 +31,9 @@
         </div>
     </div>
 
-    @include('partials.availability-grid', ['readOnly' => true])
+    {{-- This route is role:admin,organizer (see routes/web.php) - staff
+         never reaches this page at all, so the only role to gate out here
+         is Organizer, same standing rule as their other sales-adjacent
+         info restrictions. --}}
+    @include('partials.availability-grid', ['readOnly' => true, 'showCustomerNames' => auth()->user()->isAdmin()])
 @endsection

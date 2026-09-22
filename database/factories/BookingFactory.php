@@ -42,6 +42,11 @@ class BookingFactory extends Factory
         return $this->state(fn (array $attributes) => ['status' => BookingStatus::Cancelled]);
     }
 
+    public function expired(): static
+    {
+        return $this->state(fn (array $attributes) => ['status' => BookingStatus::Expired]);
+    }
+
     public function walkIn(): static
     {
         return $this->state(fn (array $attributes) => ['source' => BookingSource::WalkIn]);

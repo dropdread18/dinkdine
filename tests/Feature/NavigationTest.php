@@ -48,7 +48,8 @@ class NavigationTest extends TestCase
         $this->actingAs($staff)->get('/staff/dashboard')
             ->assertOk()
             ->assertSee('Walk-in Booking')
-            ->assertDontSee('Book a Court');
+            ->assertDontSee('Book a Court')
+            ->assertDontSee('Payments');
     }
 
     public function test_organizer_sees_only_bookings_and_open_play(): void

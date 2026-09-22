@@ -41,6 +41,13 @@
             @endforeach
         </select>
 
+        <select name="sort" class="rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            <option value="date_desc" @selected($sort === 'date_desc')>Date (Newest First)</option>
+            <option value="date_asc" @selected($sort === 'date_asc')>Date (Oldest First)</option>
+            <option value="customer" @selected($sort === 'customer')>Customer Name (A-Z)</option>
+            <option value="status" @selected($sort === 'status')>Status</option>
+        </select>
+
         <x-button type="submit">Filter</x-button>
         <x-button tag="a" href="{{ route('manage.bookings.index') }}" variant="ghost" class="self-center">Clear</x-button>
     </form>

@@ -40,6 +40,38 @@ class OrganizerAccessTest extends TestCase
         $response->assertDontSee('<a href="http://localhost/manage/walk-in', false);
     }
 
+    public function test_organizer_does_not_see_customer_names_on_the_schedule(): void
+    {
+        $date = now()->toDateString();
+        \App\Models\BusinessHour::updateOrCreate(
+            ['day_of_week' => now()->dayOfWeek],
+            ['opens_at' => '00:00:00', 'closes_at' => '23:59:00', 'is_closed' => false],
+        );
+        $booking = \App\Models\Booking::factory()->create(['booking_date' => $date]);
+
+        $response = $this->actingAs(User::factory()->organizer()->create())
+            ->get('/manage/schedule?date='.$date);
+
+        $response->assertOk();
+        $response->assertDontSee($booking->user->name);
+    }
+
+    public function test_admin_sees_customer_names_on_the_schedule(): void
+    {
+        $date = now()->toDateString();
+        \App\Models\BusinessHour::updateOrCreate(
+            ['day_of_week' => now()->dayOfWeek],
+            ['opens_at' => '00:00:00', 'closes_at' => '23:59:00', 'is_closed' => false],
+        );
+        $booking = \App\Models\Booking::factory()->create(['booking_date' => $date]);
+
+        $response = $this->actingAs(User::factory()->admin()->create())
+            ->get('/manage/schedule?date='.$date);
+
+        $response->assertOk();
+        $response->assertSee($booking->user->name);
+    }
+
     public function test_organizer_can_manage_open_play(): void
     {
         $organizer = User::factory()->organizer()->create();

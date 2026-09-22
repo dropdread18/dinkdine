@@ -68,6 +68,16 @@ class WalkInBookingTest extends TestCase
         $this->actingAs(User::factory()->staff()->create())->get('/manage/walk-in')->assertOk();
     }
 
+    public function test_staff_sees_the_customer_name_on_an_already_booked_slot(): void
+    {
+        $court = Court::factory()->create();
+        $booking = Booking::factory()->create(['court_id' => $court->id, 'booking_date' => now()->toDateString()]);
+
+        $response = $this->actingAs(User::factory()->staff()->create())->get('/manage/walk-in?date='.now()->toDateString());
+
+        $response->assertOk()->assertSee($booking->user->name);
+    }
+
     public function test_walk_in_booking_can_use_the_current_hour_bypassing_the_online_min_notice(): void
     {
         $court = Court::factory()->create();
@@ -79,16 +89,14 @@ class WalkInBookingTest extends TestCase
 
         $response = $this->actingAs(User::factory()->staff()->create())->post('/manage/walk-in', [
             'slots' => $this->slotPayload($court, $slotStart->toDateString(), $slotStart->format('H:i:s'), $slotStart->addHour()->format('H:i:s')),
-            'new_customer_name' => 'Juan Dela Cruz',
-            'new_customer_email' => 'juan@example.com',
-            'new_customer_phone' => '09171234567',
+            'customer_name' => 'Juan Dela Cruz',
         ]);
 
         $booking = Booking::first();
         $response->assertRedirect(route('bookings.show', $booking));
         $this->assertSame(BookingSource::WalkIn, $booking->source);
-        $this->assertDatabaseHas('users', ['email' => 'juan@example.com', 'role' => UserRole::Customer->value]);
-        $this->assertSame($booking->user_id, User::where('email', 'juan@example.com')->first()->id);
+        $this->assertDatabaseHas('users', ['name' => 'Juan Dela Cruz', 'role' => UserRole::Customer->value]);
+        $this->assertSame($booking->user_id, User::where('name', 'Juan Dela Cruz')->first()->id);
     }
 
     public function test_walk_in_booking_can_select_multiple_time_slots_on_the_same_court(): void
@@ -105,11 +113,10 @@ class WalkInBookingTest extends TestCase
                 json_encode(['court_id' => $court->id, 'date' => $slotStart->toDateString(), 'start_time' => $slotStart->format('H:i:s'), 'end_time' => $slotStart->copy()->addHour()->format('H:i:s')]),
                 json_encode(['court_id' => $court->id, 'date' => $slotStart->toDateString(), 'start_time' => $slotStart->copy()->addHour()->format('H:i:s'), 'end_time' => $slotStart->copy()->addHours(2)->format('H:i:s')]),
             ],
-            'new_customer_name' => 'Juan Dela Cruz',
-            'new_customer_email' => 'juan@example.com',
+            'customer_name' => 'Juan Dela Cruz',
         ]);
 
-        $customer = User::where('email', 'juan@example.com')->firstOrFail();
+        $customer = User::where('name', 'Juan Dela Cruz')->firstOrFail();
         $response->assertRedirect(route('manage.walkin.index', ['date' => $slotStart->toDateString()]));
         $this->assertSame(2, Booking::where('user_id', $customer->id)->count());
     }
@@ -130,11 +137,10 @@ class WalkInBookingTest extends TestCase
                 json_encode(['court_id' => $courtA->id, 'date' => $slotStart->toDateString(), 'start_time' => $slotStart->format('H:i:s'), 'end_time' => $endTime]),
                 json_encode(['court_id' => $courtB->id, 'date' => $slotStart->toDateString(), 'start_time' => $slotStart->format('H:i:s'), 'end_time' => $endTime]),
             ],
-            'new_customer_name' => 'Doubles Group',
-            'new_customer_email' => 'doubles@example.com',
+            'customer_name' => 'Doubles Group',
         ]);
 
-        $customer = User::where('email', 'doubles@example.com')->firstOrFail();
+        $customer = User::where('name', 'Doubles Group')->firstOrFail();
         $response->assertRedirect();
         $this->assertSame(2, Booking::where('user_id', $customer->id)->count());
         $this->assertSame(1, Booking::where(['user_id' => $customer->id, 'court_id' => $courtA->id])->count());
@@ -162,34 +168,12 @@ class WalkInBookingTest extends TestCase
                 json_encode(['court_id' => $court->id, 'date' => $slotStart->toDateString(), 'start_time' => $slotStart->format('H:i:s'), 'end_time' => $secondSlotStart->format('H:i:s')]),
                 json_encode(['court_id' => $court->id, 'date' => $secondSlotStart->toDateString(), 'start_time' => $secondSlotStart->format('H:i:s'), 'end_time' => $secondSlotStart->copy()->addHour()->format('H:i:s')]),
             ],
-            'new_customer_name' => 'Juan Dela Cruz',
-            'new_customer_email' => 'juan@example.com',
+            'customer_name' => 'Juan Dela Cruz',
         ]);
 
         $response->assertSessionHasErrors('booking');
-        $this->assertDatabaseMissing('users', ['email' => 'juan@example.com']);
+        $this->assertDatabaseMissing('users', ['name' => 'Juan Dela Cruz']);
         $this->assertSame(1, Booking::count());
-    }
-
-    public function test_walk_in_booking_can_use_an_existing_customer(): void
-    {
-        $court = Court::factory()->create();
-        $existing = User::factory()->customer()->create(['name' => 'Maria Santos']);
-        $slotStart = $this->soonSlot();
-        BusinessHour::updateOrCreate(
-            ['day_of_week' => $slotStart->dayOfWeek],
-            ['opens_at' => '00:00:00', 'closes_at' => '23:59:00', 'is_closed' => false],
-        );
-
-        $response = $this->actingAs(User::factory()->staff()->create())->post('/manage/walk-in', [
-            'slots' => $this->slotPayload($court, $slotStart->toDateString(), $slotStart->format('H:i:s'), $slotStart->addHour()->format('H:i:s')),
-            'existing_user_id' => $existing->id,
-        ]);
-
-        $booking = Booking::first();
-        $response->assertRedirect(route('bookings.show', $booking));
-        $this->assertSame($existing->id, $booking->user_id);
-        $this->assertSame(1, User::where('name', 'Maria Santos')->count());
     }
 
     public function test_review_page_shows_the_selected_slots_and_combined_total(): void
@@ -207,25 +191,23 @@ class WalkInBookingTest extends TestCase
         $response->assertOk()->assertSee('2 slots selected')->assertSee($court->name);
     }
 
-    public function test_customer_search_returns_matching_customers(): void
+    public function test_review_page_only_asks_for_the_customer_name(): void
     {
         $court = Court::factory()->create();
-        $match = User::factory()->customer()->create(['name' => 'Pedro Reyes']);
-        User::factory()->customer()->create(['name' => 'Someone Else']);
 
-        $response = $this->actingAs(User::factory()->staff()->create())
-            ->get('/manage/walk-in/review?'.http_build_query([
-                'slots' => $this->slotPayload($court, now()->toDateString(), '09:00:00', '10:00:00'),
-                'q' => 'Pedro',
-            ]));
+        $response = $this->actingAs(User::factory()->staff()->create())->get('/manage/walk-in/review?'.http_build_query([
+            'slots' => $this->slotPayload($court, now()->toDateString(), '09:00:00', '10:00:00'),
+        ]));
 
-        $response->assertOk()->assertSee('Pedro Reyes')->assertDontSee('Someone Else');
+        $response->assertOk()
+            ->assertSee('Customer name')
+            ->assertDontSee('Email')
+            ->assertDontSee('Phone');
     }
 
-    public function test_new_customer_email_must_be_unique(): void
+    public function test_customer_name_is_required(): void
     {
         $court = Court::factory()->create();
-        $existing = User::factory()->customer()->create(['email' => 'taken@example.com']);
         $slotStart = $this->soonSlot();
         BusinessHour::updateOrCreate(
             ['day_of_week' => $slotStart->dayOfWeek],
@@ -234,11 +216,9 @@ class WalkInBookingTest extends TestCase
 
         $response = $this->actingAs(User::factory()->staff()->create())->post('/manage/walk-in', [
             'slots' => $this->slotPayload($court, $slotStart->toDateString(), $slotStart->format('H:i:s'), $slotStart->addHour()->format('H:i:s')),
-            'new_customer_name' => 'Someone New',
-            'new_customer_email' => 'taken@example.com',
         ]);
 
-        $response->assertSessionHasErrors('new_customer_email');
+        $response->assertSessionHasErrors('customer_name');
         $this->assertSame(0, Booking::count());
     }
 
@@ -246,12 +226,11 @@ class WalkInBookingTest extends TestCase
     {
         $response = $this->actingAs(User::factory()->staff()->create())->post('/manage/walk-in', [
             'slots' => [],
-            'new_customer_name' => 'Juan Dela Cruz',
-            'new_customer_email' => 'juan@example.com',
+            'customer_name' => 'Juan Dela Cruz',
         ]);
 
         $response->assertSessionHasErrors('booking');
         $this->assertSame(0, Booking::count());
-        $this->assertDatabaseMissing('users', ['email' => 'juan@example.com']);
+        $this->assertDatabaseMissing('users', ['name' => 'Juan Dela Cruz']);
     }
 }

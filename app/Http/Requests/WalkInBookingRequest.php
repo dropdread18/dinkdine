@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class WalkInBookingRequest extends FormRequest
 {
@@ -30,10 +29,7 @@ class WalkInBookingRequest extends FormRequest
             'slots' => ['nullable', 'array'],
             'slots.*' => ['required', 'string'],
             'notes' => ['nullable', 'string', 'max:1000'],
-            'existing_user_id' => ['nullable', 'exists:users,id'],
-            'new_customer_name' => ['required_without:existing_user_id', 'nullable', 'string', 'max:255'],
-            'new_customer_email' => ['required_without:existing_user_id', 'nullable', 'email', 'max:255', Rule::unique('users', 'email')],
-            'new_customer_phone' => ['nullable', 'string', 'max:30'],
+            'customer_name' => ['required', 'string', 'max:255'],
         ];
     }
 }

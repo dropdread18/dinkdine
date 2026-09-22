@@ -2,10 +2,14 @@
      plus any keys in $extraRouteParams, e.g. ['booking' => $booking] for the reschedule flow).
      Pass $readOnly => true (and omit $slotRouteName/$bookableFrom) for a pure view - no slot is ever
      clickable for booking, regardless of status - used by the Organizer schedule view. Open Play slots
-     are always clickable (even in read-only mode) to show that session's own registration link. --}}
+     are always clickable (even in read-only mode) to show that session's own registration link.
+     Pass $showCustomerNames => true only from staff/admin-facing pages - it shows who booked a slot
+     instead of a bare "Booked"/"In Progress" label. Never pass this from a customer-facing view (e.g.
+     bookings/reschedule.blade.php), since that would show one customer another customer's name. --}}
 @php
     $extraRouteParams = $extraRouteParams ?? [];
     $readOnly = $readOnly ?? false;
+    $showCustomerNames = $showCustomerNames ?? false;
     // Two color variants for Open Play, alternated by batch - see
     // livewire/booking-grid.blade.php for why (distinguishing two
     // different Open Play EVENTS that land back-to-back on one day, while
@@ -93,11 +97,18 @@
                                                   tick() { this.remaining = Math.max(0, Math.floor((this.expiresAt - Date.now()) / 1000)); },
                                                   get timeLabel() { return Math.floor(this.remaining / 60) + ':' + String(this.remaining % 60).padStart(2, '0'); },
                                               }"
-                                              x-init="tick(); setInterval(() => tick(), 1000)"
-                                              x-text="timeLabel"></span>
+                                              x-init="tick(); setInterval(() => tick(), 1000)">
+                                            <span x-text="timeLabel"></span>
+                                            @if ($showCustomerNames && $slot->bookedByName)
+                                                <span class="block text-[11px] font-normal truncate">{{ $slot->bookedByName }}</span>
+                                            @endif
+                                        </span>
                                     @else
                                         <span class="block text-center rounded-lg px-2 py-1.5 {{ $classes }}">
                                             {{ $slot->status->label() }}
+                                            @if ($showCustomerNames && $slot->bookedByName)
+                                                <span class="block text-[11px] font-normal truncate">{{ $slot->bookedByName }}</span>
+                                            @endif
                                         </span>
                                     @endif
                                 </td>

@@ -50,19 +50,24 @@ class DashboardController extends Controller
         // pending payments, with no way to act on it without navigating
         // away to search for them. This surfaces who's actually waiting
         // and links straight to the booking detail page's Mark Paid action.
-        $pendingPayments = Payment::query()
-            ->with(['booking.court', 'booking.user'])
-            ->where('status', PaymentStatus::Pending)
-            ->orderBy('created_at')
-            ->limit(6)
-            ->get();
+        // Payments is admin-only (staff access was reverted), so the view
+        // never renders this for staff - skip the queries for them too.
+        $isAdminUser = auth()->user()->isAdmin();
+        $pendingPayments = $isAdminUser
+            ? Payment::query()
+                ->with(['booking.court', 'booking.user'])
+                ->where('status', PaymentStatus::Pending)
+                ->orderBy('created_at')
+                ->limit(6)
+                ->get()
+            : collect();
 
         return view('dashboard.admin', [
             'todayRevenue' => $revenue['total'],
             'todayBookingsCount' => $bookingCounts['total'],
             'occupiedCourtCount' => $occupiedCourtCount,
             'totalCourtCount' => Court::count(),
-            'pendingPaymentsCount' => Payment::where('status', PaymentStatus::Pending)->count(),
+            'pendingPaymentsCount' => $isAdminUser ? Payment::where('status', PaymentStatus::Pending)->count() : 0,
             'pendingPayments' => $pendingPayments,
             'upcomingBookings' => $upcomingBookings,
             'utilization' => $utilization,

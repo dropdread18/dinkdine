@@ -20,7 +20,7 @@
             ['label' => 'Bookings', 'route' => 'manage.bookings.index', 'pattern' => 'manage.bookings.*', 'adminOnly' => false],
             ['label' => 'Walk-in Booking', 'route' => 'manage.walkin.index', 'pattern' => 'manage.walkin.*', 'adminOnly' => false],
             ['label' => 'Check-in', 'route' => 'manage.checkin.index', 'pattern' => 'manage.checkin.*', 'adminOnly' => false],
-            ['label' => 'Payments', 'route' => 'manage.payments.index', 'pattern' => 'manage.payments.*', 'adminOnly' => false],
+            ['label' => 'Payments', 'route' => 'manage.payments.index', 'pattern' => 'manage.payments.*', 'adminOnly' => true],
             ['label' => 'Maintenance', 'route' => 'admin.maintenance.index', 'pattern' => 'admin.maintenance.*', 'adminOnly' => true],
             ['label' => 'Open Play', 'route' => 'admin.open-play.index', 'pattern' => 'admin.open-play.*', 'adminOnly' => true],
             ['label' => 'Customers', 'route' => 'admin.customers.index', 'pattern' => 'admin.customers.*', 'adminOnly' => true],

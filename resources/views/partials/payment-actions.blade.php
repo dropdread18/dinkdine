@@ -23,11 +23,11 @@
         @endif
 
         @php
-            // Mark Paid is available to staff too (they collect walk-in
-            // payment in person) - Mark Failed/Refund stay admin-only, a
-            // materially more sensitive action than confirming payment was
-            // received. See routes/web.php for the matching route split.
-            $canMarkPaid = in_array($payment->status, [\App\Enums\PaymentStatus::Unpaid, \App\Enums\PaymentStatus::Pending, \App\Enums\PaymentStatus::Failed], true);
+            // Payments (viewing the list, and every action here) reverted
+            // to admin-only - owner feedback after trying the earlier
+            // staff-can-mark-paid change. See routes/web.php for the
+            // matching route split.
+            $canMarkPaid = auth()->user()->isAdmin() && in_array($payment->status, [\App\Enums\PaymentStatus::Unpaid, \App\Enums\PaymentStatus::Pending, \App\Enums\PaymentStatus::Failed], true);
             $canMarkFailed = auth()->user()->isAdmin() && in_array($payment->status, [\App\Enums\PaymentStatus::Unpaid, \App\Enums\PaymentStatus::Pending], true);
             $canRefund = auth()->user()->isAdmin() && in_array($payment->status, [\App\Enums\PaymentStatus::Paid, \App\Enums\PaymentStatus::PartiallyRefunded], true);
         @endphp

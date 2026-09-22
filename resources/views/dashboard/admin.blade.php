@@ -34,6 +34,9 @@
                 \App\Enums\BookingStatus::Confirmed->value => ['bg' => '#F0FDF4', 'border' => '#BBF7D0', 'text' => '#15803D'],
                 \App\Enums\BookingStatus::Pending->value => ['bg' => '#FFFBEB', 'border' => '#FDE68A', 'text' => '#B45309'],
             ];
+            // Payments (including this pending-payments preview) is
+            // admin-only - owner feedback reverted staff's earlier access.
+            $isAdminUser = auth()->user()->isAdmin();
         @endphp
 
         @include('partials.admin-dink-mobile-header')
@@ -49,7 +52,7 @@
                     <div class="hidden sm:block text-sm font-semibold" style="color: var(--db-ink-soft);">{{ now()->format('l, F j, Y') }}</div>
                 </div>
 
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-4 lg:mb-6">
+                <div class="grid grid-cols-2 {{ $isAdminUser ? 'lg:grid-cols-4' : 'lg:grid-cols-3' }} gap-3 lg:gap-4 mb-4 lg:mb-6">
                     <div class="rounded-xl lg:rounded-2xl p-4 lg:p-5" style="background: var(--db-surface); border: 1px solid var(--db-border);">
                         <div class="text-xs lg:text-[13px] font-semibold" style="color: var(--db-ink-faint);">Today's Revenue</div>
                         <div class="text-xl lg:text-[30px] font-extrabold mt-1" style="color: var(--db-ink);">₱{{ number_format($todayRevenue, 0) }}</div>
@@ -62,29 +65,33 @@
                         <div class="text-xs lg:text-[13px] font-semibold" style="color: var(--db-ink-faint);">Courts Occupied</div>
                         <div class="text-xl lg:text-[30px] font-extrabold mt-1" style="color: var(--db-ink);">{{ $occupiedCourtCount }} / {{ $totalCourtCount }}</div>
                     </div>
-                    <div class="rounded-xl lg:rounded-2xl p-4 lg:p-5" style="background: #FFFBEB; border: 1px solid #FDE68A;">
-                        <div class="text-xs lg:text-[13px] font-semibold" style="color: #B45309;">Pending Payments</div>
-                        <div class="text-xl lg:text-[30px] font-extrabold mt-1" style="color: #B45309;">{{ $pendingPaymentsCount }}</div>
-                    </div>
+                    @if ($isAdminUser)
+                        <div class="rounded-xl lg:rounded-2xl p-4 lg:p-5" style="background: #FFFBEB; border: 1px solid #FDE68A;">
+                            <div class="text-xs lg:text-[13px] font-semibold" style="color: #B45309;">Pending Payments</div>
+                            <div class="text-xl lg:text-[30px] font-extrabold mt-1" style="color: #B45309;">{{ $pendingPaymentsCount }}</div>
+                        </div>
+                    @endif
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4 lg:mb-6">
-                    <div class="rounded-xl lg:rounded-2xl p-5 lg:p-6 flex flex-col gap-3 lg:gap-4" style="background: #FFFBEB; border: 1px solid #FDE68A;">
-                        <div class="text-base lg:text-[17px] font-bold" style="color: #92400E;">Pending Payments</div>
-                        @forelse ($pendingPayments as $payment)
-                            <div class="flex justify-between items-center py-2.5" style="border-bottom: 1px solid #FEF3C7;">
-                                <div>
-                                    <div class="text-sm font-bold" style="color: var(--db-ink);">{{ $payment->booking->user->name }}</div>
-                                    <div class="text-[13px]" style="color: var(--db-ink-soft);">
-                                        PB-{{ $payment->booking->id }} &middot; {{ $payment->booking->court->name }} &middot; ₱{{ number_format($payment->amount, 0) }}
+                <div class="grid grid-cols-1 {{ $isAdminUser ? 'lg:grid-cols-2' : '' }} gap-4 mb-4 lg:mb-6">
+                    @if ($isAdminUser)
+                        <div class="rounded-xl lg:rounded-2xl p-5 lg:p-6 flex flex-col gap-3 lg:gap-4" style="background: #FFFBEB; border: 1px solid #FDE68A;">
+                            <div class="text-base lg:text-[17px] font-bold" style="color: #92400E;">Pending Payments</div>
+                            @forelse ($pendingPayments as $payment)
+                                <div class="flex justify-between items-center py-2.5" style="border-bottom: 1px solid #FEF3C7;">
+                                    <div>
+                                        <div class="text-sm font-bold" style="color: var(--db-ink);">{{ $payment->booking->user->name }}</div>
+                                        <div class="text-[13px]" style="color: var(--db-ink-soft);">
+                                            PB-{{ $payment->booking->id }} &middot; {{ $payment->booking->court->name }} &middot; ₱{{ number_format($payment->amount, 0) }}
+                                        </div>
                                     </div>
+                                    <a href="{{ route('bookings.show', $payment->booking) }}" class="text-xs font-bold rounded-lg px-3 py-2" style="background: #92400E; color: #FFFBEB;">Approve</a>
                                 </div>
-                                <a href="{{ route('bookings.show', $payment->booking) }}" class="text-xs font-bold rounded-lg px-3 py-2" style="background: #92400E; color: #FFFBEB;">Approve</a>
-                            </div>
-                        @empty
-                            <div class="text-sm text-center py-6" style="color: #92400E;">No payments waiting on approval.</div>
-                        @endforelse
-                    </div>
+                            @empty
+                                <div class="text-sm text-center py-6" style="color: #92400E;">No payments waiting on approval.</div>
+                            @endforelse
+                        </div>
+                    @endif
 
                     <div class="rounded-xl lg:rounded-2xl p-5 lg:p-6 flex flex-col gap-3 lg:gap-4" style="background: var(--db-surface); border: 1px solid var(--db-border);">
                         <div class="text-base lg:text-[17px] font-bold" style="color: var(--db-ink);">Upcoming Bookings</div>

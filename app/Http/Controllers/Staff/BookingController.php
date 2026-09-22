@@ -8,6 +8,7 @@ use App\Http\Requests\StoreBookingRequest;
 use App\Models\Booking;
 use App\Models\Court;
 use App\Models\Setting;
+use App\Models\User;
 use App\Services\AvailabilityService;
 use App\Services\BookingService;
 use Illuminate\Http\RedirectResponse;
@@ -53,11 +54,30 @@ class BookingController extends Controller
             });
         }
 
-        $bookings = $query->orderByDesc('booking_date')->orderByDesc('start_time')->paginate(20)->withQueryString();
+        // Owner feedback: expired guest-checkout holds (abandoned before a
+        // reference number was ever submitted - see ExpirePaymentHolds)
+        // aren't a real booking anyone needs to see day to day and were
+        // just cluttering this list. Hidden unless staff explicitly ask
+        // for them via the Status filter, so they're still reachable, just
+        // not in-the-way by default.
+        if ($status !== \App\Enums\BookingStatus::Expired->value) {
+            $query->where('status', '!=', \App\Enums\BookingStatus::Expired);
+        }
+
+        $sort = $request->query('sort', 'date_desc');
+        match ($sort) {
+            'date_asc' => $query->orderBy('booking_date')->orderBy('start_time'),
+            'customer' => $query->orderBy(User::select('name')->whereColumn('users.id', 'bookings.user_id')),
+            'status' => $query->orderBy('status')->orderByDesc('booking_date'),
+            default => $query->orderByDesc('booking_date')->orderByDesc('start_time'),
+        };
+
+        $bookings = $query->paginate(20)->withQueryString();
 
         return view('staff.bookings.index', [
             'bookings' => $bookings,
             'courts' => Court::orderBy('sort_order')->orderBy('court_number')->get(),
+            'sort' => $sort,
         ]);
     }
 

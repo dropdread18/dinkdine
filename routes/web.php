@@ -94,14 +94,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::patch('staff/{staff}/toggle-active', [StaffController::class, 'toggleActive'])->name('staff.toggle-active');
 });
 
-// Marking a payment paid/failed and refunding it used to be entirely
-// admin-only (Requirements.md §51/§52). Owner feedback: staff collect
-// walk-in payment in person and need to confirm it themselves, so viewing
-// the list and marking paid are now role:admin,staff (grouped with the
-// rest of staff's operational routes below). Failing/refunding a payment
-// stays admin-only here - a materially more sensitive action than
-// confirming a payment was received.
+// Payments (viewing the list, marking paid, marking failed, refunding) is
+// admin-only. Staff briefly had view + mark-paid access (they collect
+// walk-in payment in person) but owner feedback reverted that - Payments
+// is back to a single admin-only group.
 Route::middleware(['auth', 'role:admin'])->prefix('manage')->name('manage.')->group(function () {
+    Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+    Route::patch('payments/{payment}/mark-paid', [PaymentController::class, 'markPaid'])->name('payments.mark-paid');
+    Route::patch('payments/bulk-mark-paid', [PaymentController::class, 'bulkMarkPaid'])->name('payments.bulk-mark-paid');
     Route::patch('payments/{payment}/mark-failed', [PaymentController::class, 'markFailed'])->name('payments.mark-failed');
     Route::patch('payments/{payment}/refund', [PaymentController::class, 'refund'])->name('payments.refund');
     // Permanently deletes bookings/payments, not just "mark failed" - kept
@@ -125,10 +125,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('manage')->name('manage.')->gr
 Route::middleware(['auth', 'role:admin,staff'])->get('/staff/dashboard', [DashboardController::class, 'index'])->name('staff.dashboard');
 
 Route::middleware(['auth', 'role:admin,staff'])->prefix('manage')->name('manage.')->group(function () {
-    Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
-    Route::patch('payments/{payment}/mark-paid', [PaymentController::class, 'markPaid'])->name('payments.mark-paid');
-    Route::patch('payments/bulk-mark-paid', [PaymentController::class, 'bulkMarkPaid'])->name('payments.bulk-mark-paid');
-
     Route::get('bookings', [StaffBookingController::class, 'index'])->name('bookings.index');
     Route::patch('bookings/{booking}/cancel', [StaffBookingController::class, 'cancel'])->name('bookings.cancel');
     Route::get('bookings/{booking}/reschedule', [StaffBookingController::class, 'reschedule'])->name('bookings.reschedule');

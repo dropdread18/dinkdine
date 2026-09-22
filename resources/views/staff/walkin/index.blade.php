@@ -121,11 +121,18 @@
                                                           tick() { this.remaining = Math.max(0, Math.floor((this.expiresAt - Date.now()) / 1000)); },
                                                           get timeLabel() { return Math.floor(this.remaining / 60) + ':' + String(this.remaining % 60).padStart(2, '0'); },
                                                       }"
-                                                      x-init="tick(); setInterval(() => tick(), 1000)"
-                                                      x-text="timeLabel"></span>
+                                                      x-init="tick(); setInterval(() => tick(), 1000)">
+                                                    <span x-text="timeLabel"></span>
+                                                    @if ($slot->bookedByName)
+                                                        <span class="block text-[11px] font-normal truncate">{{ $slot->bookedByName }}</span>
+                                                    @endif
+                                                </span>
                                             @else
                                                 <span class="block text-center rounded-lg px-2 py-1.5 {{ $classes }}">
                                                     {{ $slot->status->label() }}
+                                                    @if ($slot->bookedByName)
+                                                        <span class="block text-[11px] font-normal truncate">{{ $slot->bookedByName }}</span>
+                                                    @endif
                                                 </span>
                                             @endif
                                         </td>

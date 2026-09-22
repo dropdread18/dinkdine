@@ -18,20 +18,20 @@ class PaymentManagementTest extends TestCase
         $this->actingAs(User::factory()->customer()->create())->get('/manage/payments')->assertForbidden();
     }
 
-    public function test_staff_can_view_the_payments_list_and_mark_a_payment_paid(): void
+    public function test_staff_cannot_view_the_payments_list_or_mark_a_payment_paid(): void
     {
         $booking = Booking::factory()->create();
         $payment = Payment::factory()->create(['booking_id' => $booking->id]);
         $staff = User::factory()->staff()->create();
 
-        $this->actingAs($staff)->get('/manage/payments')->assertOk()->assertSee($booking->user->name);
+        $this->actingAs($staff)->get('/manage/payments')->assertForbidden();
 
         $response = $this->actingAs($staff)->patch("/manage/payments/{$payment->id}/mark-paid", [
             'method' => 'cash', 'notes' => 'Paid at the counter',
         ]);
 
-        $response->assertRedirect();
-        $this->assertSame(PaymentStatus::Paid, $payment->fresh()->status);
+        $response->assertForbidden();
+        $this->assertSame(PaymentStatus::Unpaid, $payment->fresh()->status);
     }
 
     public function test_staff_cannot_mark_a_payment_failed_or_refund_it(): void
@@ -186,7 +186,7 @@ class PaymentManagementTest extends TestCase
         $response->assertSessionHasErrors('payment');
     }
 
-    public function test_admin_sees_all_payment_actions_but_staff_only_sees_mark_paid(): void
+    public function test_admin_sees_all_payment_actions_but_staff_sees_none(): void
     {
         $booking = Booking::factory()->create();
         Payment::factory()->create(['booking_id' => $booking->id]);
@@ -195,7 +195,7 @@ class PaymentManagementTest extends TestCase
         $adminResponse->assertSee('Mark Paid')->assertSee('Mark Failed');
 
         $staffResponse = $this->actingAs(User::factory()->staff()->create())->get("/bookings/{$booking->id}");
-        $staffResponse->assertSee('Mark Paid')->assertDontSee('Mark Failed');
+        $staffResponse->assertDontSee('Mark Paid')->assertDontSee('Mark Failed');
     }
 
     public function test_customer_does_not_see_payment_actions_on_the_booking_detail_page(): void
@@ -236,14 +236,14 @@ class PaymentManagementTest extends TestCase
             ->assertDontSee('bookings, same payment');
     }
 
-    public function test_staff_can_bulk_mark_multiple_payments_paid_in_one_submission(): void
+    public function test_admin_can_bulk_mark_multiple_payments_paid_in_one_submission(): void
     {
         $bookingA = Booking::factory()->create();
         $bookingB = Booking::factory()->create();
         $paymentA = Payment::factory()->create(['booking_id' => $bookingA->id]);
         $paymentB = Payment::factory()->create(['booking_id' => $bookingB->id]);
 
-        $response = $this->actingAs(User::factory()->staff()->create())
+        $response = $this->actingAs(User::factory()->admin()->create())
             ->patch('/manage/payments/bulk-mark-paid', [
                 'payment_ids' => [$paymentA->id, $paymentB->id],
                 'method' => 'gcash',
@@ -252,6 +252,21 @@ class PaymentManagementTest extends TestCase
         $response->assertRedirect();
         $this->assertSame(PaymentStatus::Paid, $paymentA->fresh()->status);
         $this->assertSame(PaymentStatus::Paid, $paymentB->fresh()->status);
+    }
+
+    public function test_staff_cannot_bulk_mark_payments_paid(): void
+    {
+        $booking = Booking::factory()->create();
+        $payment = Payment::factory()->create(['booking_id' => $booking->id]);
+
+        $response = $this->actingAs(User::factory()->staff()->create())
+            ->patch('/manage/payments/bulk-mark-paid', [
+                'payment_ids' => [$payment->id],
+                'method' => 'cash',
+            ]);
+
+        $response->assertForbidden();
+        $this->assertSame(PaymentStatus::Unpaid, $payment->fresh()->status);
     }
 
     public function test_bulk_mark_paid_preserves_each_payments_own_reference_number(): void

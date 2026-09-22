@@ -34,5 +34,6 @@
         Pick a new slot below.
     </p>
 
-    @include('partials.availability-grid', ['slotRouteName' => 'manage.bookings.reschedule-form', 'extraRouteParams' => ['booking' => $booking]])
+    {{-- Staff/admin-only page (no Organizer access), so this can be unconditional. --}}
+    @include('partials.availability-grid', ['slotRouteName' => 'manage.bookings.reschedule-form', 'extraRouteParams' => ['booking' => $booking], 'showCustomerNames' => true])
 @endsection

@@ -68,6 +68,48 @@ class BookingManagementTest extends TestCase
         $response->assertDontSee($confirmed->user->name);
     }
 
+    public function test_expired_holds_are_hidden_from_the_list_by_default(): void
+    {
+        $confirmed = Booking::factory()->create(['booking_date' => $this->date]);
+        $expired = Booking::factory()->expired()->create(['booking_date' => $this->date]);
+
+        $response = $this->actingAs(User::factory()->staff()->create())->get('/manage/bookings');
+
+        $response->assertSee($confirmed->user->name);
+        $response->assertDontSee($expired->user->name);
+    }
+
+    public function test_expired_holds_are_still_reachable_via_the_status_filter(): void
+    {
+        $expired = Booking::factory()->expired()->create(['booking_date' => $this->date]);
+
+        $response = $this->actingAs(User::factory()->staff()->create())->get('/manage/bookings?status=expired');
+
+        $response->assertSee($expired->user->name);
+    }
+
+    public function test_bookings_list_can_be_sorted_oldest_first(): void
+    {
+        $newer = Booking::factory()->create(['booking_date' => CarbonImmutable::now()->addDays(5)->toDateString()]);
+        $older = Booking::factory()->create(['booking_date' => CarbonImmutable::now()->addDays(1)->toDateString()]);
+
+        $response = $this->actingAs(User::factory()->staff()->create())->get('/manage/bookings?sort=date_asc');
+
+        $content = $response->getContent();
+        $this->assertLessThan(strpos($content, $newer->user->name), strpos($content, $older->user->name));
+    }
+
+    public function test_bookings_list_can_be_sorted_by_customer_name(): void
+    {
+        Booking::factory()->create(['booking_date' => $this->date])->user()->update(['name' => 'Zack']);
+        Booking::factory()->create(['booking_date' => $this->date])->user()->update(['name' => 'Amy']);
+
+        $response = $this->actingAs(User::factory()->staff()->create())->get('/manage/bookings?sort=customer');
+
+        $content = $response->getContent();
+        $this->assertLessThan(strpos($content, 'Zack'), strpos($content, 'Amy'));
+    }
+
     public function test_bookings_can_be_searched_by_customer_name(): void
     {
         $target = Booking::factory()->create(['booking_date' => $this->date]);
@@ -123,6 +165,17 @@ class BookingManagementTest extends TestCase
             ->get("/manage/bookings/{$booking->id}/reschedule?date={$this->date}")
             ->assertOk()
             ->assertSee('Available');
+    }
+
+    public function test_staff_sees_customer_names_on_the_reschedule_grid(): void
+    {
+        $booking = Booking::factory()->create(['booking_date' => $this->date, 'start_time' => '09:00:00', 'end_time' => '10:00:00']);
+        $other = Booking::factory()->create(['booking_date' => $this->date, 'start_time' => '14:00:00', 'end_time' => '15:00:00']);
+
+        $this->actingAs(User::factory()->staff()->create())
+            ->get("/manage/bookings/{$booking->id}/reschedule?date={$this->date}")
+            ->assertOk()
+            ->assertSee($other->user->name);
     }
 
     public function test_staff_can_reschedule_a_booking_to_a_new_slot(): void

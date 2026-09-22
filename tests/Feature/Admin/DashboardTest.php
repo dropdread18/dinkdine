@@ -181,7 +181,7 @@ class DashboardTest extends TestCase
         $response->assertSee('Court Utilization');
     }
 
-    public function test_staff_sees_the_same_dashboard_at_their_own_route(): void
+    public function test_staff_sees_the_same_dashboard_at_their_own_route_minus_payments(): void
     {
         $staff = User::factory()->staff()->create();
         $booking = Booking::factory()->create();
@@ -190,7 +190,8 @@ class DashboardTest extends TestCase
         $response = $this->actingAs($staff)->get('/staff/dashboard');
 
         $response->assertOk();
-        $response->assertSee('Pending Payments');
+        $response->assertSee('Courts Occupied');
+        $response->assertDontSee('Pending Payments');
     }
 
     public function test_customer_cannot_view_either_dashboard_route(): void

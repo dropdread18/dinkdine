@@ -60,27 +60,11 @@ class WalkInBookingController extends Controller
             fn (array $slot) => $pricing->calculate($slot['court'], $slot['start_time'], $slot['end_time'])
         );
 
-        $existingCustomers = collect();
-        $q = $request->query('q');
-
-        if ($q) {
-            $existingCustomers = User::where('role', UserRole::Customer)
-                ->where(function ($query) use ($q) {
-                    $query->where('name', 'like', "%{$q}%")
-                        ->orWhere('email', 'like', "%{$q}%")
-                        ->orWhere('phone', 'like', "%{$q}%");
-                })
-                ->limit(10)
-                ->get();
-        }
-
         return view('staff.walkin.review', [
             'slots' => $slots,
             'slotPrices' => $slotPrices,
             'totalPrice' => $slotPrices->sum(),
             'rawSlots' => $request->query('slots', []),
-            'q' => $q ?? '',
-            'existingCustomers' => $existingCustomers,
         ]);
     }
 
@@ -103,20 +87,20 @@ class WalkInBookingController extends Controller
         // shouldn't leave a customer record behind with nothing booked.
         try {
             [$customer, $bookings] = DB::transaction(function () use ($data, $slots, $bookingService) {
-                if (! empty($data['existing_user_id'])) {
-                    $customer = User::findOrFail($data['existing_user_id']);
-                } else {
-                    $customer = User::create([
-                        'name' => $data['new_customer_name'],
-                        'email' => $data['new_customer_email'],
-                        'phone' => $data['new_customer_phone'] ?? null,
-                        // Raw string, not Hash::make() - the 'hashed' cast on
-                        // User::password hashes it on save; hashing here too
-                        // would double-hash it.
-                        'password' => Str::random(32),
-                        'role' => UserRole::Customer,
-                    ]);
-                }
+                // Walk-in intake only ever asks for a name (owner feedback:
+                // needs to be simple enough to teach a non-technical staff
+                // member on the spot) - no email/phone, and no lookup
+                // against existing customers. Every walk-in submission
+                // creates its own new customer record, so email still needs
+                // some unique value to satisfy the column - this one is
+                // never shown to or used by the customer, it's a walk-in
+                // account with no online login.
+                $customer = User::create([
+                    'name' => $data['customer_name'],
+                    'email' => Str::uuid().'@walkin.local',
+                    'password' => Str::random(32),
+                    'role' => UserRole::Customer,
+                ]);
 
                 $bookings = $bookingService->bookMany(
                     user: $customer,

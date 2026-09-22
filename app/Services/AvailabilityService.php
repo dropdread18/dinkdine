@@ -53,6 +53,7 @@ class AvailabilityService
         $courts = Court::orderBy('sort_order')->orderBy('court_number')->get();
 
         $bookingsByCourt = Booking::query()
+            ->with('user')
             ->whereDate('booking_date', $day)
             ->whereIn('status', [BookingStatus::Pending, BookingStatus::Confirmed])
             ->when($excludeBookingId, fn ($query, $id) => $query->where('id', '!=', $id))
@@ -169,6 +170,7 @@ class AvailabilityService
                     $isInProgress ? SlotStatus::InProgress : SlotStatus::Booked,
                     $booking->id,
                     $isInProgress ? $booking->hold_expires_at?->toIso8601String() : null,
+                    bookedByName: $booking->user->name,
                 );
             }
         }
