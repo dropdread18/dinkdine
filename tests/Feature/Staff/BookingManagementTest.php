@@ -6,6 +6,7 @@ use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\BusinessHour;
 use App\Models\Court;
+use App\Models\Payment;
 use App\Models\Setting;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -108,6 +109,35 @@ class BookingManagementTest extends TestCase
 
         $content = $response->getContent();
         $this->assertLessThan(strpos($content, 'Zack'), strpos($content, 'Amy'));
+    }
+
+    public function test_bookings_confirmed_together_are_grouped_and_show_a_combined_total(): void
+    {
+        $user = User::factory()->customer()->create(['name' => 'Juan Dela Cruz']);
+        $bookingA = Booking::factory()->create(['user_id' => $user->id, 'booking_date' => $this->date, 'price' => 265]);
+        $bookingB = Booking::factory()->create(['user_id' => $user->id, 'booking_date' => $this->date, 'price' => 265]);
+        Payment::factory()->create(['booking_id' => $bookingA->id, 'amount' => 265, 'reference_number' => 'GCASH-SHARED-1']);
+        Payment::factory()->create(['booking_id' => $bookingB->id, 'amount' => 265, 'reference_number' => 'GCASH-SHARED-1']);
+
+        $this->actingAs(User::factory()->staff()->create())
+            ->get('/manage/bookings')
+            ->assertOk()
+            ->assertSee('2 bookings, same checkout')
+            ->assertSee('₱530.00');
+    }
+
+    public function test_bookings_with_different_reference_numbers_are_not_grouped(): void
+    {
+        $user = User::factory()->customer()->create();
+        $bookingA = Booking::factory()->create(['user_id' => $user->id, 'booking_date' => $this->date]);
+        $bookingB = Booking::factory()->create(['user_id' => $user->id, 'booking_date' => $this->date]);
+        Payment::factory()->create(['booking_id' => $bookingA->id, 'reference_number' => 'GCASH-AAA']);
+        Payment::factory()->create(['booking_id' => $bookingB->id, 'reference_number' => 'GCASH-BBB']);
+
+        $this->actingAs(User::factory()->staff()->create())
+            ->get('/manage/bookings')
+            ->assertOk()
+            ->assertDontSee('bookings, same checkout');
     }
 
     public function test_bookings_can_be_searched_by_customer_name(): void

@@ -70,30 +70,44 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($bookings as $booking)
-                        <tr class="border-t border-slate-100 hover:bg-slate-50/60">
-                            <td class="py-3 pl-4 pr-4 text-slate-500">PB-{{ $booking->id }}</td>
-                            <td class="py-3 pr-4 text-slate-900 font-medium">{{ $booking->user->name }}</td>
-                            <td class="py-3 pr-4 text-slate-600">{{ $booking->court->name }}</td>
-                            <td class="py-3 pr-4 text-slate-600 whitespace-nowrap">
-                                {{ $booking->booking_date->format('M j, Y') }},
-                                {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $booking->start_time)->format('g:i A') }}
-                            </td>
-                            <td class="py-3 pr-4 text-slate-600">{{ $booking->status->label() }}</td>
-                            <td class="py-3 pr-4 text-slate-600">{{ $booking->payment_status->label() }}</td>
-                            <td class="py-3 pr-4 text-slate-600">{{ $booking->source->label() }}</td>
-                            <td class="py-3 pr-4 space-x-3 whitespace-nowrap">
-                                <a href="{{ route('bookings.show', $booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">View</a>
-                                @if ($booking->status !== \App\Enums\BookingStatus::Cancelled)
-                                    <a href="{{ route('manage.bookings.reschedule', $booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Reschedule</a>
-                                    <form method="POST" action="{{ route('manage.bookings.cancel', $booking) }}" class="inline">
-                                        @csrf
-                                        @method('PATCH')
-                                        <button type="submit" class="text-red-600 hover:text-red-700 underline underline-offset-2">Cancel</button>
-                                    </form>
-                                @endif
-                            </td>
-                        </tr>
+                    @foreach ($groups as $groupKey => $groupBookings)
+                        @php $isGroup = $groupBookings->count() > 1; @endphp
+                        @if ($isGroup)
+                            <tr class="border-t border-slate-200 bg-blue-50/40">
+                                <td class="py-2.5 pl-4 pr-4 text-slate-500" colspan="2">
+                                    <span class="font-semibold text-slate-900">{{ $groupBookings->first()->user->name }}</span>
+                                    <span class="text-xs text-blue-700 font-semibold ml-1">{{ $groupBookings->count() }} bookings, same checkout</span>
+                                </td>
+                                <td class="py-2.5 pr-4 text-slate-500" colspan="4">Ref: {{ $groupBookings->first()->payment?->reference_number }}</td>
+                                <td class="py-2.5 pr-4 text-slate-900 font-semibold">₱{{ number_format($groupBookings->sum(fn ($b) => $b->price + $b->convenience_fee), 2) }}</td>
+                                <td class="py-2.5 pr-4"></td>
+                            </tr>
+                        @endif
+                        @foreach ($groupBookings as $booking)
+                            <tr class="border-t border-slate-100 hover:bg-slate-50/60 {{ $isGroup ? 'bg-blue-50/15' : '' }}">
+                                <td class="py-3 pl-4 pr-4 text-slate-500 {{ $isGroup ? 'pl-8' : '' }}">PB-{{ $booking->id }}</td>
+                                <td class="py-3 pr-4 text-slate-900 font-medium">{{ $isGroup ? '' : $booking->user->name }}</td>
+                                <td class="py-3 pr-4 text-slate-600">{{ $booking->court->name }}</td>
+                                <td class="py-3 pr-4 text-slate-600 whitespace-nowrap">
+                                    {{ $booking->booking_date->format('M j, Y') }},
+                                    {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $booking->start_time)->format('g:i A') }}
+                                </td>
+                                <td class="py-3 pr-4 text-slate-600">{{ $booking->status->label() }}</td>
+                                <td class="py-3 pr-4 text-slate-600">{{ $booking->payment_status->label() }}</td>
+                                <td class="py-3 pr-4 text-slate-600">{{ $booking->source->label() }}</td>
+                                <td class="py-3 pr-4 space-x-3 whitespace-nowrap">
+                                    <a href="{{ route('bookings.show', $booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">View</a>
+                                    @if ($booking->status !== \App\Enums\BookingStatus::Cancelled)
+                                        <a href="{{ route('manage.bookings.reschedule', $booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Reschedule</a>
+                                        <form method="POST" action="{{ route('manage.bookings.cancel', $booking) }}" class="inline">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="text-red-600 hover:text-red-700 underline underline-offset-2">Cancel</button>
+                                        </form>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
                     @endforeach
                 </tbody>
             </table>

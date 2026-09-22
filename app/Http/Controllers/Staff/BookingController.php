@@ -19,7 +19,7 @@ class BookingController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Booking::query()->with(['court', 'user']);
+        $query = Booking::query()->with(['court', 'user', 'payment']);
 
         if ($date = $request->query('date')) {
             $query->whereDate('booking_date', $date);
@@ -74,8 +74,22 @@ class BookingController extends Controller
 
         $bookings = $query->paginate(20)->withQueryString();
 
+        // Same grouping as the Payments list (PaymentController::index()) -
+        // every booking confirmed together in one checkout shares its
+        // Payment's reference_number, so a 2-hour booking that's really 2
+        // separate Booking/Payment rows reads as one item instead of
+        // cluttering the list as two unrelated-looking rows. A booking
+        // whose payment has no reference number yet (still unpaid, or a
+        // walk-in that was never charged online) just gets its own group.
+        $groups = $bookings->getCollection()->groupBy(
+            fn (Booking $booking) => $booking->payment?->reference_number
+                ? $booking->user_id.'|'.$booking->payment->reference_number
+                : 'single-'.$booking->id
+        );
+
         return view('staff.bookings.index', [
             'bookings' => $bookings,
+            'groups' => $groups,
             'courts' => Court::orderBy('sort_order')->orderBy('court_number')->get(),
             'sort' => $sort,
         ]);
