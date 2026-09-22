@@ -101,23 +101,35 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::patch('staff/{staff}/toggle-active', [StaffController::class, 'toggleActive'])->name('staff.toggle-active');
 });
 
-// Store (POS/products/inventory/sales) - Phase 1 foundation only, per the
-// Claude Code Handoff Specification: admin-only for now (reuses the
-// existing role:admin middleware, same as Courts/Customers/Staff above -
-// no new role, no separate auth system), placeholder pages, no product/
-// inventory/sales tables yet. Staff/Organizer/Customer get a 403 here via
-// EnsureUserHasRole exactly like every other admin-only route, including
-// on a direct URL visit - there is no hidden-URL-only gating.
-Route::middleware(['auth', 'role:admin'])->prefix('admin/store')->name('admin.store.')->group(function () {
-    Route::get('/', [StoreDashboardController::class, 'index'])->name('index');
-
+// Store (POS/products/inventory/sales) - per the Claude Code Handoff
+// Specification. Staff/Organizer/Customer get a 403 here via
+// EnsureUserHasRole on every route in the admin-only group below,
+// including on a direct URL visit - there is no hidden-URL-only gating.
+//
+// Staff gets a narrow exception (spec section 35, "Future Staff POS
+// Permission"): POS itself, and viewing the receipt of a sale they
+// personally rang up (the last step of the POS flow - see
+// StoreSaleController::show()'s ownership check). Everything else -
+// Products, Categories, Inventory, the Sales History list, Reports,
+// and the Store overview page - stays admin-only. A cashier can sell
+// products but can't change price/cost, touch inventory, see profit,
+// or browse other sales.
+Route::middleware(['auth', 'role:admin,staff'])->prefix('admin/store')->name('admin.store.')->group(function () {
     // Phase 4: POS checkout writes through StoreSaleService, which is
-    // the only place a sale is ever created - see that class. Admin-only
-    // for now (section 23 of the handoff spec): staff doesn't get POS
-    // access just because they'll eventually be cashiers.
+    // the only place a sale is ever created - see that class.
     Route::get('pos', [StorePosController::class, 'index'])->name('pos.index');
     Route::get('pos/review', [StorePosController::class, 'review'])->name('pos.review');
     Route::post('pos/checkout', [StorePosController::class, 'checkout'])->name('pos.checkout');
+
+    // Phase 5: doubles as the post-checkout receipt (PosController::
+    // checkout() redirects straight here) and the Sale Details page a
+    // Sales History row links to - staff can only reach it for their
+    // own sale (404 otherwise, see the controller), admin can view any.
+    Route::get('sales/{sale}', [StoreSaleController::class, 'show'])->name('sales.show');
+});
+
+Route::middleware(['auth', 'role:admin'])->prefix('admin/store')->name('admin.store.')->group(function () {
+    Route::get('/', [StoreDashboardController::class, 'index'])->name('index');
 
     // Phase 2: full CRUD (create/edit/deactivate) - see StoreProductController/
     // StoreCategoryController. Neither ever exposes a destroy() route: a
@@ -148,11 +160,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin/store')->name('admin.st
     Route::post('inventory/{product}/adjust', [StoreInventoryController::class, 'adjust'])->name('inventory.adjust');
     Route::get('inventory/{product}/history', [StoreInventoryController::class, 'history'])->name('inventory.history');
 
-    // Phase 5: sales.show doubles as the post-checkout receipt
-    // (PosController::checkout() redirects straight here) and the Sale
-    // Details page a Sales History row links to.
+    // sales.show (the receipt/detail page) is registered above, in the
+    // role:admin,staff group - not here.
     Route::get('sales', [StoreSaleController::class, 'index'])->name('sales.index');
-    Route::get('sales/{sale}', [StoreSaleController::class, 'show'])->name('sales.show');
 
     Route::get('reports', [StoreReportController::class, 'index'])->name('reports.index');
 });

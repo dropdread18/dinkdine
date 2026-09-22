@@ -96,15 +96,30 @@ class PosTest extends TestCase
         $this->assertSame(1, $product->fresh()->stock_quantity);
     }
 
-    public function test_staff_cannot_access_any_pos_route(): void
+    public function test_staff_can_view_the_pos_grid(): void
     {
-        $product = Product::factory()->create();
+        $product = Product::factory()->create(['name' => 'Cafe Cubito']);
+
+        $this->actingAs(User::factory()->staff()->create())
+            ->get('/admin/store/pos')
+            ->assertOk()
+            ->assertSee('Cafe Cubito');
+    }
+
+    public function test_staff_can_complete_a_sale(): void
+    {
+        $product = Product::factory()->create(['selling_price' => 165, 'stock_quantity' => 24]);
         $staff = User::factory()->staff()->create();
 
-        $this->actingAs($staff)->get('/admin/store/pos')->assertForbidden();
-        $this->actingAs($staff)->get('/admin/store/pos/review')->assertForbidden();
-        $this->actingAs($staff)->post('/admin/store/pos/checkout', [])->assertForbidden();
+        $response = $this->actingAs($staff)->post('/admin/store/pos/checkout', [
+            'quantities' => [$product->id => 1],
+            'payment_method' => 'cash',
+            'amount_paid' => 200,
+        ]);
 
-        $this->assertSame(0, StoreSale::count());
+        $sale = StoreSale::first();
+        $response->assertRedirect(route('admin.store.sales.show', $sale));
+        $this->assertSame($staff->id, $sale->user_id);
+        $this->assertSame(23, $product->fresh()->stock_quantity);
     }
 }

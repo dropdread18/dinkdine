@@ -18,7 +18,14 @@
 
         <div class="max-w-lg mx-auto px-4 print:px-0 print:max-w-none">
             <div class="flex justify-between gap-2 mb-4 print:hidden">
-                <x-button tag="a" href="{{ route('admin.store.sales.index') }}" variant="ghost">Back to Sales</x-button>
+                {{-- Sales History is admin-only (handoff spec section 35) - a
+                     staff cashier viewing their own just-completed receipt
+                     has nowhere to "go back" to, so they only get New Sale. --}}
+                @if (auth()->user()->isAdmin())
+                    <x-button tag="a" href="{{ route('admin.store.sales.index') }}" variant="ghost">Back to Sales</x-button>
+                @else
+                    <span></span>
+                @endif
                 <div class="flex gap-2">
                     <x-button tag="a" href="{{ route('admin.store.pos.index') }}" variant="secondary">New Sale</x-button>
                     <x-button type="button" onclick="window.print()">Print Receipt</x-button>

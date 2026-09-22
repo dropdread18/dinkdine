@@ -27,7 +27,11 @@
             ['label' => 'Reports', 'route' => 'manage.reports.index', 'pattern' => 'manage.reports.*', 'adminOnly' => true],
             ['label' => 'Staff', 'route' => 'admin.staff.index', 'pattern' => 'admin.staff.*', 'adminOnly' => true],
             ['label' => 'Settings', 'route' => 'manage.settings.index', 'pattern' => 'manage.settings.*|admin.courts.*', 'adminOnly' => true],
-            ['label' => 'Store', 'route' => 'admin.store.index', 'pattern' => 'admin.store.*', 'adminOnly' => true],
+            // Staff gets POS only (handoff spec section 35) - straight to
+            // the POS terminal, not the admin Store overview it can't
+            // open. adminOnly is false here on purpose: this item itself
+            // is visible to staff, just pointed at a narrower destination.
+            ['label' => $isAdminUser ? 'Store' : 'POS', 'route' => $isAdminUser ? 'admin.store.index' : 'admin.store.pos.index', 'pattern' => 'admin.store.*', 'adminOnly' => false],
         ], fn (array $item) => $isAdminUser || ! $item['adminOnly']);
 @endphp
 <aside class="hidden lg:flex lg:flex-col lg:shrink-0 lg:justify-between bg-forest" style="width: 240px; padding: 24px 0;">

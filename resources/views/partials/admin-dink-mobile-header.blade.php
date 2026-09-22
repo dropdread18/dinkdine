@@ -22,7 +22,9 @@
             ['label' => 'Reports', 'route' => 'manage.reports.index', 'adminOnly' => true],
             ['label' => 'Staff', 'route' => 'admin.staff.index', 'adminOnly' => true],
             ['label' => 'Settings', 'route' => 'manage.settings.index', 'adminOnly' => true],
-            ['label' => 'Store', 'route' => 'admin.store.index', 'adminOnly' => true],
+            // Staff gets POS only (handoff spec section 35) - see the
+            // matching comment in admin-dink-sidebar.blade.php.
+            ['label' => $isAdminUser ? 'Store' : 'POS', 'route' => $isAdminUser ? 'admin.store.index' : 'admin.store.pos.index', 'adminOnly' => false],
         ], fn (array $item) => $isAdminUser || ! $item['adminOnly']);
     // Was unconditionally admin.dashboard, which 403s for anyone who isn't
     // admin (staff included) - route it the same way the Dashboard nav

@@ -108,12 +108,42 @@ class SaleTest extends TestCase
         $response->assertOk()->assertSee($sale->sale_number);
     }
 
-    public function test_staff_cannot_access_sales_routes(): void
+    public function test_staff_cannot_access_the_sales_history_list(): void
     {
-        $sale = StoreSale::factory()->create();
-        $staff = User::factory()->staff()->create();
+        $this->actingAs(User::factory()->staff()->create())
+            ->get('/admin/store/sales')
+            ->assertForbidden();
+    }
 
-        $this->actingAs($staff)->get('/admin/store/sales')->assertForbidden();
-        $this->actingAs($staff)->get("/admin/store/sales/{$sale->id}")->assertForbidden();
+    public function test_staff_can_view_their_own_sale(): void
+    {
+        $staff = User::factory()->staff()->create();
+        $sale = StoreSale::factory()->create(['user_id' => $staff->id, 'sale_number' => 'SALE-000001']);
+
+        $this->actingAs($staff)
+            ->get("/admin/store/sales/{$sale->id}")
+            ->assertOk()
+            ->assertSee('SALE-000001');
+    }
+
+    public function test_staff_cannot_view_someone_elses_sale(): void
+    {
+        $otherStaff = User::factory()->staff()->create();
+        $sale = StoreSale::factory()->create(['user_id' => $otherStaff->id]);
+
+        $this->actingAs(User::factory()->staff()->create())
+            ->get("/admin/store/sales/{$sale->id}")
+            ->assertNotFound();
+    }
+
+    public function test_admin_can_view_any_staff_sale(): void
+    {
+        $staff = User::factory()->staff()->create();
+        $sale = StoreSale::factory()->create(['user_id' => $staff->id, 'sale_number' => 'SALE-000001']);
+
+        $this->actingAs(User::factory()->admin()->create())
+            ->get("/admin/store/sales/{$sale->id}")
+            ->assertOk()
+            ->assertSee('SALE-000001');
     }
 }

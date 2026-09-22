@@ -49,9 +49,17 @@ class SaleController extends Controller
      * redirects straight here) and the Sale Details page a Sales History
      * row links to - one view, not two, since a completed sale's own
      * detail page and its receipt are the same content.
+     *
+     * Staff only reach this route for a sale they personally rang up
+     * (the handoff spec's "Future Staff POS Permission" section keeps
+     * Sales History browsing admin-only) - 404, not 403, so a cashier
+     * can't tell someone else's sale even exists by guessing an id, same
+     * pattern as a customer viewing another customer's booking.
      */
-    public function show(StoreSale $sale): View
+    public function show(Request $request, StoreSale $sale): View
     {
+        abort_unless($request->user()->isAdmin() || $sale->user_id === $request->user()->id, 404);
+
         return view('admin.store.sales.show', [
             'sale' => $sale->load(['items', 'user']),
         ]);
