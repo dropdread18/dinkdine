@@ -111,8 +111,26 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 Route::middleware(['auth', 'role:admin'])->prefix('admin/store')->name('admin.store.')->group(function () {
     Route::get('/', [StoreDashboardController::class, 'index'])->name('index');
     Route::get('pos', [StorePosController::class, 'index'])->name('pos.index');
+
+    // Phase 2: full CRUD (create/edit/deactivate) - see StoreProductController/
+    // StoreCategoryController. Neither ever exposes a destroy() route: a
+    // category or product is deactivated, never hard-deleted (Store Phase 2
+    // spec - a product used in a completed sale must keep resolving on that
+    // historical receipt).
     Route::get('products', [StoreProductController::class, 'index'])->name('products.index');
+    Route::get('products/create', [StoreProductController::class, 'create'])->name('products.create');
+    Route::post('products', [StoreProductController::class, 'store'])->name('products.store');
+    Route::get('products/{product}/edit', [StoreProductController::class, 'edit'])->name('products.edit');
+    Route::put('products/{product}', [StoreProductController::class, 'update'])->name('products.update');
+    Route::patch('products/{product}/toggle-active', [StoreProductController::class, 'toggleActive'])->name('products.toggle-active');
+
     Route::get('categories', [StoreCategoryController::class, 'index'])->name('categories.index');
+    Route::get('categories/create', [StoreCategoryController::class, 'create'])->name('categories.create');
+    Route::post('categories', [StoreCategoryController::class, 'store'])->name('categories.store');
+    Route::get('categories/{category}/edit', [StoreCategoryController::class, 'edit'])->name('categories.edit');
+    Route::put('categories/{category}', [StoreCategoryController::class, 'update'])->name('categories.update');
+    Route::patch('categories/{category}/toggle-active', [StoreCategoryController::class, 'toggleActive'])->name('categories.toggle-active');
+
     Route::get('inventory', [StoreInventoryController::class, 'index'])->name('inventory.index');
     Route::get('sales', [StoreSaleController::class, 'index'])->name('sales.index');
     Route::get('reports', [StoreReportController::class, 'index'])->name('reports.index');
