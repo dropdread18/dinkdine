@@ -21,6 +21,7 @@ class ProductRequest extends FormRequest
             'category_id' => ['required', 'exists:product_categories,id'],
             'name' => ['required', 'string', 'max:255'],
             'sku' => ['required', 'string', 'max:255', Rule::unique('products', 'sku')->ignore($this->route('product'))],
+            'barcode' => ['nullable', 'string', 'max:64', Rule::unique('products', 'barcode')->ignore($this->route('product'))],
             'description' => ['nullable', 'string'],
             'cost_price' => ['required', 'numeric', 'min:0'],
             'selling_price' => ['required', 'numeric', 'min:0'],

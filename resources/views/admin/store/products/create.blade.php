@@ -1,6 +1,8 @@
 @extends('layouts.app', ['title' => 'New Product'])
 
 @section('content')
+    @vite(['resources/js/barcode-scanner.js'])
+
     <h1 class="text-2xl font-semibold text-slate-900 tracking-tight mb-4">New Product</h1>
 
     @if ($categories->isEmpty())

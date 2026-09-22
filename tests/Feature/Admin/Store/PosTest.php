@@ -33,6 +33,16 @@ class PosTest extends TestCase
         $response->assertDontSee('Inactive Product');
     }
 
+    public function test_pos_grid_exposes_each_products_barcode_for_the_camera_scanner(): void
+    {
+        $product = Product::factory()->create(['name' => 'Cafe Cubito', 'barcode' => '4800016641503']);
+
+        $response = $this->actingAs(User::factory()->admin()->create())->get('/admin/store/pos');
+
+        $response->assertOk();
+        $response->assertSee('data-barcode="4800016641503"', false);
+    }
+
     public function test_review_page_shows_selected_items_and_subtotal(): void
     {
         $product = Product::factory()->create(['name' => 'Cafe Cubito', 'selling_price' => 165]);

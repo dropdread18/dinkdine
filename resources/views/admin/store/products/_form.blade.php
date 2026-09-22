@@ -21,6 +21,15 @@
            class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm font-mono focus:border-blue-500 focus:ring-blue-500">
 </div>
 
+<div>
+    <div class="flex items-center justify-between">
+        <label for="barcode" class="block text-sm font-medium text-slate-700">Barcode (optional)</label>
+        <x-barcode-scanner-modal id="product-form-scanner" fill-target="barcode" label="Scan to fill" />
+    </div>
+    <input id="barcode" name="barcode" type="text" value="{{ old('barcode', $product?->barcode) }}"
+           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm font-mono focus:border-blue-500 focus:ring-blue-500">
+</div>
+
 <div class="grid grid-cols-2 gap-4">
     <div>
         <label for="cost_price" class="block text-sm font-medium text-slate-700">Cost Price (₱)</label>
