@@ -1,13 +1,17 @@
 @extends('layouts.app', ['title' => 'Store Inventory'])
 
 @section('content')
+    @vite(['resources/js/barcode-scanner.js'])
+
     <x-page-header title="Inventory" />
 
     @include('partials.store-subnav')
 
     <form method="GET" action="{{ route('admin.store.inventory.index') }}" class="flex flex-wrap items-center gap-2 mb-6 text-sm bg-white border border-slate-200 rounded-xl shadow-sm p-3">
-        <input type="text" name="q" value="{{ $q }}" placeholder="Search name or SKU"
+        <input id="inventory-search" type="text" name="q" value="{{ $q }}" placeholder="Search name, SKU, or barcode"
                class="rounded-lg border-slate-300 shadow-sm w-64 focus:border-blue-500 focus:ring-blue-500">
+
+        <x-barcode-scanner-modal id="inventory-scanner" fill-target="inventory-search" submit-on-scan="true" label="Scan Barcode" variant="button" />
 
         <label class="flex items-center gap-2 text-slate-600">
             <input type="checkbox" name="low_stock" value="1" @checked($lowOnly) class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">

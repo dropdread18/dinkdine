@@ -16,6 +16,9 @@
     'id' => 'barcode-reader-'.\Illuminate\Support\Str::random(8),
     'label' => 'Scan Barcode',
     'fillTarget' => null,
+    // With fill-target: also submit that field's form right after filling
+    // it - used where a scan should immediately run a search.
+    'submitOnScan' => false,
     // 'link' (default) matches a plain text-link trigger elsewhere in the
     // app; 'button' matches x-button's secondary variant, for a trigger
     // that needs to read as its own page action (e.g. the POS toolbar).
@@ -45,6 +48,9 @@
                     if (el) {
                         el.value = text;
                         el.dispatchEvent(new Event('input', { bubbles: true }));
+                        @if ($submitOnScan)
+                            el.form?.requestSubmit();
+                        @endif
                     }
                     this.close();
                 @else

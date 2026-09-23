@@ -49,6 +49,18 @@ class InventoryTest extends TestCase
         $response->assertDontSee('OK Item');
     }
 
+    public function test_inventory_can_be_searched_by_scanned_barcode(): void
+    {
+        Product::factory()->create(['name' => 'Target Item', 'barcode' => '4800016641503']);
+        Product::factory()->create(['name' => 'Other Item', 'barcode' => '4800016649999']);
+
+        $response = $this->actingAs(User::factory()->admin()->create())
+            ->get('/admin/store/inventory?q=4800016641503');
+
+        $response->assertSee('Target Item');
+        $response->assertDontSee('Other Item');
+    }
+
     public function test_admin_can_record_a_stock_in_movement(): void
     {
         $product = Product::factory()->create(['stock_quantity' => 24]);

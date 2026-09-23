@@ -22,7 +22,10 @@ class InventoryController extends Controller
         if ($q = $request->query('q')) {
             $query->where(function ($sub) use ($q) {
                 $sub->where('name', 'like', "%{$q}%")
-                    ->orWhere('sku', 'like', "%{$q}%");
+                    ->orWhere('sku', 'like', "%{$q}%")
+                    // Exact, not LIKE - a scanned barcode is a full code,
+                    // and a partial match could surface the wrong product.
+                    ->orWhere('barcode', $q);
             });
         }
 
