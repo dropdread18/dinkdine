@@ -52,7 +52,10 @@ class PosTest extends TestCase
 
         $response->assertOk()
             ->assertSee('Cafe Cubito')
-            ->assertSee('330.00');
+            // Lines are rendered client-side (editable/removable) from this
+            // JSON, so the quantity and unit price are what's checked here.
+            ->assertSee('\u0022qty\u0022:2', false)
+            ->assertSee('\u0022price\u0022:165', false);
     }
 
     public function test_selecting_nothing_redirects_back_to_the_grid_with_an_error(): void
