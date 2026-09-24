@@ -11,19 +11,17 @@
 
     @include('partials.store-subnav')
 
-    <form method="GET" action="{{ route('admin.store.pos.index') }}" class="flex flex-wrap gap-2 mb-6 text-sm bg-white border border-slate-200 rounded-xl shadow-sm p-3">
-        <input type="text" name="q" value="{{ $q }}" placeholder="Search name or SKU"
-               class="rounded-lg border-slate-300 shadow-sm w-64 focus:border-blue-500 focus:ring-blue-500">
-        <x-button type="submit">Search</x-button>
-        <x-button tag="a" href="{{ route('admin.store.pos.index') }}" variant="ghost" class="self-center">Clear</x-button>
-    </form>
-
     @if ($products->isEmpty())
-        <x-card class="text-center text-slate-500 text-sm py-8">No active products match this search.</x-card>
+        <x-card class="text-center text-slate-500 text-sm py-8">No active products yet.</x-card>
     @else
         <form method="GET" action="{{ route('admin.store.pos.review') }}"
               x-data="{
                   count: 0,
+                  search: '',
+                  matches(card) {
+                      const q = this.search.trim().toLowerCase();
+                      return q === '' || card.dataset.search.includes(q);
+                  },
                   scanMessage: '',
                   scanIsError: false,
                   refreshCount() {
@@ -61,6 +59,16 @@
               @input="refreshCount()"
               @barcode-scanned.window="handleScan($event.detail.text)"
               class="pb-24">
+            {{-- Filtered in the browser, not by reloading the page: every active
+                 product is already on the grid, so hiding non-matches keeps the
+                 quantities already entered for other products intact (hidden
+                 rows still submit with the form). --}}
+            <div class="flex flex-wrap gap-2 mb-6 text-sm bg-white border border-slate-200 rounded-xl shadow-sm p-3">
+                <input type="text" x-model="search" @keydown.enter.prevent placeholder="Search name, SKU, or barcode" autocomplete="off"
+                       class="rounded-lg border-slate-300 shadow-sm w-64 focus:border-blue-500 focus:ring-blue-500">
+                <button type="button" x-show="search" x-cloak @click="search = ''" class="self-center text-blue-600 underline underline-offset-2">Clear</button>
+            </div>
+
             <div x-show="scanMessage" x-cloak x-text="scanMessage"
                  class="mb-4 text-sm font-medium rounded-lg px-3 py-2"
                  :class="scanIsError ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'"></div>
@@ -69,7 +77,7 @@
                 @foreach ($products as $product)
                     {{-- data-barcode is empty (never a real scanned code) for a product with no
                          barcode set - harmless, handleScan() only ever looks up a non-empty value. --}}
-                    <x-card data-barcode="{{ $product->barcode }}" data-name="{{ $product->name }}" class="flex items-center justify-between gap-3">
+                    <x-card data-barcode="{{ $product->barcode }}" data-name="{{ $product->name }}" data-search="{{ strtolower($product->name.' '.$product->sku.' '.$product->barcode) }}" x-show="matches($el)" class="flex items-center justify-between gap-3">
                         <div class="min-w-0">
                             <div class="font-medium text-slate-900 truncate">{{ $product->name }}</div>
                             <div class="text-xs text-slate-500">{{ $product->category?->name ?: '—' }} &middot; ₱{{ number_format($product->selling_price, 2) }} / {{ $product->unit }}</div>
