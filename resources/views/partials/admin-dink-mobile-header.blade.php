@@ -18,6 +18,7 @@
             ['label' => 'Payments', 'route' => 'manage.payments.index', 'adminOnly' => true],
             ['label' => 'Maintenance', 'route' => 'admin.maintenance.index', 'adminOnly' => true],
             ['label' => 'Open Play', 'route' => 'admin.open-play.index', 'adminOnly' => true],
+            ['label' => 'Training Sessions', 'route' => 'admin.training-sessions.index', 'adminOnly' => true],
             ['label' => 'Customers', 'route' => 'admin.customers.index', 'adminOnly' => true],
             ['label' => 'Reports', 'route' => 'manage.reports.index', 'adminOnly' => true],
             ['label' => 'Staff', 'route' => 'admin.staff.index', 'adminOnly' => true],

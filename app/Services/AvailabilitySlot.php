@@ -55,5 +55,20 @@ final readonly class AvailabilitySlot
          * privacy leak.
          */
         public ?string $bookedByName = null,
+        /**
+         * Set only when status is TrainingSession - the session's own full
+         * time range (not this one hourly slot's), same reasoning as
+         * openPlayStartTime/openPlayEndTime above.
+         */
+        public ?string $trainingSessionStartTime = null,
+        public ?string $trainingSessionEndTime = null,
+        /**
+         * Set only when status is TrainingSession - who the drill/coaching
+         * session is for. Same staff/admin-only visibility rule as
+         * bookedByName (DEC-023: Organizer never sees customer names) -
+         * always populated here, it's each Blade view's own choice whether
+         * to render it.
+         */
+        public ?string $trainingCustomerName = null,
     ) {}
 }

@@ -12,6 +12,7 @@ use App\Models\Court;
 use App\Models\CourtMaintenance;
 use App\Models\OpenPlaySession;
 use App\Models\Setting;
+use App\Models\TrainingSession;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
@@ -76,7 +77,12 @@ class AvailabilityService
             ->get()
             ->groupBy('court_id');
 
-        $courtAvailabilities = $courts->map(function (Court $court) use ($slotTimes, $day, $bookingsByCourt, $maintenanceByCourt, $closurePeriods, $openPlayByCourt) {
+        $trainingByCourt = TrainingSession::query()
+            ->whereDate('session_date', $day)
+            ->get()
+            ->groupBy('court_id');
+
+        $courtAvailabilities = $courts->map(function (Court $court) use ($slotTimes, $day, $bookingsByCourt, $maintenanceByCourt, $closurePeriods, $openPlayByCourt, $trainingByCourt) {
             $slots = array_map(
                 fn (array $range) => $this->resolveSlot(
                     $court,
@@ -87,6 +93,7 @@ class AvailabilityService
                     $maintenanceByCourt->get($court->id, new Collection),
                     $closurePeriods,
                     $openPlayByCourt->get($court->id, new Collection),
+                    $trainingByCourt->get($court->id, new Collection),
                 ),
                 $slotTimes,
             );
@@ -110,6 +117,7 @@ class AvailabilityService
         Collection $courtMaintenance,
         Collection $closurePeriods,
         Collection $courtOpenPlay,
+        Collection $courtTraining,
     ): AvailabilitySlot {
         if (! $court->isBookable()) {
             // A court explicitly set to Maintenance should read as
@@ -146,6 +154,23 @@ class AvailabilityService
                     openPlayLink: $session->registration_link,
                     openPlayStartTime: $session->start_time,
                     openPlayEndTime: $session->end_time,
+                );
+            }
+        }
+
+        // Same reasoning as the Open Play block above - a facility-run
+        // Training Session blocks the slot but reads as its own status on
+        // the grid, not a plain Booked (no Booking row exists for it) or
+        // Closed.
+        foreach ($courtTraining as $session) {
+            if ($this->timeRangesOverlap($startTime, $endTime, $session->start_time, $session->end_time)) {
+                return new AvailabilitySlot(
+                    $startTime,
+                    $endTime,
+                    SlotStatus::TrainingSession,
+                    trainingSessionStartTime: $session->start_time,
+                    trainingSessionEndTime: $session->end_time,
+                    trainingCustomerName: $session->customer_name,
                 );
             }
         }

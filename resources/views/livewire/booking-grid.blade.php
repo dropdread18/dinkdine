@@ -227,6 +227,7 @@
                 'closed' => ['bg' => '#F1F5F9', 'border' => '#E2E8F0', 'text' => '#64748B', 'dot' => '#94A3B8', 'icon' => '—', 'label' => 'Closed'],
                 'maintenance' => ['bg' => '#FFF7ED', 'border' => '#FDBA74', 'text' => '#C2410C', 'dot' => '#F97316', 'icon' => '⚠', 'label' => 'Maintenance'],
                 'open_play' => ['bg' => '#ECFEFF', 'border' => '#A5F3FC', 'text' => '#0E7490', 'dot' => '#06B6D4', 'icon' => '◆', 'label' => 'Open Play'],
+                'training_session' => ['bg' => '#EEF2FF', 'border' => '#C7D2FE', 'text' => '#4338CA', 'dot' => '#6366F1', 'icon' => '●', 'label' => 'Training Session'],
             ];
             // Two color variants for Open Play, alternated by the session's
             // batch (see openPlayGroupKey on AvailabilitySlot) - when two

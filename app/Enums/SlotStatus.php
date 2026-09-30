@@ -10,6 +10,7 @@ enum SlotStatus: string
     case Closed = 'closed';
     case OpenPlay = 'open_play';
     case Maintenance = 'maintenance';
+    case TrainingSession = 'training_session';
 
     public function label(): string
     {
@@ -20,6 +21,7 @@ enum SlotStatus: string
             self::Closed => 'Closed',
             self::OpenPlay => 'Open Play',
             self::Maintenance => 'Maintenance',
+            self::TrainingSession => 'Training Session',
         };
     }
 }

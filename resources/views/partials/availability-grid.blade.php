@@ -1,11 +1,13 @@
 {{-- Expects: $date, $availability, $bookableFrom, $slotRouteName (route that takes court/date/start_time/end_time,
      plus any keys in $extraRouteParams, e.g. ['booking' => $booking] for the reschedule flow).
      Pass $readOnly => true (and omit $slotRouteName/$bookableFrom) for a pure view - no slot is ever
-     clickable for booking, regardless of status - used by the Organizer schedule view. Open Play slots
-     are always clickable (even in read-only mode) to show that session's own registration link.
+     clickable for booking, regardless of status - used by the Organizer schedule view. Open Play and
+     Training Session slots are always clickable (even in read-only mode) to show that session's own
+     detail modal.
      Pass $showCustomerNames => true only from staff/admin-facing pages - it shows who booked a slot
-     instead of a bare "Booked"/"In Progress" label. Never pass this from a customer-facing view (e.g.
-     bookings/reschedule.blade.php), since that would show one customer another customer's name. --}}
+     instead of a bare "Booked"/"In Progress" label, and who a Training Session is for. Never pass this
+     from a customer-facing view (e.g. bookings/reschedule.blade.php), since that would show one
+     customer another customer's name. --}}
 @php
     $extraRouteParams = $extraRouteParams ?? [];
     $readOnly = $readOnly ?? false;
@@ -29,7 +31,7 @@
     $openPlayClasses = fn (?string $groupKey) => $openPlayVariants[$openPlayBatchOrder[$groupKey] ?? 0];
 @endphp
 
-<div x-data="{ openPlayModal: null }">
+<div x-data="{ openPlayModal: null, trainingModal: null }">
     <div class="flex flex-wrap gap-4 text-xs text-slate-600 mb-4">
         <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500 align-middle mr-1.5"></span>Available</span>
         <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500 align-middle mr-1.5"></span>Booked</span>
@@ -37,6 +39,7 @@
         <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-slate-300 align-middle mr-1.5"></span>Closed</span>
         <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-orange-400 align-middle mr-1.5"></span>Maintenance</span>
         <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-cyan-500 align-middle mr-1.5"></span>Open Play</span>
+        <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-indigo-500 align-middle mr-1.5"></span>Training Session</span>
     </div>
 
     @if ($availability['is_facility_closed'])
@@ -68,12 +71,14 @@
                                     $slotStart = \Illuminate\Support\Carbon::parse($date.' '.$slot->startTime);
                                     $bookable = ! $readOnly && $slot->status === \App\Enums\SlotStatus::Available && ($slotStart->lte(\Illuminate\Support\Carbon::now()) || $slotStart->gte($bookableFrom));
                                     $isOpenPlay = $slot->status === \App\Enums\SlotStatus::OpenPlay;
+                                    $isTrainingSession = $slot->status === \App\Enums\SlotStatus::TrainingSession;
                                     $classes = $isOpenPlay ? $openPlayClasses($slot->openPlayGroupKey) : match ($slot->status) {
                                         \App\Enums\SlotStatus::Available => 'bg-green-50 text-green-700',
                                         \App\Enums\SlotStatus::Booked => 'bg-red-50 text-red-700',
                                         \App\Enums\SlotStatus::InProgress => 'bg-violet-50 text-violet-700',
                                         \App\Enums\SlotStatus::Closed => 'bg-slate-100 text-slate-400',
                                         \App\Enums\SlotStatus::Maintenance => 'bg-orange-50 text-orange-600',
+                                        \App\Enums\SlotStatus::TrainingSession => 'bg-indigo-50 text-indigo-700',
                                         \App\Enums\SlotStatus::OpenPlay => '',
                                     };
                                 @endphp
@@ -86,6 +91,12 @@
                                     @elseif ($isOpenPlay)
                                         <button type="button"
                                                 @click="openPlayModal = { court: '{{ addslashes($court->name) }}', time: '{{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->openPlayStartTime)->format('g:i A')) }} – {{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->openPlayEndTime)->format('g:i A')) }}', link: {{ $slot->openPlayLink ? "'".addslashes($slot->openPlayLink)."'" : 'null' }} }"
+                                                class="block w-full text-center rounded-lg px-2 py-1.5 font-medium {{ $classes }} hover:opacity-80 transition-opacity cursor-pointer">
+                                            {{ $slot->status->label() }}
+                                        </button>
+                                    @elseif ($isTrainingSession)
+                                        <button type="button"
+                                                @click="trainingModal = { court: '{{ addslashes($court->name) }}', time: '{{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->trainingSessionStartTime)->format('g:i A')) }} – {{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->trainingSessionEndTime)->format('g:i A')) }}', customer: {{ $showCustomerNames && $slot->trainingCustomerName ? "'".addslashes($slot->trainingCustomerName)."'" : 'null' }} }"
                                                 class="block w-full text-center rounded-lg px-2 py-1.5 font-medium {{ $classes }} hover:opacity-80 transition-opacity cursor-pointer">
                                             {{ $slot->status->label() }}
                                         </button>
@@ -139,6 +150,25 @@
                 <p class="text-sm text-slate-500">Registration details aren't posted yet — check back soon or contact the facility.</p>
             </template>
             <button type="button" @click="openPlayModal = null" class="text-sm font-semibold mt-2 text-slate-600">Close</button>
+        </div>
+    </div>
+
+    {{-- Training Session detail modal - same pattern as Open Play's above,
+         minus a registration link (nobody signs up for this, it's an
+         admin-scheduled slot). Customer is only ever non-null when
+         $showCustomerNames is true (see the click handler above), so this
+         naturally stays blank for Organizer/read-only viewers. --}}
+    <div x-show="trainingModal" x-cloak @keydown.escape.window="trainingModal = null"
+         class="fixed inset-0 z-50 flex items-center justify-center p-6" style="background: rgba(15, 23, 42, 0.6);">
+        <div @click="trainingModal = null" class="absolute inset-0"></div>
+        <div class="relative rounded-2xl p-6 max-w-sm w-full flex flex-col gap-2 bg-white">
+            <div class="text-xs font-bold uppercase tracking-wide text-indigo-700" style="letter-spacing: 0.06em;">Training Session</div>
+            <div class="text-lg font-bold text-slate-900" x-text="trainingModal?.court"></div>
+            <div class="text-sm text-slate-500" x-text="trainingModal?.time"></div>
+            <template x-if="trainingModal?.customer">
+                <div class="text-sm text-slate-700 mt-1">Customer: <span class="font-medium" x-text="trainingModal?.customer"></span></div>
+            </template>
+            <button type="button" @click="trainingModal = null" class="text-sm font-semibold mt-2 text-slate-600">Close</button>
         </div>
     </div>
 </div>
