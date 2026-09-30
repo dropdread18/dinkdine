@@ -24,7 +24,7 @@
             <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
                 <div>
                     <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">Schedule</h1>
-                    <p class="text-sm text-slate-500 mt-0.5">Click any open time below to fill in the form on the left - no need to type the date or time by hand.</p>
+                    <p class="text-sm text-slate-500 mt-0.5">Click any open time below to fill in the form on the left - click more than one hour in a row to schedule a longer session.</p>
                 </div>
 
                 <div class="flex items-center gap-1 text-sm bg-white border border-slate-200 rounded-lg shadow-sm p-1">
@@ -51,13 +51,10 @@
     </div>
 
     <script>
-        function fillSessionSlot(courtId, date, startTime, endTime) {
+        window.applySessionCourtSelection = function (courtId) {
             document.getElementById('court_id').value = courtId;
-            document.getElementById('session_date').value = date;
-            document.getElementById('start_time').value = startTime;
-            document.getElementById('end_time').value = endTime;
             document.getElementById('court_id').scrollIntoView({ behavior: 'smooth', block: 'center' });
             document.getElementById('customer_name').focus();
-        }
+        };
     </script>
 @endsection

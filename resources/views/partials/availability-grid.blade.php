@@ -9,10 +9,13 @@
      from a customer-facing view (e.g. bookings/reschedule.blade.php), since that would show one
      customer another customer's name.
      Pass $fillFormOnClick => true only from the Training Session / Open Play create pages - an
-     Available cell becomes a button that fills the sibling form's court/date/start/end fields via a
-     `fillSessionSlot(courtId, date, startTime, endTime)` function the including page must define
-     (it differs per page: a single court_id select for Training Session, a court_ids[] checkbox
-     list for Open Play), instead of navigating like the customer booking flow's $bookable link does. --}}
+     Available cell becomes a toggle button (see the toggleSessionSlot script below) that fills the
+     sibling form's date/start/end fields, and can be clicked again on an adjacent hour in the same
+     court column to extend the selection into a longer block (clicking a non-adjacent cell, or a
+     cell in a different court's column, starts a new selection instead). Which form field(s) the
+     court itself lands in differs per page (a single court_id select for Training Session, a
+     court_ids[] checkbox list for Open Play), so the including page must define a
+     `window.applySessionCourtSelection(courtId)` function to handle that part. --}}
 @php
     $extraRouteParams = $extraRouteParams ?? [];
     $readOnly = $readOnly ?? false;
@@ -97,7 +100,11 @@
                                         </a>
                                     @elseif ($fillable)
                                         <button type="button"
-                                                onclick="fillSessionSlot({{ $court->id }}, '{{ $date }}', '{{ $slot->startTime }}', '{{ $slot->endTime }}')"
+                                                data-court-id="{{ $court->id }}"
+                                                data-date="{{ $date }}"
+                                                data-start="{{ $slot->startTime }}"
+                                                data-end="{{ $slot->endTime }}"
+                                                onclick="toggleSessionSlot(this)"
                                                 class="block w-full text-center rounded-lg px-2 py-1.5 font-medium {{ $classes }} hover:opacity-80 transition-opacity cursor-pointer">
                                             {{ $slot->status->label() }}
                                         </button>
@@ -185,3 +192,71 @@
         </div>
     </div>
 </div>
+
+@if ($fillFormOnClick)
+    <script>
+        // Lets an Available cell be clicked more than once to build a
+        // longer contiguous block (e.g. 9-10am then 10-11am => 9-11am),
+        // instead of only ever filling a single hour. Scoped to one
+        // court column at a time: clicking a cell in a different column,
+        // or one that doesn't touch either edge of the current block,
+        // starts a fresh single-hour selection there instead - see the
+        // doc comment at the top of this partial.
+        (function () {
+            const highlightClasses = ['ring-2', 'ring-blue-500', 'ring-offset-1'];
+            let selectedSlots = [];
+            let lastCourtId = null;
+
+            window.toggleSessionSlot = function (btn) {
+                const courtId = btn.dataset.courtId;
+                const start = btn.dataset.start;
+                const end = btn.dataset.end;
+                const date = btn.dataset.date;
+
+                const idx = selectedSlots.findIndex((s) => s.el === btn);
+
+                if (idx !== -1) {
+                    btn.classList.remove(...highlightClasses);
+                    if (selectedSlots.length === 1) {
+                        selectedSlots = [];
+                        lastCourtId = null;
+                        return;
+                    }
+                    if (idx === 0 || idx === selectedSlots.length - 1) {
+                        selectedSlots.splice(idx, 1);
+                    } else {
+                        // Can't remove a slot from the middle of the block
+                        // without leaving a gap - put the highlight back
+                        // and ignore the click.
+                        btn.classList.add(...highlightClasses);
+                        return;
+                    }
+                } else if (selectedSlots.length > 0 && courtId === lastCourtId
+                    && (start === selectedSlots[selectedSlots.length - 1].end || end === selectedSlots[0].start)) {
+                    if (start === selectedSlots[selectedSlots.length - 1].end) {
+                        selectedSlots.push({ el: btn, start, end });
+                    } else {
+                        selectedSlots.unshift({ el: btn, start, end });
+                    }
+                    btn.classList.add(...highlightClasses);
+                } else {
+                    selectedSlots.forEach((s) => s.el.classList.remove(...highlightClasses));
+                    selectedSlots = [{ el: btn, start, end }];
+                    btn.classList.add(...highlightClasses);
+                }
+
+                lastCourtId = courtId;
+
+                if (selectedSlots.length > 0) {
+                    document.getElementById('session_date').value = date;
+                    document.getElementById('start_time').value = selectedSlots[0].start;
+                    document.getElementById('end_time').value = selectedSlots[selectedSlots.length - 1].end;
+                }
+
+                if (typeof window.applySessionCourtSelection === 'function') {
+                    window.applySessionCourtSelection(courtId);
+                }
+            };
+        })();
+    </script>
+@endif
