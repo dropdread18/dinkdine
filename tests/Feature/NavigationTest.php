@@ -81,6 +81,25 @@ class NavigationTest extends TestCase
             ->assertOk()
             ->assertSee('Bookings')
             ->assertSee('Reports')
+            ->assertSee('Customers')
+            ->assertSee('Staff')
+            ->assertSee('Store')
             ->assertDontSee('Book a Court');
+    }
+
+    public function test_admin_with_a_simplified_dashboard_does_not_see_customers_staff_or_store(): void
+    {
+        // Owner request: one specific, non-technical admin account gets a
+        // trimmed nav - the flag is per-account, not per-role, so a
+        // regular admin (the test above) must still see everything.
+        $admin = User::factory()->admin()->create(['simplified_dashboard' => true]);
+
+        $this->actingAs($admin)->get('/admin/dashboard')
+            ->assertOk()
+            ->assertSee('Bookings')
+            ->assertSee('Reports')
+            ->assertDontSee('Customers')
+            ->assertDontSee('Staff')
+            ->assertDontSee('Store');
     }
 }

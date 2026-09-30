@@ -7,11 +7,17 @@
      Pass $showCustomerNames => true only from staff/admin-facing pages - it shows who booked a slot
      instead of a bare "Booked"/"In Progress" label, and who a Training Session is for. Never pass this
      from a customer-facing view (e.g. bookings/reschedule.blade.php), since that would show one
-     customer another customer's name. --}}
+     customer another customer's name.
+     Pass $fillFormOnClick => true only from the Training Session / Open Play create pages - an
+     Available cell becomes a button that fills the sibling form's court/date/start/end fields via a
+     `fillSessionSlot(courtId, date, startTime, endTime)` function the including page must define
+     (it differs per page: a single court_id select for Training Session, a court_ids[] checkbox
+     list for Open Play), instead of navigating like the customer booking flow's $bookable link does. --}}
 @php
     $extraRouteParams = $extraRouteParams ?? [];
     $readOnly = $readOnly ?? false;
     $showCustomerNames = $showCustomerNames ?? false;
+    $fillFormOnClick = $fillFormOnClick ?? false;
     // Two color variants for Open Play, alternated by batch - see
     // livewire/booking-grid.blade.php for why (distinguishing two
     // different Open Play EVENTS that land back-to-back on one day, while
@@ -70,6 +76,7 @@
                                     $court = $courtAvailability->court;
                                     $slotStart = \Illuminate\Support\Carbon::parse($date.' '.$slot->startTime);
                                     $bookable = ! $readOnly && $slot->status === \App\Enums\SlotStatus::Available && ($slotStart->lte(\Illuminate\Support\Carbon::now()) || $slotStart->gte($bookableFrom));
+                                    $fillable = $fillFormOnClick && $slot->status === \App\Enums\SlotStatus::Available;
                                     $isOpenPlay = $slot->status === \App\Enums\SlotStatus::OpenPlay;
                                     $isTrainingSession = $slot->status === \App\Enums\SlotStatus::TrainingSession;
                                     $classes = $isOpenPlay ? $openPlayClasses($slot->openPlayGroupKey) : match ($slot->status) {
@@ -88,6 +95,12 @@
                                            class="block text-center rounded-lg px-2 py-1.5 font-medium {{ $classes }} hover:opacity-80 transition-opacity">
                                             {{ $slot->status->label() }}
                                         </a>
+                                    @elseif ($fillable)
+                                        <button type="button"
+                                                onclick="fillSessionSlot({{ $court->id }}, '{{ $date }}', '{{ $slot->startTime }}', '{{ $slot->endTime }}')"
+                                                class="block w-full text-center rounded-lg px-2 py-1.5 font-medium {{ $classes }} hover:opacity-80 transition-opacity cursor-pointer">
+                                            {{ $slot->status->label() }}
+                                        </button>
                                     @elseif ($isOpenPlay)
                                         <button type="button"
                                                 @click="openPlayModal = { court: '{{ addslashes($court->name) }}', time: '{{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->openPlayStartTime)->format('g:i A')) }} – {{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->openPlayEndTime)->format('g:i A')) }}', link: {{ $slot->openPlayLink ? "'".addslashes($slot->openPlayLink)."'" : 'null' }} }"

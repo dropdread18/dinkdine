@@ -26,7 +26,6 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StoreMenuController;
 use App\Http\Controllers\Staff\BookingController as StaffBookingController;
-use App\Http\Controllers\Staff\CheckInController;
 use App\Http\Controllers\Staff\ScheduleController;
 use App\Http\Controllers\Staff\WalkInBookingController;
 use Illuminate\Support\Facades\Route;
@@ -216,12 +215,6 @@ Route::middleware(['auth', 'role:admin,staff'])->prefix('manage')->name('manage.
     // request body/query (a `slots[]` array) instead of the URL.
     Route::get('walk-in/review', [WalkInBookingController::class, 'review'])->name('walkin.review');
     Route::post('walk-in', [WalkInBookingController::class, 'store'])->name('walkin.store');
-
-    Route::get('check-in', [CheckInController::class, 'index'])->name('checkin.index');
-    Route::patch('check-in/bookings/{booking}/check-in', [CheckInController::class, 'checkIn'])->name('checkin.bookings.check-in');
-    Route::patch('check-in/bookings/{booking}/complete', [CheckInController::class, 'markCompleted'])->name('checkin.bookings.complete');
-    Route::patch('check-in/bookings/{booking}/no-show', [CheckInController::class, 'markNoShow'])->name('checkin.bookings.no-show');
-    Route::patch('check-in/courts/{court}/status', [CheckInController::class, 'updateCourtStatus'])->name('checkin.courts.update-status');
 });
 
 // Open to guests too (DEC-003) - the BookingGrid Livewire component

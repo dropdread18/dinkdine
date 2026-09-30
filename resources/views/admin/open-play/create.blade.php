@@ -24,7 +24,7 @@
             <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
                 <div>
                     <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">Schedule</h1>
-                    <p class="text-sm text-slate-500 mt-0.5">Check availability here, then fill in the form to schedule Open Play - no need to switch tabs.</p>
+                    <p class="text-sm text-slate-500 mt-0.5">Click any open time below to fill in the form on the left - no need to type the date or time by hand. Click more than one court to run the same event on all of them.</p>
                 </div>
 
                 <div class="flex items-center gap-1 text-sm bg-white border border-slate-200 rounded-lg shadow-sm p-1">
@@ -46,7 +46,20 @@
                 </div>
             </div>
 
-            @include('partials.availability-grid', ['readOnly' => true])
+            @include('partials.availability-grid', ['readOnly' => true, 'fillFormOnClick' => true])
         </div>
     </div>
+
+    <script>
+        function fillSessionSlot(courtId, date, startTime, endTime) {
+            const checkbox = document.querySelector('input[name="court_ids[]"][value="' + courtId + '"]');
+            if (checkbox) {
+                checkbox.checked = true;
+                checkbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            document.getElementById('session_date').value = date;
+            document.getElementById('start_time').value = startTime;
+            document.getElementById('end_time').value = endTime;
+        }
+    </script>
 @endsection

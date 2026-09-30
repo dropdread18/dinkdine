@@ -5,6 +5,7 @@
     // now lives inside Settings, Court Schedule merged into Walk-in Booking.
     // An organizer gets its own short, fixed list - see the sidebar
     // partial for why.
+    $simplified = auth()->user()->hasSimplifiedDashboard();
     $navItems = $isOrganizer
         ? [
             ['label' => 'Schedule', 'route' => 'manage.schedule.index'],
@@ -14,19 +15,18 @@
             ['label' => 'Dashboard', 'route' => $isAdminUser ? 'admin.dashboard' : 'staff.dashboard', 'adminOnly' => false],
             ['label' => 'Bookings', 'route' => 'manage.bookings.index', 'adminOnly' => false],
             ['label' => 'Walk-in Booking', 'route' => 'manage.walkin.index', 'adminOnly' => false],
-            ['label' => 'Check-in', 'route' => 'manage.checkin.index', 'adminOnly' => false],
             ['label' => 'Payments', 'route' => 'manage.payments.index', 'adminOnly' => true],
             ['label' => 'Maintenance', 'route' => 'admin.maintenance.index', 'adminOnly' => true],
             ['label' => 'Open Play', 'route' => 'admin.open-play.index', 'adminOnly' => true],
             ['label' => 'Training Sessions', 'route' => 'admin.training-sessions.index', 'adminOnly' => true],
-            ['label' => 'Customers', 'route' => 'admin.customers.index', 'adminOnly' => true],
+            ['label' => 'Customers', 'route' => 'admin.customers.index', 'adminOnly' => true, 'hideWhenSimplified' => true],
             ['label' => 'Reports', 'route' => 'manage.reports.index', 'adminOnly' => true],
-            ['label' => 'Staff', 'route' => 'admin.staff.index', 'adminOnly' => true],
+            ['label' => 'Staff', 'route' => 'admin.staff.index', 'adminOnly' => true, 'hideWhenSimplified' => true],
             ['label' => 'Settings', 'route' => 'manage.settings.index', 'adminOnly' => true],
             // Staff gets POS only (handoff spec section 35) - see the
             // matching comment in admin-dink-sidebar.blade.php.
-            ['label' => $isAdminUser ? 'Store' : 'POS', 'route' => $isAdminUser ? 'admin.store.index' : 'admin.store.pos.index', 'adminOnly' => false],
-        ], fn (array $item) => $isAdminUser || ! $item['adminOnly']);
+            ['label' => $isAdminUser ? 'Store' : 'POS', 'route' => $isAdminUser ? 'admin.store.index' : 'admin.store.pos.index', 'adminOnly' => false, 'hideWhenSimplified' => $isAdminUser],
+        ], fn (array $item) => ($isAdminUser || ! $item['adminOnly']) && ! ($simplified && ($item['hideWhenSimplified'] ?? false)));
     // Was unconditionally admin.dashboard, which 403s for anyone who isn't
     // admin (staff included) - route it the same way the Dashboard nav
     // item itself resolves.

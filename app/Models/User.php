@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'phone', 'password', 'role', 'is_active'])]
+#[Fillable(['name', 'email', 'phone', 'password', 'role', 'is_active', 'simplified_dashboard'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -32,6 +32,7 @@ class User extends Authenticatable
             'password_set_at' => 'datetime',
             'role' => UserRole::class,
             'is_active' => 'boolean',
+            'simplified_dashboard' => 'boolean',
         ];
     }
 
@@ -58,6 +59,16 @@ class User extends Authenticatable
     public function isCustomer(): bool
     {
         return $this->role === UserRole::Customer;
+    }
+
+    /**
+     * An admin-only flag (owner request) that trims Customers/Staff/Store
+     * from that specific account's nav - it doesn't block the routes,
+     * just hides links a non-technical owner doesn't need day-to-day.
+     */
+    public function hasSimplifiedDashboard(): bool
+    {
+        return $this->isAdmin() && $this->simplified_dashboard;
     }
 
     /**

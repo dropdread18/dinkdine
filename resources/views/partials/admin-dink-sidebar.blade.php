@@ -1,8 +1,13 @@
 @php
     $isAdminUser = auth()->user()->isAdmin();
     $isOrganizer = auth()->user()->isOrganizer();
+    // Owner request: one specific admin account (not techy) gets a
+    // trimmed-down nav with Customers/Staff/Store hidden. This only
+    // hides the links - the routes themselves are untouched, so nothing
+    // breaks if that account still has an old link saved somewhere.
+    $simplified = auth()->user()->hasSimplifiedDashboard();
     // An organizer only ever needs the booking schedule and Open Play -
-    // never Dashboard (revenue), Walk-in, Check-in, Payments, Maintenance,
+    // never Dashboard (revenue), Walk-in, Payments, Maintenance,
     // Customers, Reports, Staff, or Settings - so it gets its own short,
     // fixed list instead of running through the admin/staff filter below.
     // Order and grouping per owner request: Courts now lives inside
@@ -19,23 +24,22 @@
             ['label' => 'Dashboard', 'route' => $isAdminUser ? 'admin.dashboard' : 'staff.dashboard', 'pattern' => $isAdminUser ? 'admin.dashboard' : 'staff.dashboard', 'adminOnly' => false],
             ['label' => 'Bookings', 'route' => 'manage.bookings.index', 'pattern' => 'manage.bookings.*', 'adminOnly' => false],
             ['label' => 'Walk-in Booking', 'route' => 'manage.walkin.index', 'pattern' => 'manage.walkin.*', 'adminOnly' => false],
-            ['label' => 'Check-in', 'route' => 'manage.checkin.index', 'pattern' => 'manage.checkin.*', 'adminOnly' => false],
             ['label' => 'Payments', 'route' => 'manage.payments.index', 'pattern' => 'manage.payments.*', 'adminOnly' => true],
             ['label' => 'Maintenance', 'route' => 'admin.maintenance.index', 'pattern' => 'admin.maintenance.*', 'adminOnly' => true],
             ['label' => 'Open Play', 'route' => 'admin.open-play.index', 'pattern' => 'admin.open-play.*', 'adminOnly' => true],
             // Unlike Open Play, admin-only - no Organizer access (see
             // TrainingSessionController's doc comment).
             ['label' => 'Training Sessions', 'route' => 'admin.training-sessions.index', 'pattern' => 'admin.training-sessions.*', 'adminOnly' => true],
-            ['label' => 'Customers', 'route' => 'admin.customers.index', 'pattern' => 'admin.customers.*', 'adminOnly' => true],
+            ['label' => 'Customers', 'route' => 'admin.customers.index', 'pattern' => 'admin.customers.*', 'adminOnly' => true, 'hideWhenSimplified' => true],
             ['label' => 'Reports', 'route' => 'manage.reports.index', 'pattern' => 'manage.reports.*', 'adminOnly' => true],
-            ['label' => 'Staff', 'route' => 'admin.staff.index', 'pattern' => 'admin.staff.*', 'adminOnly' => true],
+            ['label' => 'Staff', 'route' => 'admin.staff.index', 'pattern' => 'admin.staff.*', 'adminOnly' => true, 'hideWhenSimplified' => true],
             ['label' => 'Settings', 'route' => 'manage.settings.index', 'pattern' => 'manage.settings.*|admin.courts.*', 'adminOnly' => true],
             // Staff gets POS only (handoff spec section 35) - straight to
             // the POS terminal, not the admin Store overview it can't
             // open. adminOnly is false here on purpose: this item itself
             // is visible to staff, just pointed at a narrower destination.
-            ['label' => $isAdminUser ? 'Store' : 'POS', 'route' => $isAdminUser ? 'admin.store.index' : 'admin.store.pos.index', 'pattern' => 'admin.store.*', 'adminOnly' => false],
-        ], fn (array $item) => $isAdminUser || ! $item['adminOnly']);
+            ['label' => $isAdminUser ? 'Store' : 'POS', 'route' => $isAdminUser ? 'admin.store.index' : 'admin.store.pos.index', 'pattern' => 'admin.store.*', 'adminOnly' => false, 'hideWhenSimplified' => $isAdminUser],
+        ], fn (array $item) => ($isAdminUser || ! $item['adminOnly']) && ! ($simplified && ($item['hideWhenSimplified'] ?? false)));
 @endphp
 <aside class="hidden lg:flex lg:flex-col lg:shrink-0 lg:justify-between bg-forest" style="width: 240px; padding: 24px 0;">
     <div>

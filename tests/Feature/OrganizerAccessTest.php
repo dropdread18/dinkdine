@@ -90,7 +90,6 @@ class OrganizerAccessTest extends TestCase
         $this->actingAs($organizer)->get('/manage/reports')->assertForbidden();
         $this->actingAs($organizer)->get('/manage/settings')->assertForbidden();
         $this->actingAs($organizer)->get('/manage/walk-in')->assertForbidden();
-        $this->actingAs($organizer)->get('/manage/check-in')->assertForbidden();
         $this->actingAs($organizer)->get('/manage/bookings')->assertForbidden();
         $this->actingAs($organizer)->get('/admin/customers')->assertForbidden();
         $this->actingAs($organizer)->get('/admin/staff')->assertForbidden();
