@@ -118,7 +118,7 @@
                                                 </button>
                                             @elseif ($isTrainingSession)
                                                 <button type="button"
-                                                        @click="trainingModal = { court: '{{ addslashes($court->name) }}', time: '{{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->trainingSessionStartTime)->format('g:i A')) }} – {{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->trainingSessionEndTime)->format('g:i A')) }}', customer: {{ $slot->trainingCustomerName ? "'".addslashes($slot->trainingCustomerName)."'" : 'null' }} }"
+                                                        @click="trainingModal = { court: '{{ addslashes($court->name) }}', time: '{{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->trainingSessionStartTime)->format('g:i A')) }} – {{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->trainingSessionEndTime)->format('g:i A')) }}', customer: {{ $slot->trainingCustomerName ? "'".addslashes($slot->trainingCustomerName)."'" : 'null' }}, link: {{ $slot->trainingSessionLink ? "'".addslashes($slot->trainingSessionLink)."'" : 'null' }} }"
                                                         class="block w-full text-center rounded-lg px-2 py-1.5 font-medium {{ $classes }} hover:opacity-80 transition-opacity cursor-pointer">
                                                     {{ $slot->status->label() }}
                                                 </button>
@@ -176,9 +176,11 @@
             </div>
 
             {{-- Training Session detail modal - same pattern as Open Play's
-                 above, minus a registration link. This page is staff-only
-                 (no Organizer access), so the customer name is shown
-                 unconditionally, same as bookedByName elsewhere on this grid. --}}
+                 above, but the link is a private Reclub reference for
+                 staff, not a customer signup CTA. This page is staff-only
+                 (no Organizer access), so the customer name and link are
+                 shown unconditionally, same as bookedByName elsewhere on
+                 this grid. --}}
             <div x-show="trainingModal" x-cloak @keydown.escape.window="trainingModal = null"
                  class="fixed inset-0 z-50 flex items-center justify-center p-6" style="background: rgba(15, 23, 42, 0.6);">
                 <div @click="trainingModal = null" class="absolute inset-0"></div>
@@ -188,6 +190,9 @@
                     <div class="text-sm text-slate-500" x-text="trainingModal?.time"></div>
                     <template x-if="trainingModal?.customer">
                         <div class="text-sm text-slate-700 mt-1">Customer: <span class="font-medium" x-text="trainingModal?.customer"></span></div>
+                    </template>
+                    <template x-if="trainingModal?.link">
+                        <a :href="trainingModal.link" target="_blank" rel="noopener" class="text-sm text-blue-600 hover:text-blue-700 underline underline-offset-2 mt-1">View on Reclub</a>
                     </template>
                     <button type="button" @click="trainingModal = null" class="text-sm font-semibold mt-2 text-slate-600">Close</button>
                 </div>

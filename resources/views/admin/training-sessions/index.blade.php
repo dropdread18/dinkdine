@@ -19,6 +19,7 @@
                         <th class="text-left font-medium text-slate-500 py-3 pr-4">Date</th>
                         <th class="text-left font-medium text-slate-500 py-3 pr-4">Time</th>
                         <th class="text-left font-medium text-slate-500 py-3 pr-4">Notes</th>
+                        <th class="text-left font-medium text-slate-500 py-3 pr-4">Reclub Link</th>
                         <th class="text-left font-medium text-slate-500 py-3 pr-4">Status</th>
                         <th class="text-left font-medium text-slate-500 py-3 pr-4"></th>
                     </tr>
@@ -35,6 +36,13 @@
                             <td class="py-3 pr-4 text-slate-600">{{ $session->session_date->format('M j, Y') }}</td>
                             <td class="py-3 pr-4 text-slate-600">{{ $startsAt->format('g:ia') }} – {{ $endsAt->format('g:ia') }}</td>
                             <td class="py-3 pr-4 text-slate-600">{{ $session->notes ?: '—' }}</td>
+                            <td class="py-3 pr-4">
+                                @if ($session->reclub_link)
+                                    <a href="{{ $session->reclub_link }}" target="_blank" rel="noopener" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Link set</a>
+                                @else
+                                    <span class="text-slate-400">None</span>
+                                @endif
+                            </td>
                             <td class="py-3 pr-4">
                                 @if ($endsAt->isPast())
                                     <x-badge color="slate">Past</x-badge>

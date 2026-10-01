@@ -171,6 +171,7 @@ class AvailabilityService
                     trainingSessionStartTime: $session->start_time,
                     trainingSessionEndTime: $session->end_time,
                     trainingCustomerName: $session->customer_name,
+                    trainingSessionLink: $session->reclub_link,
                 );
             }
         }

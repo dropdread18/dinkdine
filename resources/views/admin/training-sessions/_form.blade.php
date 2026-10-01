@@ -50,3 +50,11 @@
     <input id="notes" name="notes" type="text" value="{{ old('notes', $session?->notes) }}"
            class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
 </div>
+
+<div>
+    <label for="reclub_link" class="block text-sm font-medium text-slate-700">Reclub Link (optional)</label>
+    <p class="text-xs text-slate-500 mb-1">For your own reference only - never shown to customers.</p>
+    <input id="reclub_link" name="reclub_link" type="url" placeholder="https://reclub.co/..."
+           value="{{ old('reclub_link', $session?->reclub_link) }}"
+           class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
+</div>

@@ -29,6 +29,7 @@ class TrainingSessionRequest extends FormRequest
             'start_time' => ['required', 'date_format:H:i:s'],
             'end_time' => ['required', 'date_format:H:i:s', 'after:start_time'],
             'notes' => ['nullable', 'string', 'max:255'],
+            'reclub_link' => ['nullable', 'url', 'max:500'],
         ];
     }
 

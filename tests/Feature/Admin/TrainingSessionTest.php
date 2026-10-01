@@ -73,6 +73,45 @@ class TrainingSessionTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_set_a_reclub_link_when_scheduling_a_training_session(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $court = Court::factory()->create();
+
+        $response = $this->actingAs($admin)->post('/admin/training-sessions', [
+            'court_id' => $court->id,
+            'customer_name' => 'Juan Dela Cruz',
+            'session_date' => now()->addDays(3)->toDateString(),
+            'start_time' => '09:00:00',
+            'end_time' => '10:00:00',
+            'reclub_link' => 'https://reclub.co/clubs/@example',
+        ]);
+
+        $response->assertRedirect('/admin/training-sessions');
+        $this->assertDatabaseHas('training_sessions', [
+            'court_id' => $court->id,
+            'reclub_link' => 'https://reclub.co/clubs/@example',
+        ]);
+    }
+
+    public function test_reclub_link_must_be_a_valid_url(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $court = Court::factory()->create();
+
+        $response = $this->actingAs($admin)->post('/admin/training-sessions', [
+            'court_id' => $court->id,
+            'customer_name' => 'Juan Dela Cruz',
+            'session_date' => now()->addDays(3)->toDateString(),
+            'start_time' => '09:00:00',
+            'end_time' => '10:00:00',
+            'reclub_link' => 'not a url',
+        ]);
+
+        $response->assertSessionHasErrors('reclub_link');
+        $this->assertDatabaseCount('training_sessions', 0);
+    }
+
     public function test_customer_name_is_required(): void
     {
         $admin = User::factory()->admin()->create();
@@ -265,6 +304,31 @@ class TrainingSessionTest extends TestCase
         $this->assertSame('Maria Santos', $slot->trainingCustomerName);
     }
 
+    public function test_training_session_slot_carries_its_reclub_link(): void
+    {
+        $court = Court::factory()->create();
+        $date = now()->addDays(4)->toDateString();
+
+        BusinessHour::updateOrCreate(
+            ['day_of_week' => Carbon::parse($date)->dayOfWeek],
+            ['opens_at' => '06:00:00', 'closes_at' => '22:00:00', 'is_closed' => false],
+        );
+
+        TrainingSession::factory()->create([
+            'court_id' => $court->id,
+            'session_date' => $date,
+            'start_time' => '09:00:00',
+            'end_time' => '10:00:00',
+            'reclub_link' => 'https://reclub.co/clubs/@example',
+        ]);
+
+        $day = (new AvailabilityService)->forDate($date);
+        $courtAvailability = collect($day['courts'])->first(fn ($ca) => $ca->court->is($court));
+        $slot = collect($courtAvailability->slots)->first(fn ($s) => $s->startTime === '09:00:00');
+
+        $this->assertSame('https://reclub.co/clubs/@example', $slot->trainingSessionLink);
+    }
+
     public function test_admin_sees_the_customer_name_on_the_read_only_schedule(): void
     {
         $court = Court::factory()->create();
@@ -316,6 +380,56 @@ class TrainingSessionTest extends TestCase
             ->get("/manage/schedule?date={$date}")
             ->assertOk()
             ->assertDontSee('Maria Santos');
+    }
+
+    public function test_admin_sees_the_reclub_link_on_the_read_only_schedule(): void
+    {
+        $court = Court::factory()->create();
+        $date = now()->addDays(4)->toDateString();
+
+        BusinessHour::updateOrCreate(
+            ['day_of_week' => Carbon::parse($date)->dayOfWeek],
+            ['opens_at' => '06:00:00', 'closes_at' => '22:00:00', 'is_closed' => false],
+        );
+
+        TrainingSession::factory()->create([
+            'court_id' => $court->id,
+            'session_date' => $date,
+            'start_time' => '09:00:00',
+            'end_time' => '10:00:00',
+            'reclub_link' => 'https://reclub.co/clubs/@example',
+        ]);
+
+        $this->actingAs(User::factory()->admin()->create())
+            ->get("/manage/schedule?date={$date}")
+            ->assertOk()
+            ->assertSee('https://reclub.co/clubs/@example', false);
+    }
+
+    public function test_organizer_does_not_see_the_reclub_link_on_the_read_only_schedule(): void
+    {
+        // Same DEC-023-style gate as the customer name above - the link
+        // is only ever meant for admin/staff, so it's gated the same way.
+        $court = Court::factory()->create();
+        $date = now()->addDays(4)->toDateString();
+
+        BusinessHour::updateOrCreate(
+            ['day_of_week' => Carbon::parse($date)->dayOfWeek],
+            ['opens_at' => '06:00:00', 'closes_at' => '22:00:00', 'is_closed' => false],
+        );
+
+        TrainingSession::factory()->create([
+            'court_id' => $court->id,
+            'session_date' => $date,
+            'start_time' => '09:00:00',
+            'end_time' => '10:00:00',
+            'reclub_link' => 'https://reclub.co/clubs/@example',
+        ]);
+
+        $this->actingAs(User::factory()->organizer()->create())
+            ->get("/manage/schedule?date={$date}")
+            ->assertOk()
+            ->assertDontSee('https://reclub.co/clubs/@example');
     }
 
     public function test_training_session_shows_on_the_walkin_grid(): void

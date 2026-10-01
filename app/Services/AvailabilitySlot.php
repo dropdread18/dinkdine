@@ -70,5 +70,13 @@ final readonly class AvailabilitySlot
          * to render it.
          */
         public ?string $trainingCustomerName = null,
+        /**
+         * Set only when status is TrainingSession - an optional reference
+         * link back to this session's record on Reclub. Unlike
+         * openPlayLink, this is never shown to customers (there's no
+         * signup flow for a Training Session), so every Blade view that
+         * renders it is admin/staff-only already.
+         */
+        public ?string $trainingSessionLink = null,
     ) {}
 }
