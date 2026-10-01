@@ -11,7 +11,7 @@ use App\Models\TrainingSession;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
-class TrainingSessionRequest extends FormRequest
+class TournamentRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -25,7 +25,7 @@ class TrainingSessionRequest extends FormRequest
     {
         return [
             'court_id' => ['required', 'exists:courts,id'],
-            'customer_name' => ['required', 'string', 'max:255'],
+            'tournament_name' => ['required', 'string', 'max:255'],
             'session_date' => ['required', 'date'],
             'start_time' => ['required', 'date_format:H:i:s'],
             'end_time' => ['required', 'date_format:H:i:s', 'after:start_time'],
@@ -35,7 +35,7 @@ class TrainingSessionRequest extends FormRequest
     }
 
     /**
-     * Same reasoning as OpenPlaySessionRequest/CourtMaintenanceRequest:
+     * Same reasoning as TrainingSessionRequest/OpenPlaySessionRequest:
      * reject overlaps here rather than silently making an existing
      * booking invisible on the grid, or having two special-session types
      * both claim the same slot (only one status can ever display per
@@ -88,12 +88,11 @@ class TrainingSessionRequest extends FormRequest
             $trainingConflicts = TrainingSession::query()
                 ->where('court_id', $courtId)
                 ->whereDate('session_date', $date)
-                ->when($this->route('session'), fn ($query, $session) => $query->whereKeyNot($session))
                 ->get()
                 ->filter(fn (TrainingSession $session) => $start < $session->end_time && $session->start_time < $end);
 
             if ($trainingConflicts->isNotEmpty()) {
-                $validator->errors()->add('court_id', "{$courtName}: this window overlaps another Training Session already scheduled there.");
+                $validator->errors()->add('court_id', "{$courtName}: this window overlaps a Training Session already scheduled there.");
 
                 return;
             }
@@ -101,11 +100,12 @@ class TrainingSessionRequest extends FormRequest
             $tournamentConflicts = Tournament::query()
                 ->where('court_id', $courtId)
                 ->whereDate('session_date', $date)
+                ->when($this->route('tournament'), fn ($query, $tournament) => $query->whereKeyNot($tournament))
                 ->get()
                 ->filter(fn (Tournament $tournament) => $start < $tournament->end_time && $tournament->start_time < $end);
 
             if ($tournamentConflicts->isNotEmpty()) {
-                $validator->errors()->add('court_id', "{$courtName}: this window overlaps a Tournament already scheduled there.");
+                $validator->errors()->add('court_id', "{$courtName}: this window overlaps another Tournament already scheduled there.");
             }
         });
     }

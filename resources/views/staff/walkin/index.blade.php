@@ -52,7 +52,7 @@
           }"
           @change="refreshCount()"
           class="{{ ! empty($availability['courts']) ? 'pb-24' : '' }}">
-        <div x-data="{ openPlayModal: null, trainingModal: null }">
+        <div x-data="{ openPlayModal: null, trainingModal: null, tournamentModal: null }">
             <div class="flex flex-wrap gap-4 text-xs text-slate-600 mb-4">
                 <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500 align-middle mr-1.5"></span>Available</span>
                 <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500 align-middle mr-1.5"></span>Booked</span>
@@ -61,6 +61,7 @@
                 <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-orange-400 align-middle mr-1.5"></span>Maintenance</span>
                 <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-cyan-500 align-middle mr-1.5"></span>Open Play</span>
                 <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-indigo-500 align-middle mr-1.5"></span>Training Session</span>
+                <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 align-middle mr-1.5"></span>Tournament</span>
             </div>
 
             @if ($availability['is_facility_closed'])
@@ -93,6 +94,7 @@
                                             $bookable = $slot->status === \App\Enums\SlotStatus::Available && ($slotStart->lte(\Illuminate\Support\Carbon::now()) || $slotStart->gte($bookableFrom));
                                             $isOpenPlay = $slot->status === \App\Enums\SlotStatus::OpenPlay;
                                             $isTrainingSession = $slot->status === \App\Enums\SlotStatus::TrainingSession;
+                                            $isTournament = $slot->status === \App\Enums\SlotStatus::Tournament;
                                             $classes = $isOpenPlay ? $openPlayClasses($slot->openPlayGroupKey) : match ($slot->status) {
                                                 \App\Enums\SlotStatus::Available => 'bg-green-50 text-green-700',
                                                 \App\Enums\SlotStatus::Booked => 'bg-red-50 text-red-700',
@@ -100,6 +102,7 @@
                                                 \App\Enums\SlotStatus::Closed => 'bg-slate-100 text-slate-400',
                                                 \App\Enums\SlotStatus::Maintenance => 'bg-orange-50 text-orange-600',
                                                 \App\Enums\SlotStatus::TrainingSession => 'bg-indigo-50 text-indigo-700',
+                                                \App\Enums\SlotStatus::Tournament => 'bg-blue-50 text-blue-700',
                                                 \App\Enums\SlotStatus::OpenPlay => '',
                                             };
                                             $slotValue = json_encode(['court_id' => $court->id, 'date' => $date, 'start_time' => $slot->startTime, 'end_time' => $slot->endTime]);
@@ -119,6 +122,12 @@
                                             @elseif ($isTrainingSession)
                                                 <button type="button"
                                                         @click="trainingModal = { court: '{{ addslashes($court->name) }}', time: '{{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->trainingSessionStartTime)->format('g:i A')) }} – {{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->trainingSessionEndTime)->format('g:i A')) }}', customer: {{ $slot->trainingCustomerName ? "'".addslashes($slot->trainingCustomerName)."'" : 'null' }}, link: {{ $slot->trainingSessionLink ? "'".addslashes($slot->trainingSessionLink)."'" : 'null' }} }"
+                                                        class="block w-full text-center rounded-lg px-2 py-1.5 font-medium {{ $classes }} hover:opacity-80 transition-opacity cursor-pointer">
+                                                    {{ $slot->status->label() }}
+                                                </button>
+                                            @elseif ($isTournament)
+                                                <button type="button"
+                                                        @click="tournamentModal = { court: '{{ addslashes($court->name) }}', time: '{{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->tournamentStartTime)->format('g:i A')) }} – {{ addslashes(\Illuminate\Support\Carbon::createFromFormat('H:i:s', $slot->tournamentEndTime)->format('g:i A')) }}', name: {{ $slot->tournamentName ? "'".addslashes($slot->tournamentName)."'" : 'null' }}, link: {{ $slot->tournamentLink ? "'".addslashes($slot->tournamentLink)."'" : 'null' }} }"
                                                         class="block w-full text-center rounded-lg px-2 py-1.5 font-medium {{ $classes }} hover:opacity-80 transition-opacity cursor-pointer">
                                                     {{ $slot->status->label() }}
                                                 </button>
@@ -195,6 +204,25 @@
                         <a :href="trainingModal.link" target="_blank" rel="noopener" class="text-sm text-blue-600 hover:text-blue-700 underline underline-offset-2 mt-1">View on Reclub</a>
                     </template>
                     <button type="button" @click="trainingModal = null" class="text-sm font-semibold mt-2 text-slate-600">Close</button>
+                </div>
+            </div>
+
+            {{-- Tournament detail modal - same pattern as Training Session's
+                 above. --}}
+            <div x-show="tournamentModal" x-cloak @keydown.escape.window="tournamentModal = null"
+                 class="fixed inset-0 z-50 flex items-center justify-center p-6" style="background: rgba(15, 23, 42, 0.6);">
+                <div @click="tournamentModal = null" class="absolute inset-0"></div>
+                <div class="relative rounded-2xl p-6 max-w-sm w-full flex flex-col gap-2 bg-white">
+                    <div class="text-xs font-bold uppercase tracking-wide text-blue-700" style="letter-spacing: 0.06em;">Tournament</div>
+                    <div class="text-lg font-bold text-slate-900" x-text="tournamentModal?.court"></div>
+                    <div class="text-sm text-slate-500" x-text="tournamentModal?.time"></div>
+                    <template x-if="tournamentModal?.name">
+                        <div class="text-sm text-slate-700 mt-1" x-text="tournamentModal?.name"></div>
+                    </template>
+                    <template x-if="tournamentModal?.link">
+                        <a :href="tournamentModal.link" target="_blank" rel="noopener" class="text-sm text-blue-600 hover:text-blue-700 underline underline-offset-2 mt-1">View on Reclub</a>
+                    </template>
+                    <button type="button" @click="tournamentModal = null" class="text-sm font-semibold mt-2 text-slate-600">Close</button>
                 </div>
             </div>
         </div>

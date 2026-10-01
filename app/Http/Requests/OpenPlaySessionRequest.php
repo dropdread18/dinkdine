@@ -6,6 +6,7 @@ use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\Court;
 use App\Models\OpenPlaySession;
+use App\Models\Tournament;
 use App\Models\TrainingSession;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -107,6 +108,19 @@ class OpenPlaySessionRequest extends FormRequest
                 if ($trainingConflicts->isNotEmpty()) {
                     $courtName = Court::find($courtId)?->name ?? "court #{$courtId}";
                     $validator->errors()->add($courtField, "{$courtName}: this window overlaps a Training Session already scheduled there.");
+
+                    continue;
+                }
+
+                $tournamentConflicts = Tournament::query()
+                    ->where('court_id', $courtId)
+                    ->whereDate('session_date', $date)
+                    ->get()
+                    ->filter(fn (Tournament $tournament) => $start < $tournament->end_time && $tournament->start_time < $end);
+
+                if ($tournamentConflicts->isNotEmpty()) {
+                    $courtName = Court::find($courtId)?->name ?? "court #{$courtId}";
+                    $validator->errors()->add($courtField, "{$courtName}: this window overlaps a Tournament already scheduled there.");
                 }
             }
         });

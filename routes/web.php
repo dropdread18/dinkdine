@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\Store\ProductController as StoreProductController
 use App\Http\Controllers\Admin\Store\SaleController as StoreSaleController;
 use App\Http\Controllers\Admin\Store\StoreDashboardController;
 use App\Http\Controllers\Admin\Store\StoreReportController;
+use App\Http\Controllers\Admin\TournamentController;
 use App\Http\Controllers\Admin\TrainingSessionController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\NewPasswordController;
@@ -89,6 +90,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // request: Training Session is an internal coaching/drill booking
     // tied to a named customer, not a public event Organizer needs to see).
     Route::resource('training-sessions', TrainingSessionController::class)->except(['show'])->parameters(['training-sessions' => 'session']);
+    // Same reasoning as Training Session above - admin-only, no Organizer
+    // access.
+    Route::resource('tournaments', TournamentController::class)->except(['show']);
 
     Route::get('customers', [CustomerController::class, 'index'])->name('customers.index');
     Route::get('customers/create', [CustomerController::class, 'create'])->name('customers.create');

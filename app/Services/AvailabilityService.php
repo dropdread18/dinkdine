@@ -12,6 +12,7 @@ use App\Models\Court;
 use App\Models\CourtMaintenance;
 use App\Models\OpenPlaySession;
 use App\Models\Setting;
+use App\Models\Tournament;
 use App\Models\TrainingSession;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -82,7 +83,12 @@ class AvailabilityService
             ->get()
             ->groupBy('court_id');
 
-        $courtAvailabilities = $courts->map(function (Court $court) use ($slotTimes, $day, $bookingsByCourt, $maintenanceByCourt, $closurePeriods, $openPlayByCourt, $trainingByCourt) {
+        $tournamentsByCourt = Tournament::query()
+            ->whereDate('session_date', $day)
+            ->get()
+            ->groupBy('court_id');
+
+        $courtAvailabilities = $courts->map(function (Court $court) use ($slotTimes, $day, $bookingsByCourt, $maintenanceByCourt, $closurePeriods, $openPlayByCourt, $trainingByCourt, $tournamentsByCourt) {
             $slots = array_map(
                 fn (array $range) => $this->resolveSlot(
                     $court,
@@ -94,6 +100,7 @@ class AvailabilityService
                     $closurePeriods,
                     $openPlayByCourt->get($court->id, new Collection),
                     $trainingByCourt->get($court->id, new Collection),
+                    $tournamentsByCourt->get($court->id, new Collection),
                 ),
                 $slotTimes,
             );
@@ -118,6 +125,7 @@ class AvailabilityService
         Collection $closurePeriods,
         Collection $courtOpenPlay,
         Collection $courtTraining,
+        Collection $courtTournaments,
     ): AvailabilitySlot {
         if (! $court->isBookable()) {
             // A court explicitly set to Maintenance should read as
@@ -172,6 +180,23 @@ class AvailabilityService
                     trainingSessionEndTime: $session->end_time,
                     trainingCustomerName: $session->customer_name,
                     trainingSessionLink: $session->reclub_link,
+                );
+            }
+        }
+
+        // Same reasoning as the Open Play/Training Session blocks above -
+        // a Tournament blocks the slot but reads as its own status on the
+        // grid.
+        foreach ($courtTournaments as $tournament) {
+            if ($this->timeRangesOverlap($startTime, $endTime, $tournament->start_time, $tournament->end_time)) {
+                return new AvailabilitySlot(
+                    $startTime,
+                    $endTime,
+                    SlotStatus::Tournament,
+                    tournamentStartTime: $tournament->start_time,
+                    tournamentEndTime: $tournament->end_time,
+                    tournamentName: $tournament->tournament_name,
+                    tournamentLink: $tournament->reclub_link,
                 );
             }
         }

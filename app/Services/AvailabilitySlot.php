@@ -78,5 +78,26 @@ final readonly class AvailabilitySlot
          * renders it is admin/staff-only already.
          */
         public ?string $trainingSessionLink = null,
+        /**
+         * Set only when status is Tournament - the tournament's own full
+         * time range (not this one hourly slot's), same reasoning as
+         * openPlayStartTime/openPlayEndTime above.
+         */
+        public ?string $tournamentStartTime = null,
+        public ?string $tournamentEndTime = null,
+        /**
+         * Set only when status is Tournament - what the tournament is
+         * called. Same staff/admin-only visibility rule as
+         * trainingCustomerName (gated by $showCustomerNames in the Blade
+         * views, even though a tournament name isn't personal data -
+         * keeping one consistent gate is simpler than a second one).
+         */
+        public ?string $tournamentName = null,
+        /**
+         * Set only when status is Tournament - an optional reference link
+         * back to this tournament's record on Reclub, same as
+         * trainingSessionLink.
+         */
+        public ?string $tournamentLink = null,
     ) {}
 }

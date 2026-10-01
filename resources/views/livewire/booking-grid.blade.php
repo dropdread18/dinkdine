@@ -228,6 +228,10 @@
                 'maintenance' => ['bg' => '#FFF7ED', 'border' => '#FDBA74', 'text' => '#C2410C', 'dot' => '#F97316', 'icon' => '⚠', 'label' => 'Maintenance'],
                 'open_play' => ['bg' => '#ECFEFF', 'border' => '#A5F3FC', 'text' => '#0E7490', 'dot' => '#06B6D4', 'icon' => '◆', 'label' => 'Open Play'],
                 'training_session' => ['bg' => '#EEF2FF', 'border' => '#C7D2FE', 'text' => '#4338CA', 'dot' => '#6366F1', 'icon' => '●', 'label' => 'Training Session'],
+                // A deeper blue than 'selected' above (#3B82F6) on purpose -
+                // the two never appear in the same legend context, but a
+                // shared exact hue would still read as the same status.
+                'tournament' => ['bg' => '#EFF6FF', 'border' => '#BFDBFE', 'text' => '#1D4ED8', 'dot' => '#1D4ED8', 'icon' => '●', 'label' => 'Tournament'],
             ];
             // Two color variants for Open Play, alternated by the session's
             // batch (see openPlayGroupKey on AvailabilitySlot) - when two

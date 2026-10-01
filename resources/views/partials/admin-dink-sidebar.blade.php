@@ -30,6 +30,8 @@
             // Unlike Open Play, admin-only - no Organizer access (see
             // TrainingSessionController's doc comment).
             ['label' => 'Training Sessions', 'route' => 'admin.training-sessions.index', 'pattern' => 'admin.training-sessions.*', 'adminOnly' => true],
+            // Same reasoning as Training Sessions above.
+            ['label' => 'Tournaments', 'route' => 'admin.tournaments.index', 'pattern' => 'admin.tournaments.*', 'adminOnly' => true],
             ['label' => 'Customers', 'route' => 'admin.customers.index', 'pattern' => 'admin.customers.*', 'adminOnly' => true, 'hideWhenSimplified' => true],
             ['label' => 'Reports', 'route' => 'manage.reports.index', 'pattern' => 'manage.reports.*', 'adminOnly' => true],
             ['label' => 'Staff', 'route' => 'admin.staff.index', 'pattern' => 'admin.staff.*', 'adminOnly' => true, 'hideWhenSimplified' => true],
