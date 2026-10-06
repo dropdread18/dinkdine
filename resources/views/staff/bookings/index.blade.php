@@ -85,7 +85,7 @@
                         @endif
                         @foreach ($groupBookings as $booking)
                             <tr class="border-t border-slate-100 hover:bg-slate-50/60 {{ $isGroup ? 'bg-blue-50/15' : '' }}">
-                                <td class="py-3 pl-4 pr-4 text-slate-500 {{ $isGroup ? 'pl-8' : '' }}">PB-{{ $booking->id }}</td>
+                                <td class="py-3 pl-4 pr-4 text-slate-500 whitespace-nowrap {{ $isGroup ? 'pl-8' : '' }}">PB-{{ $booking->id }}</td>
                                 <td class="py-3 pr-4 text-slate-900 font-medium">{{ $isGroup ? '' : $booking->user->name }}</td>
                                 <td class="py-3 pr-4 text-slate-600">{{ $booking->court->name }}</td>
                                 <td class="py-3 pr-4 text-slate-600 whitespace-nowrap">
@@ -99,10 +99,12 @@
                                     <a href="{{ route('bookings.show', $booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">View</a>
                                     @if ($booking->status !== \App\Enums\BookingStatus::Cancelled)
                                         <a href="{{ route('manage.bookings.reschedule', $booking) }}" class="text-blue-600 hover:text-blue-700 underline underline-offset-2">Reschedule</a>
-                                        <form method="POST" action="{{ route('manage.bookings.cancel', $booking) }}" class="inline">
+                                        <form method="POST" action="{{ route('manage.bookings.cancel', $booking) }}" class="inline-block ml-3 pl-3 border-l border-slate-200"
+                                              data-confirm-cancel
+                                              onsubmit="return confirm('Cancel booking PB-{{ $booking->id }} on {{ $booking->booking_date->format('M j, Y') }}? The customer will be notified.');">
                                             @csrf
                                             @method('PATCH')
-                                            <button type="submit" class="text-red-600 hover:text-red-700 underline underline-offset-2">Cancel</button>
+                                            <button type="submit" class="text-red-600 hover:bg-red-50 border border-red-200 rounded-lg px-2.5 py-1 text-xs font-semibold">Cancel booking</button>
                                         </form>
                                     @endif
                                 </td>

@@ -15,7 +15,7 @@
                 --db-ink: #0F172A;
                 --db-ink-soft: #475569;
                 --db-ink-faint: #64748B;
-                --db-ink-faintest: #94A3B8;
+                --db-ink-faintest: #64748B;
                 --db-accent: #A31E22;
                 --db-font: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
             }
@@ -85,7 +85,7 @@
                                             PB-{{ $payment->booking->id }} &middot; {{ $payment->booking->court->name }} &middot; ₱{{ number_format($payment->amount, 0) }}
                                         </div>
                                     </div>
-                                    <a href="{{ route('bookings.show', $payment->booking) }}" class="text-xs font-bold rounded-lg px-3 py-2" style="background: #92400E; color: #FFFBEB;">Approve</a>
+                                    <a href="{{ route('bookings.show', $payment->booking) }}" class="text-xs font-bold rounded-lg px-3 py-2" style="background: #92400E; color: #FFFBEB;">Review</a>
                                 </div>
                             @empty
                                 <div class="text-sm text-center py-6" style="color: #92400E;">No payments waiting on approval.</div>

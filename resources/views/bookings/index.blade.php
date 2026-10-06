@@ -15,7 +15,7 @@
                 --db-ink: #0F172A;
                 --db-ink-soft: #475569;
                 --db-ink-faint: #64748B;
-                --db-ink-faintest: #94A3B8;
+                --db-ink-faintest: #64748B;
                 --db-accent: #A31E22;
                 --db-accent-hover: #7E1519;
                 --db-accent-ink: #FFFFFF;

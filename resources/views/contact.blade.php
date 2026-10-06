@@ -41,36 +41,36 @@
             <x-card class="!p-5 space-y-4">
                 @if ($facilityAddress)
                     <div>
-                        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Address</div>
+                        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Address</div>
                         <div class="text-sm text-slate-900 mt-1">{{ $facilityAddress }}</div>
                     </div>
                 @endif
 
                 @if ($facilityPhone)
                     <div>
-                        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Phone</div>
-                        <a href="tel:{{ preg_replace('/[^\d+]/', '', $facilityPhone) }}" class="text-sm text-blue-600 hover:text-blue-700 underline underline-offset-2 mt-1 inline-block">{{ $facilityPhone }}</a>
+                        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Phone</div>
+                        <a href="tel:{{ preg_replace('/[^\d+]/', '', $facilityPhone) }}" class="text-sm text-forest hover:opacity-80 font-medium underline underline-offset-2 mt-1 inline-block">{{ $facilityPhone }}</a>
                     </div>
                 @endif
 
                 @if ($facilityEmail)
                     <div>
-                        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Email</div>
-                        <a href="mailto:{{ $facilityEmail }}" class="text-sm text-blue-600 hover:text-blue-700 underline underline-offset-2 mt-1 inline-block">{{ $facilityEmail }}</a>
+                        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Email</div>
+                        <a href="mailto:{{ $facilityEmail }}" class="text-sm text-forest hover:opacity-80 font-medium underline underline-offset-2 mt-1 inline-block">{{ $facilityEmail }}</a>
                     </div>
                 @endif
 
                 @if ($facilityFacebook)
                     <div>
-                        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Facebook</div>
-                        <a href="{{ $facilityFacebook }}" target="_blank" rel="noopener" class="text-sm text-blue-600 hover:text-blue-700 underline underline-offset-2 mt-1 inline-block">Visit our Page</a>
+                        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Facebook</div>
+                        <a href="{{ $facilityFacebook }}" target="_blank" rel="noopener" class="text-sm text-forest hover:opacity-80 font-medium underline underline-offset-2 mt-1 inline-block">Dink &amp; Dine on Facebook</a>
                     </div>
                 @endif
 
                 @if ($openPlayLink)
                     <div>
-                        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Reclub</div>
-                        <a href="{{ $openPlayLink }}" target="_blank" rel="noopener" class="text-sm text-blue-600 hover:text-blue-700 underline underline-offset-2 mt-1 inline-block">Visit our Reclub Page</a>
+                        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Reclub</div>
+                        <a href="{{ $openPlayLink }}" target="_blank" rel="noopener" class="text-sm text-forest hover:opacity-80 font-medium underline underline-offset-2 mt-1 inline-block">Book Open Play on Reclub</a>
                     </div>
                 @endif
 

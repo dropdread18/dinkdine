@@ -4,7 +4,9 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         @include('partials.favicon')
-        <title>{{ isset($title) ? $title.' - '.config('app.name') : config('app.name') }}</title>
+        @php $siteName = $brandName ?? config('app.name'); @endphp
+        <title>{{ isset($title) ? $title.' - '.$siteName : $siteName }}</title>
+        <meta name="description" content="{{ $metaDescription ?? 'Book an indoor pickleball court at '.$siteName.'. See live availability, pick your hour and pay online with GCash or bank transfer.' }}">
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         {{-- Livewire ships its own bundled Alpine.js and only auto-injects
              it on pages that actually mount a <livewire:...> component -

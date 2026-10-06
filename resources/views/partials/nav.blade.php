@@ -37,13 +37,13 @@
             @else
                 <a href="{{ route('contact') }}" class="text-white hover:opacity-80 font-medium">Contact</a>
                 <a href="{{ route('login') }}" class="text-white hover:opacity-80 font-medium">Log in</a>
-                <x-button tag="a" href="{{ route('register') }}" variant="primary" class="!py-2 !px-3.5 text-xs">Register</x-button>
+                <x-button tag="a" href="{{ route('register') }}" variant="primary" class="!py-2.5 !px-4 text-sm min-h-[40px]">Register</x-button>
             @endauth
         </div>
 
         {{-- Mobile: collapses into a hamburger, same <details> pattern used by the admin/staff mobile header - no JS needed. --}}
         <details class="sm:hidden relative">
-            <summary class="list-none cursor-pointer text-sm font-semibold text-white px-3 py-1.5 rounded-lg border border-white/20">Menu</summary>
+            <summary class="list-none cursor-pointer text-sm font-semibold text-white px-4 py-2.5 min-h-[44px] inline-flex items-center rounded-lg border border-white/20">Menu</summary>
             <div class="absolute right-0 mt-2 w-56 bg-forest rounded-lg shadow-lg py-2 z-20 border border-white/10">
                 @auth
                     @php $user = auth()->user(); @endphp
