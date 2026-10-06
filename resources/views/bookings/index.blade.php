@@ -36,7 +36,7 @@
     <body class="db-body">
         @include('partials.nav')
 
-        <main class="mx-auto max-w-[1440px] px-5 py-6 sm:px-10 sm:py-8">
+        <main class="mx-auto max-w-5xl px-5 py-6 sm:px-10 sm:py-8">
             @include('partials.flash-messages')
 
             @php

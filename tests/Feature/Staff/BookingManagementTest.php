@@ -249,4 +249,26 @@ class BookingManagementTest extends TestCase
         $response->assertSessionHasErrors('booking');
         $this->assertSame('09:00:00', $booking->fresh()->start_time);
     }
+
+    public function test_cancel_button_on_the_bookings_list_asks_for_confirmation(): void
+    {
+        $booking = Booking::factory()->create(['booking_date' => $this->date]);
+
+        $this->actingAs(User::factory()->staff()->create())
+            ->get('/manage/bookings')
+            ->assertOk()
+            ->assertSee('data-confirm-cancel', false)
+            ->assertSee("return confirm('Cancel booking PB-{$booking->id}", false)
+            ->assertSee('Cancel booking');
+    }
+
+    public function test_public_pages_have_meta_description_and_brand_title(): void
+    {
+        Setting::set('facility_name', 'Dink & Dine');
+
+        $this->get('/contact')
+            ->assertOk()
+            ->assertSee('<meta name="description"', false)
+            ->assertSee('Contact - Dink &amp; Dine', false);
+    }
 }

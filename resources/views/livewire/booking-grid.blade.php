@@ -272,6 +272,7 @@
                 </div>
             @endforeach
         </div>
+        <p class="text-[13px] mb-4" style="color: var(--db-ink-soft);" data-training-note>Training sessions are reserved for coaching. For walk-ins and Open Play, call or message the facility (see Contact).</p>
 
         {{-- Session pricing indicator - the day/evening rate split PricingService
              already prices by (before/from 5:00 PM), surfaced up front so
@@ -315,7 +316,7 @@
             {{-- ============ Desktop: grid + live sidebar (lg and up) ============ --}}
             <div class="hidden lg:grid lg:items-start lg:gap-6" style="grid-template-columns: 1fr 340px;">
                 <div class="rounded-2xl p-5 overflow-hidden" style="background: var(--db-surface); border: 1px solid var(--db-border);">
-                    <div class="grid gap-2 mb-2" style="grid-template-columns: 96px repeat({{ count($availability['courts']) }}, 1fr);">
+                    <div class="grid gap-2 mb-2" style="grid-template-columns: 150px repeat({{ count($availability['courts']) }}, 1fr);">
                         <div></div>
                         @foreach ($availability['courts'] as $courtAvailability)
                             <div class="text-sm font-bold text-center py-2" style="color: var(--db-ink);">{{ $courtAvailability->court->name }}</div>
@@ -323,8 +324,8 @@
                     </div>
                     @foreach ($times as $i => $time)
                         @continue($isToday && \Illuminate\Support\Carbon::parse($date.' '.$time->endTime)->lt(\Illuminate\Support\Carbon::now()))
-                        <div class="grid gap-2 mb-2" style="grid-template-columns: 96px repeat({{ count($availability['courts']) }}, 1fr);">
-                            <div class="text-[12px] font-semibold flex items-center" style="color: var(--db-ink-soft);">
+                        <div class="grid gap-2 mb-2" style="grid-template-columns: 150px repeat({{ count($availability['courts']) }}, 1fr);">
+                            <div class="text-[12px] font-semibold flex items-center whitespace-nowrap" style="color: var(--db-ink-soft);">
                                 {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $time->startTime)->format('g:i A') }} – {{ \Illuminate\Support\Carbon::createFromFormat('H:i:s', $time->endTime)->format('g:i A') }}
                             </div>
                             @foreach ($availability['courts'] as $courtAvailability)
